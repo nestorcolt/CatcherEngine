@@ -6,7 +6,20 @@ namespace AmazonFlexServices
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            Engine instance = new Engine();
+            instance.Run();
         }
+    }
+
+
+
+    class Engine
+
+    {
+        public void Run()
+        {
+            Console.WriteLine("Init Method");
+        }
+
     }
 }
