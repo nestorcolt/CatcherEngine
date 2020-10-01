@@ -1,9 +1,9 @@
 ﻿using System;
 
-/// <summary>
-///     The Main program for looking, catching and accepting blocks for the amazon flex service. Automate the process and handle a single user process instance and this needs
-///     to be run per user request. (Ideally on a Lambda funciton over the AWS architecture)
-/// </summary>
+
+// The Main program for looking, catching and accepting blocks for the amazon flex service. Automate the process and handle a single user process instance and this needs
+// to be run per user request. (Ideally on a Lambda function over the AWS architecture)
+
 
 namespace AmazonFlexServices
 {
@@ -19,22 +19,23 @@ namespace AmazonFlexServices
 
             Console.WriteLine(ownerEndpointURL);
 
-            BlockCatcher instance = new BlockCatcher();
-            instance.Run();
+            BlockCatcher catcher = new BlockCatcher();
         }
     }
 
 
     class BlockCatcher
 
-        /// The Engine of the program. Will look for available blocks depending on the parsed data, makin api calls to amazon to check for for blocks to pick up by drivers.
-        /// Will used asynchronous programming and multithreading to speed up the process and the api request.
+    // The Engine of the program. Will look for available blocks depending on the parsed data, making API calls to amazon to check for blocks to pick up by drivers.
+    // Will used asynchronous programming and multi-threading to speed up the process and the API request.
 
     {
-        public void Run()
+        public BlockCatcher()
         {
-            Console.WriteLine("Init Method");
+            Console.WriteLine("Constructor");
         }
 
+
     }
+
 }
