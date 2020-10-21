@@ -22,7 +22,7 @@ namespace FlexCatcher
 
         private readonly string _userId;
         private readonly string _flexAppVersion;
-        private readonly Dictionary<string, string> _offersDataHeader;
+        private Dictionary<string, string> _offersDataHeader;
         private bool _AccessSuccessCode;
 
         public BlockCatcher(string userId, string flexAppVersion)
@@ -32,9 +32,11 @@ namespace FlexCatcher
             _userId = userId;
 
             // Methods resolution
-            _offersDataHeader = EmulateDevice();
+            EmulateDevice();
             GetAccessData();
             SetServiceArea();
+
+            // TODO cojer las service area ID y ponerlas en _offersDataHeaders
             //LookingForBlocks();
 
         }
@@ -50,7 +52,26 @@ namespace FlexCatcher
             }
 
             string response = GetAsync(_serviceAreaDirectory, data).Result;
-            Console.WriteLine(response);
+            var responseDictionary = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(response);
+            var serviceAreaId = responseDictionary["serviceAreaIds"][0];
+
+            // Id Dictionary to parse to offer headers later
+            var serviceDataDictionary = new Dictionary<string, object>
+
+            {
+                ["serviceAreaIds"] = $"[{serviceAreaId}]",
+                ["apiVersion"] = "V2",
+                ["filters"] = new Dictionary<string, object>
+                {
+                    ["serviceAreaFilter"] = new List<string>(),
+                    ["timeFilter"] = new Dictionary<string, string>(),
+                },
+
+            };
+
+            string jsonData = JsonConvert.SerializeObject(serviceDataDictionary);
+            // TODO MERGE THE HEADERS OFFERS AND SERVICE DATA IN ONE.
+            // here ... 
 
         }
 
@@ -138,7 +159,7 @@ namespace FlexCatcher
 
         }
 
-        private Dictionary<string, string> EmulateDevice()
+        private void EmulateDevice()
         {
             var data = new Dictionary<string, string>
 
@@ -158,13 +179,13 @@ namespace FlexCatcher
             string instanceId = responseDictionary["instanceId"];
             string build = responseDictionary["build"];
             string uuid = Guid.NewGuid().ToString();
-            string time = "1603307322";
+            int time = GetTimestamp();
 
             var offerAcceptHeaders = new Dictionary<string, string>
             {
                 ["x-flex-instance-id"] = $"{instanceId.Substring(0, 8)}-{instanceId.Substring(8, 4)}-" +
                                          $"{instanceId.Substring(12, 4)}-{instanceId.Substring(16, 4)}-{instanceId.Substring(20, 12)}",
-                ["X-Flex-Client-Time"] = time,
+                ["X-Flex-Client-Time"] = time.ToString(),
                 ["Content-Type"] = "application/json",
                 ["User-Agent"] = $"Dalvik/2.1.0 (Linux; U; Android {androidVersion}; {deviceModel} {build}) RabbitAndroid/{_flexAppVersion}",
                 ["X-Amzn-RequestId"] = uuid,
@@ -173,7 +194,9 @@ namespace FlexCatcher
                 ["Accept-Encoding"] = "gzip"
             };
 
-            return offerAcceptHeaders;
+            // Set the class field with the new offer headers
+            _offersDataHeader = offerAcceptHeaders;
+
         }
 
 
