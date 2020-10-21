@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -23,7 +22,7 @@ namespace FlexCatcher
         private readonly string _userId;
         private readonly string _flexAppVersion;
         private Dictionary<string, string> _offersDataHeader;
-        private bool _AccessSuccessCode;
+        private bool _accessSuccessCode;
 
         public BlockCatcher(string userId, string flexAppVersion)
         {
@@ -31,14 +30,28 @@ namespace FlexCatcher
             _flexAppVersion = flexAppVersion;
             _userId = userId;
 
-            // Methods resolution
+            // Primary methods resolution
             EmulateDevice();
             GetAccessData();
             SetServiceArea();
 
-            // TODO cojer las service area ID y ponerlas en _offersDataHeaders
-            //LookingForBlocks();
+            // Main loop method is being called here
+            if (_accessSuccessCode)
+            {
+                //LookingForBlocks();
+                Console.WriteLine("Looking for blocks 1, 2, 3 ...");
+            }
 
+
+
+        }
+
+        private int GetTimestamp()
+        {
+
+            TimeSpan time = (DateTime.UtcNow - new DateTime(1970, 1, 1));
+            int timestamp = (int)time.TotalSeconds;
+            return timestamp;
         }
 
         private void SetServiceArea()
@@ -75,60 +88,6 @@ namespace FlexCatcher
 
         }
 
-        private int GetTimestamp()
-        {
-
-            TimeSpan time = (DateTime.UtcNow - new DateTime(1970, 1, 1));
-            int timestamp = (int)time.TotalSeconds;
-            return timestamp;
-        }
-
-
-        public async Task<string> GetAsync(string uri, WebHeaderCollection data)
-        {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
-            request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-            request.Headers = data;
-
-            using (HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync())
-            using (Stream stream = response.GetResponseStream())
-            using (StreamReader reader = new StreamReader(stream))
-            {
-                return await reader.ReadToEndAsync();
-            }
-        }
-
-        public async Task<string> PostAsync(string uri, string data, string method = "POST")
-        {
-            byte[] dataBytes = Encoding.UTF8.GetBytes(data);
-
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
-            request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-            request.ContentLength = dataBytes.Length;
-            request.ContentType = "application/json";
-            request.Method = method;
-
-
-            await using (Stream requestBody = request.GetRequestStream())
-            {
-                await requestBody.WriteAsync(dataBytes, 0, dataBytes.Length);
-            }
-
-            using HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync();
-            await using Stream stream = response.GetResponseStream();
-            using StreamReader reader = new StreamReader(stream);
-            return await reader.ReadToEndAsync();
-        }
-
-
-        public async Task<HttpResponseMessage> apiPostData(string uri, string data, string method = "POST")
-        {
-
-            using HttpResponseMessage response = await ApiHelper.ApiClient.GetAsync(uri);
-            return response;
-
-        }
-
         public void GetAccessData()
         {
 
@@ -145,15 +104,15 @@ namespace FlexCatcher
 
             if (responseDictionary["access_token"] == "failed")
             {
-                Console.WriteLine("Session token request failed.");
-                _AccessSuccessCode = false;
+                Console.WriteLine("Session token request failed. Operation aborted.\n");
+                _accessSuccessCode = false;
             }
 
             else
             {
                 _offersDataHeader["x-amz-access-token"] = responseDictionary["access_token"];
-                Console.WriteLine("Login Success!");
-                _AccessSuccessCode = true;
+                Console.WriteLine("Access to the service granted!\n");
+                _accessSuccessCode = true;
             }
 
 
@@ -200,6 +159,41 @@ namespace FlexCatcher
         }
 
 
+        public async Task<string> GetAsync(string uri, WebHeaderCollection data)
+        {
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
+            request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+            request.Headers = data;
+
+            using (HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync())
+            using (Stream stream = response.GetResponseStream())
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                return await reader.ReadToEndAsync();
+            }
+        }
+
+        public async Task<string> PostAsync(string uri, string data, string method = "POST")
+        {
+            byte[] dataBytes = Encoding.UTF8.GetBytes(data);
+
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
+            request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+            request.ContentLength = dataBytes.Length;
+            request.ContentType = "application/json";
+            request.Method = method;
+
+
+            await using (Stream requestBody = request.GetRequestStream())
+            {
+                await requestBody.WriteAsync(dataBytes, 0, dataBytes.Length);
+            }
+
+            using HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync();
+            await using Stream stream = response.GetResponseStream();
+            using StreamReader reader = new StreamReader(stream);
+            return await reader.ReadToEndAsync();
+        }
 
         private void AcceptOffer()
         {
@@ -210,7 +204,6 @@ namespace FlexCatcher
         {
 
         }
-
 
         private void GetOffers()
         {
