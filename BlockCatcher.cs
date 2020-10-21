@@ -16,24 +16,54 @@ namespace FlexCatcher
 
     {
         string ownerEndpointURL = "https://www.thunderflex.us/admin/script_functions.php";
+        private string _offersDirectory = "https://flex-capacity-na.amazon.com/GetOffersForProviderPost";
+        private string _serviceAreaDirectory = "https://flex-capacity-na.amazon.com/eligibleServiceAreas";
+
         private readonly string _userId;
         private readonly string _flexAppVersion;
-        private readonly Dictionary<string, string> DeviceDataHeader;
-        private bool _AccessSuccessCode = false;
+        private readonly Dictionary<string, string> _deviceDataHeader;
+        private readonly Dictionary<string, string> _offersDataHeader;
+        private bool _AccessSuccessCode;
+
+
 
 
 
         public BlockCatcher(string userId, string flexAppVersion)
         {
             ApiHelper.InitializeClient();
-            _userId = userId;
             _flexAppVersion = flexAppVersion;
+            _userId = userId;
 
             // Methods resolution
-            DeviceDataHeader = EmulateDevice();
+            _deviceDataHeader = EmulateDevice();
             GetAccessData();
-            Console.WriteLine(DeviceDataHeader["x-amz-access-token"]);
+            SetServiceArea();
+            //LookingForBlocks();
+
         }
+
+        private void SetServiceArea()
+        {
+            string jsonData = JsonConvert.SerializeObject(_deviceDataHeader);
+            string response = PostAsync(_serviceAreaDirectory, jsonData).Result;
+            Console.WriteLine(response);
+            //Dictionary<string, string> responseDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
+            //string serviceAreaId = responseDictionary["serviceAreaIds"][0];
+
+            //_offersDataHeader = "{"serviceAreaIds":["' + service_area_id + '"],"apiVersion":"V2","filters":{"serviceAreaFilter":[],"timeFilter":{}}}";
+
+
+        }
+
+        private int GetTimestamp()
+        {
+
+            TimeSpan time = (DateTime.UtcNow - new DateTime(1970, 1, 1));
+            int timestamp = (int)time.TotalSeconds;
+            return timestamp;
+        }
+
 
         public async Task<string> GetAsync(string uri)
         {
@@ -102,7 +132,7 @@ namespace FlexCatcher
 
             else
             {
-                DeviceDataHeader["x-amz-access-token"] = responseDictionary["access_token"];
+                _deviceDataHeader["x-amz-access-token"] = responseDictionary["access_token"];
                 Console.WriteLine("Login Success!");
                 _AccessSuccessCode = true;
             }
@@ -130,14 +160,13 @@ namespace FlexCatcher
             string instanceId = responseDictionary["instanceId"];
             string build = responseDictionary["build"];
             string uuid = Guid.NewGuid().ToString();
-            DateTime now = DateTime.Now;
-
+            int time = GetTimestamp();
 
             var offerAcceptHeaders = new Dictionary<string, string>
             {
                 ["x-flex-instance-id"] = $"{instanceId.Substring(0, 8)}-{instanceId.Substring(8, 4)}-" +
                                          $"{instanceId.Substring(12, 4)}-{instanceId.Substring(16, 4)}-{instanceId.Substring(20, 12)}",
-                ["X-Flex-Client-Time"] = now.TimeOfDay.ToString(),
+                ["X-Flex-Client-Time"] = time.ToString(),
                 ["Content-Type"] = "application/json",
                 ["User-Agent"] = $"Dalvik/2.1.0 (Linux; U; Android {androidVersion}; {deviceModel} {build}) RabbitAndroid/{_flexAppVersion}",
                 ["X-Amzn-RequestId"] = uuid,
@@ -165,12 +194,25 @@ namespace FlexCatcher
         private void GetOffers()
         {
 
+            String jsonData = JsonConvert.SerializeObject(_deviceDataHeader);
+            String response = PostAsync(_offersDirectory, jsonData).Result;
+            Dictionary<string, string> responseDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
+            Console.WriteLine(response);
         }
 
 
         public void LookingForBlocks()
         {
+            int counter = 0;
+            while (true)
 
+            {
+                GetOffers();
+                counter++;
+
+                if (counter == 10)
+                    break;
+            }
         }
 
     }
