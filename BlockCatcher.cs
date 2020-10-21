@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,18 +17,14 @@ namespace FlexCatcher
 
     {
         string ownerEndpointURL = "https://www.thunderflex.us/admin/script_functions.php";
-        private string _offersDirectory = "https://flex-capacity-na.amazon.com/GetOffersForProviderPost";
+        private string _offersDirectory = "/GetOffersForProviderPost";
         private string _serviceAreaDirectory = "https://flex-capacity-na.amazon.com/eligibleServiceAreas";
+        private static string _apiBaseURL = "https://flex-capacity-na.amazon.com";
 
         private readonly string _userId;
         private readonly string _flexAppVersion;
-        private readonly Dictionary<string, string> _deviceDataHeader;
         private readonly Dictionary<string, string> _offersDataHeader;
         private bool _AccessSuccessCode;
-
-
-
-
 
         public BlockCatcher(string userId, string flexAppVersion)
         {
@@ -36,25 +33,48 @@ namespace FlexCatcher
             _userId = userId;
 
             // Methods resolution
-            _deviceDataHeader = EmulateDevice();
+            _offersDataHeader = EmulateDevice();
             GetAccessData();
-            //SetServiceArea();
 
-            var serviceTask = SetServiceArea().Result;
+            //var serviceTask = SetServiceArea().Result;
+            SetServiceArea();
+            //Task.Run(() => SetServiceArea());
+            Console.ReadLine();
             //LookingForBlocks();
 
         }
 
-        private async Task<HttpResponseMessage> SetServiceArea()
+        private void SetServiceArea()
         {
-            string jsonData = JsonConvert.SerializeObject(_deviceDataHeader);
-            byte[] dataBytes = Encoding.UTF8.GetBytes(jsonData);
-            var byteContent = new ByteArrayContent(dataBytes);
-            //byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-            using HttpResponseMessage response = await ApiHelper.ApiClient.PostAsync(ApiHelper.ServiceAreaUri, byteContent);
-            Console.WriteLine(response);
-            return response;
 
+            //byte[] dataBytes = Encoding.UTF8.GetBytes(jsonData);
+            //var byteContent = new ByteArrayContent(dataBytes);
+            //byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+            //using HttpResponseMessage response = await ApiHelper.ApiClient.PostAsync(new Uri(_serviceAreaDirectory), content);
+
+            using (var client = new HttpClient())
+            {
+                //client.BaseAddress = new Uri(_apiBaseURL);
+                client.DefaultRequestHeaders.Clear();
+
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("x-amz-access-token", _offersDataHeader["x-amz-access-token"]);
+                string jsonData = JsonConvert.SerializeObject(_offersDataHeader);
+                WebHeaderCollection data = new WebHeaderCollection();
+
+                foreach (var innerData in _offersDataHeader)
+                {
+                    data.Add(innerData.Key, innerData.Value);
+                    client.DefaultRequestHeaders.Add(innerData.Key, innerData.Value);
+                }
+
+                //var stringContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
+
+                //string response = GetAsync(_serviceAreaDirectory, data).Result;
+                var result = client.GetAsync(_serviceAreaDirectory).Result;
+                //string resultContent = await result.Content.ReadAsStringAsync();
+                Console.WriteLine(result);
+
+            }
         }
 
         private int GetTimestamp()
@@ -66,10 +86,11 @@ namespace FlexCatcher
         }
 
 
-        public async Task<string> GetAsync(string uri)
+        public async Task<string> GetAsync(string uri, WebHeaderCollection data)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
             request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+            request.Headers = data;
 
             using (HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync())
             using (Stream stream = response.GetResponseStream())
@@ -132,7 +153,7 @@ namespace FlexCatcher
 
             else
             {
-                _deviceDataHeader["x-amz-access-token"] = responseDictionary["access_token"];
+                _offersDataHeader["x-amz-access-token"] = responseDictionary["access_token"];
                 Console.WriteLine("Login Success!");
                 _AccessSuccessCode = true;
             }
@@ -160,13 +181,13 @@ namespace FlexCatcher
             string instanceId = responseDictionary["instanceId"];
             string build = responseDictionary["build"];
             string uuid = Guid.NewGuid().ToString();
-            int time = GetTimestamp();
+            string time = "1603307322";
 
             var offerAcceptHeaders = new Dictionary<string, string>
             {
                 ["x-flex-instance-id"] = $"{instanceId.Substring(0, 8)}-{instanceId.Substring(8, 4)}-" +
                                          $"{instanceId.Substring(12, 4)}-{instanceId.Substring(16, 4)}-{instanceId.Substring(20, 12)}",
-                ["X-Flex-Client-Time"] = time.ToString(),
+                ["X-Flex-Client-Time"] = time,
                 ["Content-Type"] = "application/json",
                 ["User-Agent"] = $"Dalvik/2.1.0 (Linux; U; Android {androidVersion}; {deviceModel} {build}) RabbitAndroid/{_flexAppVersion}",
                 ["X-Amzn-RequestId"] = uuid,
@@ -194,7 +215,7 @@ namespace FlexCatcher
         private void GetOffers()
         {
 
-            String jsonData = JsonConvert.SerializeObject(_deviceDataHeader);
+            String jsonData = JsonConvert.SerializeObject(_offersDataHeader);
             String response = PostAsync(_offersDirectory, jsonData).Result;
             Dictionary<string, string> responseDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
             Console.WriteLine(response);

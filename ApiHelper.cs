@@ -1,5 +1,4 @@
-﻿using System;
-using System.Net.Http;
+﻿using System.Net.Http;
 
 namespace FlexCatcher
 {
@@ -15,8 +14,10 @@ namespace FlexCatcher
 
         public static void InitializeClient()
         {
-            ApiClient = new HttpClient { BaseAddress = new Uri(_apiBaseURL) };
-            ApiClient.DefaultRequestHeaders.Accept.Clear();
+            //ApiClient = new HttpClient { BaseAddress = new Uri(_apiBaseURL) };
+            ApiClient = new HttpClient();
+            //ApiClient.DefaultRequestHeaders.Accept.Clear();
+            //ApiClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
         }
 
