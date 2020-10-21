@@ -38,21 +38,22 @@ namespace FlexCatcher
             // Methods resolution
             _deviceDataHeader = EmulateDevice();
             GetAccessData();
-            SetServiceArea();
+            //SetServiceArea();
+
+            var serviceTask = SetServiceArea().Result;
             //LookingForBlocks();
 
         }
 
-        private void SetServiceArea()
+        private async Task<HttpResponseMessage> SetServiceArea()
         {
             string jsonData = JsonConvert.SerializeObject(_deviceDataHeader);
-            string response = PostAsync(_serviceAreaDirectory, jsonData).Result;
+            byte[] dataBytes = Encoding.UTF8.GetBytes(jsonData);
+            var byteContent = new ByteArrayContent(dataBytes);
+            //byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+            using HttpResponseMessage response = await ApiHelper.ApiClient.PostAsync(ApiHelper.ServiceAreaUri, byteContent);
             Console.WriteLine(response);
-            //Dictionary<string, string> responseDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
-            //string serviceAreaId = responseDictionary["serviceAreaIds"][0];
-
-            //_offersDataHeader = "{"serviceAreaIds":["' + service_area_id + '"],"apiVersion":"V2","filters":{"serviceAreaFilter":[],"timeFilter":{}}}";
-
+            return response;
 
         }
 
@@ -119,7 +120,6 @@ namespace FlexCatcher
                 { "action", "access_token" }
 
             };
-
             string jsonData = JsonConvert.SerializeObject(data);
             string response = PostAsync(ownerEndpointURL, jsonData).Result;
             Dictionary<string, string> responseDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
