@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -35,11 +34,7 @@ namespace FlexCatcher
             // Methods resolution
             _offersDataHeader = EmulateDevice();
             GetAccessData();
-
-            //var serviceTask = SetServiceArea().Result;
             SetServiceArea();
-            //Task.Run(() => SetServiceArea());
-            Console.ReadLine();
             //LookingForBlocks();
 
         }
@@ -47,34 +42,16 @@ namespace FlexCatcher
         private void SetServiceArea()
         {
 
-            //byte[] dataBytes = Encoding.UTF8.GetBytes(jsonData);
-            //var byteContent = new ByteArrayContent(dataBytes);
-            //byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-            //using HttpResponseMessage response = await ApiHelper.ApiClient.PostAsync(new Uri(_serviceAreaDirectory), content);
+            WebHeaderCollection data = new WebHeaderCollection();
 
-            using (var client = new HttpClient())
+            foreach (var innerData in _offersDataHeader)
             {
-                //client.BaseAddress = new Uri(_apiBaseURL);
-                client.DefaultRequestHeaders.Clear();
-
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("x-amz-access-token", _offersDataHeader["x-amz-access-token"]);
-                string jsonData = JsonConvert.SerializeObject(_offersDataHeader);
-                WebHeaderCollection data = new WebHeaderCollection();
-
-                foreach (var innerData in _offersDataHeader)
-                {
-                    data.Add(innerData.Key, innerData.Value);
-                    client.DefaultRequestHeaders.Add(innerData.Key, innerData.Value);
-                }
-
-                //var stringContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
-
-                //string response = GetAsync(_serviceAreaDirectory, data).Result;
-                var result = client.GetAsync(_serviceAreaDirectory).Result;
-                //string resultContent = await result.Content.ReadAsStringAsync();
-                Console.WriteLine(result);
-
+                data.Add(innerData.Key, innerData.Value);
             }
+
+            string response = GetAsync(_serviceAreaDirectory, data).Result;
+            Console.WriteLine(response);
+
         }
 
         private int GetTimestamp()
