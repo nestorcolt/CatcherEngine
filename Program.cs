@@ -14,7 +14,7 @@ namespace FlexCatcher
         {
             try
             {
-                var catcher = new BlockCatcher("100");
+                var catcher = new BlockCatcher(userId: "100", flexAppVersion: "3.39.29.0");
 
             }
             catch (Exception e)
