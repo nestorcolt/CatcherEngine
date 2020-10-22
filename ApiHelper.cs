@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -10,13 +9,14 @@ namespace FlexCatcher
 {
     public class ApiHelper
     {
+        public static string OwnerEndpointUrl = "https://www.thunderflex.us/admin/script_functions.php";
         private const string ApiBaseUrl = "https://flex-capacity-na.amazon.com/";
         public static string AcceptUri { get; } = "AcceptOffer";
         public static string OffersUri { get; } = "GetOffersForProviderPost";
         public static string ServiceAreaUri { get; } = "eligibleServiceAreas";
-        public const string TokenKeyConstant = "x-amz-access-token";
         public static HttpClient ApiClient { get; set; }
 
+        public const string TokenKeyConstant = "x-amz-access-token";
 
         public static void InitializeClient()
         {
@@ -62,15 +62,14 @@ namespace FlexCatcher
             return null;
         }
 
-        public static async Task<JObject> PostDataAsync(string uri)
+        public static async Task<JObject> PostDataAsync(string uri, string data)
         {
             try
             {
-                var headers = ApiClient.DefaultRequestHeaders;
-                string jsonData = JsonConvert.SerializeObject(headers);
-                var response = await ApiClient.PostAsync(uri, new StringContent(jsonData));
-                string result = response.Content.ReadAsStringAsync().Result;
-                return await Task.Run(() => JObject.Parse(result));
+                using var response = await ApiClient.PostAsync(uri, new StringContent(data));
+                response.EnsureSuccessStatusCode();
+                string content = await response.Content.ReadAsStringAsync();
+                return await Task.Run(() => JObject.Parse(content));
             }
             catch (HttpRequestException e)
             {

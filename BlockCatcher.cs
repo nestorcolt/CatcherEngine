@@ -38,8 +38,8 @@ namespace FlexCatcher
 
             // Primary methods resolution
             EmulateDevice();
-            GetAccessData();
-            GetServiceAreaId();
+            Task.Run(GetAccessData).Wait();
+            //GetServiceAreaId();
             // Main loop method is being called here
             if (_accessSuccessCode)
             {
@@ -106,10 +106,10 @@ namespace FlexCatcher
 
         }
 
-        public void GetAccessData()
+        public async Task GetAccessData()
         {
-
-            var data = new Dictionary<string, string>
+            Console.WriteLine("enter");
+            var data = new Dictionary<string, object>
 
             {
                 { "userId", _userId },
@@ -117,10 +117,11 @@ namespace FlexCatcher
 
             };
             string jsonData = JsonConvert.SerializeObject(data);
-            string response = PostAsync(ownerEndpointURL, jsonData).Result;
-            Dictionary<string, string> responseDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
+            ApiHelper.SetBaseAddress(ApiHelper.OwnerEndpointUrl);
+            var response = await ApiHelper.PostDataAsync(ApiHelper.OwnerEndpointUrl, jsonData);
+            string responseValue = response.GetValue("access_token").ToString();
 
-            if (responseDictionary["access_token"] == "failed")
+            if (responseValue == "failed")
             {
                 Console.WriteLine("Session token request failed. Operation aborted.\n");
                 _accessSuccessCode = false;
@@ -129,11 +130,10 @@ namespace FlexCatcher
             else
             {
 
-                _offersDataHeader[TokenKeyConstant] = responseDictionary["access_token"];
+                _offersDataHeader[TokenKeyConstant] = responseValue;
                 Console.WriteLine("Access to the service granted!\n");
                 _accessSuccessCode = true;
             }
-
 
         }
 
