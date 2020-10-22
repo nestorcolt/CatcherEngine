@@ -38,7 +38,7 @@ namespace FlexCatcher
 
             // Primary methods resolution
             EmulateDevice();
-            Task.Run(GetAccessData).Wait();
+            //Task.Run(GetAccessData).Wait();
             //GetServiceAreaId();
             // Main loop method is being called here
             if (_accessSuccessCode)
@@ -82,8 +82,8 @@ namespace FlexCatcher
             }
 
             string response = GetAsync(_serviceAreaDirectory, data).Result;
-            var responseDictionary = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(response);
-            var serviceAreaId = responseDictionary["serviceAreaIds"][0];
+            var jsonResponse = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(response);
+            var serviceAreaId = jsonResponse["serviceAreaIds"][0];
 
             // Id Dictionary to parse to offer headers later
             var serviceDataDictionary = new Dictionary<string, object>
@@ -108,7 +108,6 @@ namespace FlexCatcher
 
         public async Task GetAccessData()
         {
-            Console.WriteLine("enter");
             var data = new Dictionary<string, object>
 
             {
@@ -129,7 +128,6 @@ namespace FlexCatcher
 
             else
             {
-
                 _offersDataHeader[TokenKeyConstant] = responseValue;
                 Console.WriteLine("Access to the service granted!\n");
                 _accessSuccessCode = true;
@@ -137,7 +135,7 @@ namespace FlexCatcher
 
         }
 
-        private void EmulateDevice()
+        private async void EmulateDevice()
         {
             var data = new Dictionary<string, string>
 
@@ -148,14 +146,12 @@ namespace FlexCatcher
             };
 
             String jsonData = JsonConvert.SerializeObject(data);
-            String response = PostAsync(ownerEndpointURL, jsonData).Result;
-            Dictionary<string, string> responseDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
+            var response = await ApiHelper.PostDataAsync(ApiHelper.OwnerEndpointUrl, jsonData);
 
-
-            string androidVersion = responseDictionary["androidVersion"];
-            string deviceModel = responseDictionary["deviceModel"];
-            string instanceId = responseDictionary["instanceId"];
-            string build = responseDictionary["build"];
+            string androidVersion = response.GetValue("androidVersion").ToString();
+            string deviceModel = response.GetValue("deviceModel").ToString();
+            string instanceId = response.GetValue("instanceId").ToString();
+            string build = response.GetValue("build").ToString();
             string uuid = Guid.NewGuid().ToString();
             int time = GetTimestamp();
 
@@ -174,6 +170,7 @@ namespace FlexCatcher
 
             // Set the class field with the new offer headers
             _offersDataHeader = offerAcceptHeaders;
+
 
         }
 
@@ -229,7 +226,7 @@ namespace FlexCatcher
 
             String jsonData = JsonConvert.SerializeObject(_offersDataHeader);
             String response = PostAsync(_offersDirectory, jsonData).Result;
-            Dictionary<string, string> responseDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
+            Dictionary<string, string> jsonResponse = JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
             Console.WriteLine(response);
         }
 
