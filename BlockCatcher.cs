@@ -1,10 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace FlexCatcher
@@ -15,11 +12,6 @@ namespace FlexCatcher
     // Will used asynchronous programming and multi-threading to speed up the process and the API request.
 
     {
-        string ownerEndpointURL = "https://www.thunderflex.us/admin/script_functions.php";
-        private string _offersDirectory = "/GetOffersForProviderPost";
-        private string _serviceAreaDirectory = "https://flex-capacity-na.amazon.com/eligibleServiceAreas";
-        private string _serviceAreaDirectory_2 = "eligibleServiceAreas";
-        private static string _apiBaseURL = "https://flex-capacity-na.amazon.com";
 
         private readonly string _userId;
         private readonly string _flexAppVersion;
@@ -37,9 +29,9 @@ namespace FlexCatcher
             _userId = userId;
 
             // Primary methods resolution
-            EmulateDevice();
-            //Task.Run(GetAccessData).Wait();
-            //GetServiceAreaId();
+            Task.Run(EmulateDevice).Wait();
+            Task.Run(GetAccessData).Wait();
+            SetServiceArea();
             // Main loop method is being called here
             if (_accessSuccessCode)
             {
@@ -60,10 +52,9 @@ namespace FlexCatcher
         }
 
 
-        public string GetServiceAreaId()
+        private string GetServiceAreaId()
         {
             var result = ApiHelper.GetServiceAuthentication(ApiHelper.ServiceAreaUri, _offersDataHeader[TokenKeyConstant]).Result;
-            Console.WriteLine(result);
 
             if (result.HasValues)
                 return (string)result[0];
@@ -74,16 +65,7 @@ namespace FlexCatcher
         private void SetServiceArea()
         {
 
-            WebHeaderCollection data = new WebHeaderCollection();
-
-            foreach (var innerData in _offersDataHeader)
-            {
-                data.Add(innerData.Key, innerData.Value);
-            }
-
-            string response = GetAsync(_serviceAreaDirectory, data).Result;
-            var jsonResponse = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(response);
-            var serviceAreaId = jsonResponse["serviceAreaIds"][0];
+            var serviceAreaId = GetServiceAreaId();
 
             // Id Dictionary to parse to offer headers later
             var serviceDataDictionary = new Dictionary<string, object>
@@ -100,10 +82,15 @@ namespace FlexCatcher
             };
 
             string jsonData = JsonConvert.SerializeObject(serviceDataDictionary);
-            Console.WriteLine(jsonData);
             // TODO MERGE THE HEADERS OFFERS AND SERVICE DATA IN ONE.
-            // here ... 
-
+            foreach (var data in serviceDataDictionary)
+            {
+                _offersDataHeader.Add(data.Key, data.Value.ToString());
+            }
+            foreach (var data in _offersDataHeader)
+            {
+                Console.WriteLine($"{data.Key}, {data.Value.ToString()}");
+            }
         }
 
         public async Task GetAccessData()
@@ -116,7 +103,6 @@ namespace FlexCatcher
 
             };
             string jsonData = JsonConvert.SerializeObject(data);
-            ApiHelper.SetBaseAddress(ApiHelper.OwnerEndpointUrl);
             var response = await ApiHelper.PostDataAsync(ApiHelper.OwnerEndpointUrl, jsonData);
             string responseValue = response.GetValue("access_token").ToString();
 
@@ -135,10 +121,9 @@ namespace FlexCatcher
 
         }
 
-        private async void EmulateDevice()
+        private async Task EmulateDevice()
         {
             var data = new Dictionary<string, string>
-
             {
                 { "userId", _userId },
                 { "action", "instance_id" }
@@ -170,46 +155,8 @@ namespace FlexCatcher
 
             // Set the class field with the new offer headers
             _offersDataHeader = offerAcceptHeaders;
-
-
         }
 
-
-        public async Task<string> GetAsync(string uri, WebHeaderCollection data)
-        {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
-            request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-            request.Headers = data;
-
-            using (HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync())
-            using (Stream stream = response.GetResponseStream())
-            using (StreamReader reader = new StreamReader(stream))
-            {
-                return await reader.ReadToEndAsync();
-            }
-        }
-
-        public async Task<string> PostAsync(string uri, string data, string method = "POST")
-        {
-            byte[] dataBytes = Encoding.UTF8.GetBytes(data);
-
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
-            request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-            request.ContentLength = dataBytes.Length;
-            request.ContentType = "application/json";
-            request.Method = method;
-
-
-            await using (Stream requestBody = request.GetRequestStream())
-            {
-                await requestBody.WriteAsync(dataBytes, 0, dataBytes.Length);
-            }
-
-            using HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync();
-            await using Stream stream = response.GetResponseStream();
-            using StreamReader reader = new StreamReader(stream);
-            return await reader.ReadToEndAsync();
-        }
 
         private void AcceptOffer()
         {
@@ -224,10 +171,10 @@ namespace FlexCatcher
         private void GetOffers()
         {
 
-            String jsonData = JsonConvert.SerializeObject(_offersDataHeader);
-            String response = PostAsync(_offersDirectory, jsonData).Result;
-            Dictionary<string, string> jsonResponse = JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
-            Console.WriteLine(response);
+            //String jsonData = JsonConvert.SerializeObject(_offersDataHeader);
+            //String response = PostAsync(_offersDirectory, jsonData).Result;
+            //Dictionary<string, string> jsonResponse = JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
+            //Console.WriteLine(response);
         }
 
 

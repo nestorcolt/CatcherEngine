@@ -27,17 +27,9 @@ namespace FlexCatcher
 
         }
 
-        public static void SetBaseAddress(string uri = null)
-        {
-            ApiClient.BaseAddress = uri is null ? new Uri(ApiBaseUrl) : new Uri(uri);
-        }
-
 
         public static async Task<JToken> GetServiceAuthentication(string uri, string authToken)
         {
-
-            if (ApiClient.BaseAddress.ToString() != ApiBaseUrl)
-                SetBaseAddress();
 
             ApiClient.DefaultRequestHeaders.Add(TokenKeyConstant, authToken);
             var content = await GetDataAsync(uri);
