@@ -13,9 +13,9 @@ namespace FlexCatcher
 
     {
         private Dictionary<string, string> _offersDataHeader;
+        private string _serviceAreaFilterData;
         private readonly string _flexAppVersion;
         private readonly string _userId;
-        private string _serviceAreaFilterData;
         private bool _accessSuccessCode;
 
         public BlockCatcher(string userId, string flexAppVersion)
@@ -27,7 +27,10 @@ namespace FlexCatcher
             // Primary methods resolution
             Task.Run(EmulateDevice).Wait();
             Task.Run(GetAccessData).Wait();
+
+            // Set the client service area to sent as extra data with the request on get blocks method
             SetServiceArea();
+
             // Main loop method is being called here
             if (_accessSuccessCode)
             {

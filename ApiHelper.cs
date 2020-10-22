@@ -27,7 +27,6 @@ namespace FlexCatcher
 
         }
 
-
         public static async Task<JToken> GetServiceAuthentication(string uri, string authToken)
         {
 
