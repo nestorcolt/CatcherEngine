@@ -65,20 +65,18 @@ namespace FlexCatcher
                 ["timeFilter"] = new Dictionary<string, string>(),
             };
 
-            var stringFilters = JsonConvert.SerializeObject(filtersDict);
-
             // Id Dictionary to parse to offer headers later
             var serviceDataDictionary = new Dictionary<string, object>
 
             {
-                ["serviceAreaIds"] = $"[{serviceAreaId}]",
-                ["apiVersion"] = "V2",
-                ["filters"] = stringFilters,
+                ["serviceAreaIds"] = new[] { serviceAreaId },
+                ["filters"] = filtersDict,
 
             };
 
             // MERGE THE HEADERS OFFERS AND SERVICE DATA IN ONE MAIN HEADER DICTIONARY
-            _serviceAreaFilterData = JsonConvert.SerializeObject(serviceDataDictionary);
+            _serviceAreaFilterData = JsonConvert.SerializeObject(serviceDataDictionary).Replace("\\", "");
+            Console.WriteLine(_serviceAreaFilterData);
 
         }
 
@@ -158,14 +156,15 @@ namespace FlexCatcher
 
         private async Task GetOffers()
         {
-            foreach (var mine in _offersDataHeader)
-            {
-                Console.WriteLine(mine.Key);
-            }
+            //foreach (var mine in _offersDataHeader)
+            //{
+            //    Console.WriteLine(mine.Key);
+            //}
 
 
             ApiHelper.AddRequestHeaders(_offersDataHeader);
             var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, _serviceAreaFilterData);
+            Console.WriteLine(response);
         }
 
 
