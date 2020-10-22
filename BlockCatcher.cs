@@ -39,8 +39,7 @@ namespace FlexCatcher
             // Primary methods resolution
             EmulateDevice();
             GetAccessData();
-            //SetServiceArea();
-            Task.Run(NewGet).Wait();
+            GetServiceAreaId();
             // Main loop method is being called here
             if (_accessSuccessCode)
             {
@@ -61,23 +60,15 @@ namespace FlexCatcher
         }
 
 
-        public async Task NewGet()
+        public string GetServiceAreaId()
         {
-            // Call asynchronous network methods in a try/catch block to handle exceptions.
-            try
-            {
-                var httpClient = new HttpClient();
-                httpClient.BaseAddress = new Uri(_apiBaseURL);
-                httpClient.DefaultRequestHeaders.Add(TokenKeyConstant, _offersDataHeader[TokenKeyConstant]);
-                using var responseMessage = await httpClient.GetAsync(_serviceAreaDirectory_2);
-                var content = responseMessage.Content.ReadAsStringAsync().Result;
-                Console.WriteLine(content);
-            }
-            catch (HttpRequestException e)
-            {
-                Console.WriteLine("\nException Caught!");
-                Console.WriteLine("Message :{0} ", e.Message);
-            }
+            var result = ApiHelper.GetServiceAuthentication(ApiHelper.ServiceAreaUri, _offersDataHeader[TokenKeyConstant]).Result;
+            Console.WriteLine(result);
+
+            if (result.HasValues)
+                return (string)result[0];
+
+            return null;
         }
 
         private void SetServiceArea()
