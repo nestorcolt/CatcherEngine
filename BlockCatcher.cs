@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -17,12 +18,17 @@ namespace FlexCatcher
         string ownerEndpointURL = "https://www.thunderflex.us/admin/script_functions.php";
         private string _offersDirectory = "/GetOffersForProviderPost";
         private string _serviceAreaDirectory = "https://flex-capacity-na.amazon.com/eligibleServiceAreas";
+        private string _serviceAreaDirectory_2 = "eligibleServiceAreas";
         private static string _apiBaseURL = "https://flex-capacity-na.amazon.com";
 
         private readonly string _userId;
         private readonly string _flexAppVersion;
         private Dictionary<string, string> _offersDataHeader;
         private bool _accessSuccessCode;
+        private const string TokenKeyConstant = "x-amz-access-token";
+
+
+        static readonly HttpClient client = new HttpClient();
 
         public BlockCatcher(string userId, string flexAppVersion)
         {
@@ -33,8 +39,8 @@ namespace FlexCatcher
             // Primary methods resolution
             EmulateDevice();
             GetAccessData();
-            SetServiceArea();
-
+            //SetServiceArea();
+            Task.Run(NewGet).Wait();
             // Main loop method is being called here
             if (_accessSuccessCode)
             {
@@ -52,6 +58,26 @@ namespace FlexCatcher
             TimeSpan time = (DateTime.UtcNow - new DateTime(1970, 1, 1));
             int timestamp = (int)time.TotalSeconds;
             return timestamp;
+        }
+
+
+        public async Task NewGet()
+        {
+            // Call asynchronous network methods in a try/catch block to handle exceptions.
+            try
+            {
+                var httpClient = new HttpClient();
+                httpClient.BaseAddress = new Uri(_apiBaseURL);
+                httpClient.DefaultRequestHeaders.Add(TokenKeyConstant, _offersDataHeader[TokenKeyConstant]);
+                using var responseMessage = await httpClient.GetAsync(_serviceAreaDirectory_2);
+                var content = responseMessage.Content.ReadAsStringAsync().Result;
+                Console.WriteLine(content);
+            }
+            catch (HttpRequestException e)
+            {
+                Console.WriteLine("\nException Caught!");
+                Console.WriteLine("Message :{0} ", e.Message);
+            }
         }
 
         private void SetServiceArea()
@@ -83,6 +109,7 @@ namespace FlexCatcher
             };
 
             string jsonData = JsonConvert.SerializeObject(serviceDataDictionary);
+            Console.WriteLine(jsonData);
             // TODO MERGE THE HEADERS OFFERS AND SERVICE DATA IN ONE.
             // here ... 
 
@@ -110,7 +137,8 @@ namespace FlexCatcher
 
             else
             {
-                _offersDataHeader["x-amz-access-token"] = responseDictionary["access_token"];
+
+                _offersDataHeader[TokenKeyConstant] = responseDictionary["access_token"];
                 Console.WriteLine("Access to the service granted!\n");
                 _accessSuccessCode = true;
             }
