@@ -14,6 +14,7 @@ namespace FlexCatcher
         private Dictionary<string, string> _offersDataHeader;
         private readonly string _flexAppVersion;
         private readonly string _userId;
+        private string _serviceAreaFilterData;
         private bool _accessSuccessCode;
 
         public BlockCatcher(string userId, string flexAppVersion)
@@ -77,11 +78,8 @@ namespace FlexCatcher
             };
 
             // MERGE THE HEADERS OFFERS AND SERVICE DATA IN ONE MAIN HEADER DICTIONARY
-            string jsonData = JsonConvert.SerializeObject(serviceDataDictionary);
-            foreach (var data in serviceDataDictionary)
-            {
-                _offersDataHeader.Add(data.Key, data.Value.ToString());
-            }
+            _serviceAreaFilterData = JsonConvert.SerializeObject(serviceDataDictionary);
+
         }
 
         public async Task GetAccessData()
@@ -136,7 +134,6 @@ namespace FlexCatcher
                 ["x-flex-instance-id"] = $"{instanceId.Substring(0, 8)}-{instanceId.Substring(8, 4)}-" +
                                          $"{instanceId.Substring(12, 4)}-{instanceId.Substring(16, 4)}-{instanceId.Substring(20, 12)}",
                 ["X-Flex-Client-Time"] = time.ToString(),
-                ["Content-Type"] = "application/json",
                 ["User-Agent"] = $"Dalvik/2.1.0 (Linux; U; Android {androidVersion}; {deviceModel} {build}) RabbitAndroid/{_flexAppVersion}",
                 ["X-Amzn-RequestId"] = uuid,
                 ["Host"] = "flex-capacity-na.amazon.com",
@@ -159,12 +156,16 @@ namespace FlexCatcher
 
         }
 
-        private void GetOffers()
+        private async Task GetOffers()
         {
-            //String jsonData = JsonConvert.SerializeObject(_offersDataHeader);
-            //String response = PostAsync(_offersDirectory, jsonData).Result;
-            //Dictionary<string, string> jsonResponse = JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
-            //Console.WriteLine(response);
+            foreach (var mine in _offersDataHeader)
+            {
+                Console.WriteLine(mine.Key);
+            }
+
+
+            ApiHelper.AddRequestHeaders(_offersDataHeader);
+            var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, _serviceAreaFilterData);
         }
 
 
@@ -174,10 +175,10 @@ namespace FlexCatcher
             while (true)
 
             {
-                GetOffers();
+                Task.Run(GetOffers).Wait();
                 counter++;
 
-                if (counter == 10)
+                if (counter == 1)
                     break;
             }
         }

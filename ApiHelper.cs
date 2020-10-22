@@ -72,7 +72,7 @@ namespace FlexCatcher
             return null;
         }
 
-        public static void AddRequestHeaders(Dictionary<string, object> headersDictionary)
+        public static void AddRequestHeaders(Dictionary<string, string> headersDictionary)
         {
             ApiClient.DefaultRequestHeaders.Clear();
 
