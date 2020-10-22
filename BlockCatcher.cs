@@ -66,6 +66,13 @@ namespace FlexCatcher
         {
 
             var serviceAreaId = GetServiceAreaId();
+            var filtersDict = new Dictionary<string, object>
+            {
+                ["serviceAreaFilter"] = new List<string>(),
+                ["timeFilter"] = new Dictionary<string, string>(),
+            };
+
+            var stringFilters = JsonConvert.SerializeObject(filtersDict);
 
             // Id Dictionary to parse to offer headers later
             var serviceDataDictionary = new Dictionary<string, object>
@@ -73,11 +80,7 @@ namespace FlexCatcher
             {
                 ["serviceAreaIds"] = $"[{serviceAreaId}]",
                 ["apiVersion"] = "V2",
-                ["filters"] = new Dictionary<string, object>
-                {
-                    ["serviceAreaFilter"] = new List<string>(),
-                    ["timeFilter"] = new Dictionary<string, string>(),
-                },
+                ["filters"] = stringFilters,
 
             };
 
