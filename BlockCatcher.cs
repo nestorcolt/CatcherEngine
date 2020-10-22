@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace FlexCatcher
@@ -12,15 +11,10 @@ namespace FlexCatcher
     // Will used asynchronous programming and multi-threading to speed up the process and the API request.
 
     {
-
-        private readonly string _userId;
-        private readonly string _flexAppVersion;
         private Dictionary<string, string> _offersDataHeader;
+        private readonly string _flexAppVersion;
+        private readonly string _userId;
         private bool _accessSuccessCode;
-        private const string TokenKeyConstant = "x-amz-access-token";
-
-
-        static readonly HttpClient client = new HttpClient();
 
         public BlockCatcher(string userId, string flexAppVersion)
         {
@@ -35,11 +29,9 @@ namespace FlexCatcher
             // Main loop method is being called here
             if (_accessSuccessCode)
             {
-                //LookingForBlocks();
+                LookingForBlocks();
                 Console.WriteLine("Looking for blocks 1, 2, 3 ...");
             }
-
-
 
         }
 
@@ -54,7 +46,7 @@ namespace FlexCatcher
 
         private string GetServiceAreaId()
         {
-            var result = ApiHelper.GetServiceAuthentication(ApiHelper.ServiceAreaUri, _offersDataHeader[TokenKeyConstant]).Result;
+            var result = ApiHelper.GetServiceAuthentication(ApiHelper.ServiceAreaUri, _offersDataHeader[ApiHelper.TokenKeyConstant]).Result;
 
             if (result.HasValues)
                 return (string)result[0];
@@ -84,15 +76,11 @@ namespace FlexCatcher
 
             };
 
+            // MERGE THE HEADERS OFFERS AND SERVICE DATA IN ONE MAIN HEADER DICTIONARY
             string jsonData = JsonConvert.SerializeObject(serviceDataDictionary);
-            // TODO MERGE THE HEADERS OFFERS AND SERVICE DATA IN ONE.
             foreach (var data in serviceDataDictionary)
             {
                 _offersDataHeader.Add(data.Key, data.Value.ToString());
-            }
-            foreach (var data in _offersDataHeader)
-            {
-                Console.WriteLine($"{data.Key}, {data.Value.ToString()}");
             }
         }
 
@@ -117,7 +105,7 @@ namespace FlexCatcher
 
             else
             {
-                _offersDataHeader[TokenKeyConstant] = responseValue;
+                _offersDataHeader[ApiHelper.TokenKeyConstant] = responseValue;
                 Console.WriteLine("Access to the service granted!\n");
                 _accessSuccessCode = true;
             }
@@ -173,7 +161,6 @@ namespace FlexCatcher
 
         private void GetOffers()
         {
-
             //String jsonData = JsonConvert.SerializeObject(_offersDataHeader);
             //String response = PostAsync(_offersDirectory, jsonData).Result;
             //Dictionary<string, string> jsonResponse = JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
