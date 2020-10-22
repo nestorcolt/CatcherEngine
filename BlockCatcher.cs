@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace FlexCatcher
@@ -76,8 +77,6 @@ namespace FlexCatcher
 
             // MERGE THE HEADERS OFFERS AND SERVICE DATA IN ONE MAIN HEADER DICTIONARY
             _serviceAreaFilterData = JsonConvert.SerializeObject(serviceDataDictionary).Replace("\\", "");
-            Console.WriteLine(_serviceAreaFilterData);
-
         }
 
         public async Task GetAccessData()
@@ -156,17 +155,11 @@ namespace FlexCatcher
 
         private async Task GetOffers()
         {
-            //foreach (var mine in _offersDataHeader)
-            //{
-            //    Console.WriteLine(mine.Key);
-            //}
-
 
             ApiHelper.AddRequestHeaders(_offersDataHeader);
             var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, _serviceAreaFilterData);
             Console.WriteLine(response);
         }
-
 
         public void LookingForBlocks()
         {
@@ -174,11 +167,15 @@ namespace FlexCatcher
             while (true)
 
             {
+                var watcher = Stopwatch.StartNew();
                 Task.Run(GetOffers).Wait();
                 counter++;
 
-                if (counter == 1)
-                    break;
+                //if (counter == 1)
+                //    break;
+
+                watcher.Stop();
+                Console.WriteLine($"Elapsed={watcher.Elapsed}");
             }
         }
 
