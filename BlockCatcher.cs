@@ -34,7 +34,7 @@ namespace FlexCatcher
             // Main loop method is being called here
             if (_accessSuccessCode)
             {
-                LookingForBlocks();
+                //LookingForBlocks();
                 Console.WriteLine("Looking for blocks 1, 2, 3 ...");
             }
 
@@ -52,6 +52,7 @@ namespace FlexCatcher
         private string GetServiceAreaId()
         {
             var result = ApiHelper.GetServiceAuthentication(ApiHelper.ServiceAreaUri, _offersDataHeader[ApiHelper.TokenKeyConstant]).Result;
+            Console.WriteLine(ApiHelper.CurrentResponse);
 
             if (result.HasValues)
                 return (string)result[0];
@@ -171,7 +172,7 @@ namespace FlexCatcher
 
             {
                 var watcher = Stopwatch.StartNew();
-                Task.Run(GetOffers).Wait();
+                //Task.Run(GetOffers).Wait();
                 counter++;
 
                 //if (counter == 1)

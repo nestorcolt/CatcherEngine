@@ -15,6 +15,7 @@ namespace FlexCatcher
         public static string OffersUri { get; } = "GetOffersForProviderPost";
         public static string ServiceAreaUri { get; } = "eligibleServiceAreas";
         public static HttpClient ApiClient { get; set; }
+        public static HttpResponseMessage CurrentResponse { get; set; }
 
         public const string TokenKeyConstant = "x-amz-access-token";
 
@@ -41,7 +42,8 @@ namespace FlexCatcher
         {
             try
             {
-                var content = await ApiClient.GetStringAsync(ServiceAreaUri);
+                CurrentResponse = await ApiClient.GetAsync(uri);
+                var content = await CurrentResponse.Content.ReadAsStringAsync();
                 return await Task.Run(() => JObject.Parse(content));
             }
             catch (HttpRequestException e)
@@ -57,9 +59,9 @@ namespace FlexCatcher
         {
             try
             {
-                using var response = await ApiClient.PostAsync(uri, new StringContent(data));
-                response.EnsureSuccessStatusCode();
-                string content = await response.Content.ReadAsStringAsync();
+                CurrentResponse = await ApiClient.PostAsync(uri, new StringContent(data));
+                CurrentResponse.EnsureSuccessStatusCode();
+                string content = await CurrentResponse.Content.ReadAsStringAsync();
                 return await Task.Run(() => JObject.Parse(content));
             }
             catch (HttpRequestException e)
