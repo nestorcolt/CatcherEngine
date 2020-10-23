@@ -14,6 +14,8 @@ namespace FlexCatcher
     // Will used asynchronous programming and multi-threading to speed up the process and the API request.
 
     {
+
+
         private Dictionary<string, string> _offersDataHeader;
         private string _serviceAreaFilterData;
         private readonly string _flexAppVersion;
@@ -24,6 +26,16 @@ namespace FlexCatcher
         private int _totalApiCalls = 0;
         private int _totalValidOffers = 0;
         private int _totalAcceptedOffers = 0;
+        private readonly string _userId;
+        public bool AccessSuccessCode;
+        private bool _debug;
+
+
+        public bool Debug
+        {
+            get => _debug;
+            set => _debug = value;
+        }
 
         public BlockCatcher(string userId, string flexAppVersion, float minimumPrice, int pickUpTimeThreshold, string[] areas)
         {
@@ -42,18 +54,7 @@ namespace FlexCatcher
             // Set the client service area to sent as extra data with the request on get blocks method
             SetServiceArea();
 
-            // Main loop method is being called here
-            if (_accessSuccessCode)
-            {
-                LookingForBlocks();
-                Console.WriteLine("Looking for blocks 1, 2, 3 ...");
-            }
-
         }
-
-        private readonly string _userId;
-
-        private bool _accessSuccessCode;
 
         private int GetTimestamp()
         {
@@ -113,14 +114,14 @@ namespace FlexCatcher
             if (responseValue == "failed")
             {
                 Console.WriteLine("Session token request failed. Operation aborted.\n");
-                _accessSuccessCode = false;
+                AccessSuccessCode = false;
             }
 
             else
             {
                 _offersDataHeader[ApiHelper.TokenKeyConstant] = responseValue;
                 Console.WriteLine("Access to the service granted!\n");
-                _accessSuccessCode = true;
+                AccessSuccessCode = true;
             }
 
         }
@@ -177,10 +178,16 @@ namespace FlexCatcher
             // The time the offer will be available for pick up at the facility
             int pickUpTimespan = (int)startTime - GetTimestamp();
 
-            Console.WriteLine($" Service Area -- {(string)serviceAreaId} in -->  {_areas[0]}");
-            Console.WriteLine($" Price -- {(float)offerPrice} Grater or Equal than {_minimumPrice}");
-            Console.WriteLine($" PickUp -- {pickUpTimespan} Grater or Equal than {_pickUpTimeThreshold}");
-            Console.WriteLine("\n\n");
+            if (_debug)
+            {
+                string logInfo = $"Service Area -- {(string)serviceAreaId} in -->  {_areas[0]}\n" +
+                                 $"Price -- {(float)offerPrice} Grater or Equal than {_minimumPrice}\n" +
+                                 $"PickUp -- {pickUpTimespan} Grater or Equal than {_pickUpTimeThreshold}";
+
+                Console.WriteLine(logInfo);
+                Console.WriteLine("\n\n");
+            }
+
 
             if ((float)offerPrice >= _minimumPrice && _areas.Contains((string)serviceAreaId) && pickUpTimespan >= _pickUpTimeThreshold)
             {
