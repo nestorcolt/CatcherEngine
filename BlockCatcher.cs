@@ -1,7 +1,9 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace FlexCatcher
@@ -15,14 +17,23 @@ namespace FlexCatcher
         private Dictionary<string, string> _offersDataHeader;
         private string _serviceAreaFilterData;
         private readonly string _flexAppVersion;
-        private readonly string _userId;
-        private bool _accessSuccessCode;
+        private readonly float _minimumPrice;
+        private readonly int _pickUpTimeThreshold;
+        private readonly string[] _areas;
+        private int _totalOffersCounter = 0;
+        private int _totalApiCalls = 0;
+        private int _totalValidOffers = 0;
+        private int _totalAcceptedOffers = 0;
 
-        public BlockCatcher(string userId, string flexAppVersion)
+        public BlockCatcher(string userId, string flexAppVersion, float minimumPrice, int pickUpTimeThreshold, string[] areas)
         {
-            ApiHelper.InitializeClient();
             _flexAppVersion = flexAppVersion;
+            _minimumPrice = minimumPrice;
+            _pickUpTimeThreshold = pickUpTimeThreshold;
             _userId = userId;
+            _areas = areas;
+
+            ApiHelper.InitializeClient();
 
             // Primary methods resolution
             Task.Run(EmulateDevice).Wait();
@@ -34,11 +45,15 @@ namespace FlexCatcher
             // Main loop method is being called here
             if (_accessSuccessCode)
             {
-                //LookingForBlocks();
+                LookingForBlocks();
                 Console.WriteLine("Looking for blocks 1, 2, 3 ...");
             }
 
         }
+
+        private readonly string _userId;
+
+        private bool _accessSuccessCode;
 
         private int GetTimestamp()
         {
@@ -52,7 +67,6 @@ namespace FlexCatcher
         private string GetServiceAreaId()
         {
             var result = ApiHelper.GetServiceAuthentication(ApiHelper.ServiceAreaUri, _offersDataHeader[ApiHelper.TokenKeyConstant]).Result;
-            Console.WriteLine(ApiHelper.CurrentResponse);
 
             if (result.HasValues)
                 return (string)result[0];
@@ -63,7 +77,7 @@ namespace FlexCatcher
         private void SetServiceArea()
         {
 
-            var serviceAreaId = GetServiceAreaId();
+            string serviceAreaId = GetServiceAreaId();
             var filtersDict = new Dictionary<string, object>
             {
                 ["serviceAreaFilter"] = new List<string>(),
@@ -147,13 +161,32 @@ namespace FlexCatcher
         }
 
 
-        private void AcceptOffer()
+        private void AcceptOffer(JToken offer)
         {
-
+            Console.WriteLine("Accepting Offer: \n\n");
+            Console.WriteLine(offer);
+            //_totalAcceptedOffers++;
         }
 
-        private void ValidateOffers()
+        private void ValidateOffers(JToken offer)
         {
+            JToken serviceAreaId = offer["serviceAreaId"];
+            JToken offerPrice = offer["rateInfo"]["priceAmount"];
+            JToken startTime = offer["startTime"];
+
+            // The time the offer will be available for pick up at the facility
+            int pickUpTimespan = (int)startTime - GetTimestamp();
+
+            Console.WriteLine($" Service Area -- {(string)serviceAreaId} in -->  {_areas[0]}");
+            Console.WriteLine($" Price -- {(float)offerPrice} Grater or Equal than {_minimumPrice}");
+            Console.WriteLine($" PickUp -- {pickUpTimespan} Grater or Equal than {_pickUpTimeThreshold}");
+            Console.WriteLine("\n\n");
+
+            if ((float)offerPrice >= _minimumPrice && _areas.Contains((string)serviceAreaId) && pickUpTimespan >= _pickUpTimeThreshold)
+            {
+                _totalValidOffers++;
+                AcceptOffer(offer);
+            }
 
         }
 
@@ -162,7 +195,26 @@ namespace FlexCatcher
 
             ApiHelper.AddRequestHeaders(_offersDataHeader);
             var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, _serviceAreaFilterData);
-            Console.WriteLine(response);
+            // keep a track how many calls has been made
+            _totalApiCalls++;
+
+            if (ApiHelper.CurrentResponse.IsSuccessStatusCode)
+            {
+                JToken offerList = response.GetValue("offerList");
+
+                if (offerList.HasValues)
+                {
+                    // validate offers
+                    Parallel.ForEach(offerList, offer =>
+                    {
+                        // to track and debug how many offers has shown the request in total of the runtime
+                        _totalOffersCounter++;
+                        // Parallel for each loop
+                        ValidateOffers(offer);
+
+                    });
+                }
+            }
         }
 
         public void LookingForBlocks()
@@ -171,15 +223,20 @@ namespace FlexCatcher
             while (true)
 
             {
-                var watcher = Stopwatch.StartNew();
-                //Task.Run(GetOffers).Wait();
+
+                Stopwatch watcher = Stopwatch.StartNew();
+                Task.Run(GetOffers).Wait();
+                Console.WriteLine($"Api Calls: {_totalApiCalls} -- Total Offers: {_totalOffersCounter} -- " +
+                                  $"Validated Offers: {_totalValidOffers} -- Accepted Offers: {_totalAcceptedOffers}");
+
+                Console.WriteLine($"Elapsed= {watcher.Elapsed}");
+
+                watcher.Restart();
                 counter++;
 
                 //if (counter == 1)
                 //    break;
 
-                watcher.Stop();
-                Console.WriteLine($"Elapsed={watcher.Elapsed}");
             }
         }
 
