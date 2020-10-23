@@ -15,7 +15,6 @@ namespace FlexCatcher
 
     {
 
-
         private Dictionary<string, string> _offersDataHeader;
         private string _serviceAreaFilterData;
         private readonly string _flexAppVersion;
@@ -29,12 +28,22 @@ namespace FlexCatcher
         private readonly string _userId;
         public bool AccessSuccessCode;
         private bool _debug;
+        private int _speed;
 
 
         public bool Debug
         {
             get => _debug;
             set => _debug = value;
+        }
+
+        public float ExecutionSpeed
+        {
+            get
+            {
+                return _speed;
+            }
+            set => _speed = (int)(value * 1000);
         }
 
         public BlockCatcher(string userId, string flexAppVersion, float minimumPrice, int pickUpTimeThreshold, string[] areas)
@@ -166,6 +175,8 @@ namespace FlexCatcher
         {
             Console.WriteLine("Accepting Offer: \n\n");
             Console.WriteLine(offer);
+
+            // TODO send post async to accept the offer
             //_totalAcceptedOffers++;
         }
 
@@ -178,16 +189,6 @@ namespace FlexCatcher
             // The time the offer will be available for pick up at the facility
             int pickUpTimespan = (int)startTime - GetTimestamp();
 
-            if (_debug)
-            {
-                string logInfo = $"Service Area -- {(string)serviceAreaId} in -->  {_areas[0]}\n" +
-                                 $"Price -- {(float)offerPrice} Grater or Equal than {_minimumPrice}\n" +
-                                 $"PickUp -- {pickUpTimespan} Grater or Equal than {_pickUpTimeThreshold}";
-
-                Console.WriteLine(logInfo);
-                Console.WriteLine("\n\n");
-            }
-
 
             if ((float)offerPrice >= _minimumPrice && _areas.Contains((string)serviceAreaId) && pickUpTimespan >= _pickUpTimeThreshold)
             {
@@ -195,6 +196,17 @@ namespace FlexCatcher
                 AcceptOffer(offer);
             }
 
+            // debug just output information to the console
+            if (_debug)
+            {
+                Console.WriteLine("\nValidation debug Info:");
+                string logInfo = $"Service Area -- {(string)serviceAreaId} in -->  Areas List\n" +
+                                 $"Price -- {(float)offerPrice} Grater or Equal than {_minimumPrice}\n" +
+                                 $"PickUp -- {pickUpTimespan} Grater or Equal than {_pickUpTimeThreshold}";
+
+                Console.WriteLine(logInfo);
+                Console.WriteLine("\n\n");
+            }
         }
 
         private async Task GetOffers()
@@ -216,7 +228,8 @@ namespace FlexCatcher
                     {
                         // to track and debug how many offers has shown the request in total of the runtime
                         _totalOffersCounter++;
-                        // Parallel for each loop
+
+                        // Parallel offer validation and accept request.
                         ValidateOffers(offer);
 
                     });
@@ -227,16 +240,18 @@ namespace FlexCatcher
         public void LookingForBlocks()
         {
             int counter = 0;
+
             while (true)
 
             {
 
                 Stopwatch watcher = Stopwatch.StartNew();
-                Task.Run(GetOffers).Wait();
-                Console.WriteLine($"Api Calls: {_totalApiCalls} -- Total Offers: {_totalOffersCounter} -- " +
-                                  $"Validated Offers: {_totalValidOffers} -- Accepted Offers: {_totalAcceptedOffers}");
+                Task.Delay(_speed).Wait();
+                Console.WriteLine(_speed);
+                Task.Run(GetOffers);
 
-                Console.WriteLine($"Elapsed= {watcher.Elapsed}");
+                Console.WriteLine($"Execution Speed: {watcher.Elapsed}  - | Api Calls: {_totalApiCalls} -- Total Offers: {_totalOffersCounter} -- " +
+                                  $"Validated Offers: {_totalValidOffers} -- Accepted Offers: {_totalAcceptedOffers}");
 
                 watcher.Restart();
                 counter++;
