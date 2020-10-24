@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace FlexCatcher
@@ -171,13 +172,23 @@ namespace FlexCatcher
         }
 
 
-        private void AcceptOffer(JToken offer)
+        private async Task AcceptOffer(JToken offer)
         {
-            Console.WriteLine("Accepting Offer: \n\n");
-            Console.WriteLine(offer);
 
-            // TODO send post async to accept the offer
-            //_totalAcceptedOffers++;
+            await Task.Run(() => ApiHelper.AcceptOfferAsync((string)offer[key: "offerId"], _offersDataHeader));
+            Console.WriteLine(offer);
+            if (ApiHelper.CurrentResponse.StatusCode == HttpStatusCode.OK)
+            {
+                // send to owner endpoint accept data to log and send to the user the notification
+                Console.WriteLine($"{ApiHelper.CurrentResponse.StatusCode}");
+                _totalAcceptedOffers++;
+
+            }
+            else if (ApiHelper.CurrentResponse.StatusCode == HttpStatusCode.Gone)
+            {
+                Console.WriteLine("Offer Gone .........................\n");
+            }
+
         }
 
         private void ValidateOffers(JToken offer)
@@ -193,7 +204,7 @@ namespace FlexCatcher
             if ((float)offerPrice >= _minimumPrice && _areas.Contains((string)serviceAreaId) && pickUpTimespan >= _pickUpTimeThreshold)
             {
                 _totalValidOffers++;
-                AcceptOffer(offer);
+                Task.Run(() => AcceptOffer(offer));
             }
 
             // debug just output information to the console
@@ -247,7 +258,6 @@ namespace FlexCatcher
 
                 Stopwatch watcher = Stopwatch.StartNew();
                 Task.Delay(_speed).Wait();
-                Console.WriteLine(_speed);
                 Task.Run(GetOffers);
 
                 Console.WriteLine($"Execution Speed: {watcher.Elapsed}  - | Api Calls: {_totalApiCalls} -- Total Offers: {_totalOffersCounter} -- " +

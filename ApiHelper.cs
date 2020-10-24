@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -11,6 +12,7 @@ namespace FlexCatcher
     {
         public static string OwnerEndpointUrl = "https://www.thunderflex.us/admin/script_functions.php";
         private const string ApiBaseUrl = "https://flex-capacity-na.amazon.com/";
+        private const string AcceptInputUrl = "http://internal.amazon.com/coral/com.amazon.omwbuseyservice.offers/";
         public static string AcceptUri { get; } = "AcceptOffer";
         public static string OffersUri { get; } = "GetOffersForProviderPost";
         public static string ServiceAreaUri { get; } = "eligibleServiceAreas";
@@ -81,6 +83,19 @@ namespace FlexCatcher
             {
                 ApiClient.DefaultRequestHeaders.Add(data.Key, (string)data.Value);
             }
+        }
+
+        public static async Task AcceptOfferAsync(string offerId, Dictionary<string, string> offerHeaders)
+        {
+            var acceptHeader = new Dictionary<string, string>
+            {
+                {"__type", $"AcceptOfferInput:{AcceptInputUrl}"},
+                {"offerId", offerId}
+            };
+
+            string jsonData = JsonConvert.SerializeObject(acceptHeader);
+            ApiHelper.AddRequestHeaders(offerHeaders);
+            var response = await ApiHelper.PostDataAsync(ApiHelper.AcceptUri, jsonData);
         }
     }
 }
