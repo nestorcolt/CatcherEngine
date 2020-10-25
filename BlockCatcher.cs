@@ -84,7 +84,12 @@ namespace FlexCatcher
 
             return null;
         }
+        private void getPool()
+        {
+            //ApiHelper.AddRequestHeaders(_offersDataHeader);
+            //var result = await ApiHelper.GetBlockFromDataBaseAsync(ApiHelper.AssignBlocks, _offersDataHeader[ApiHelper.TokenKeyConstant]);
 
+        }
         private void SetServiceArea()
         {
 
@@ -177,6 +182,7 @@ namespace FlexCatcher
 
             await Task.Run(() => ApiHelper.AcceptOfferAsync((string)offer[key: "offerId"], _offersDataHeader));
             Console.WriteLine(offer);
+
             if (ApiHelper.CurrentResponse.StatusCode == HttpStatusCode.OK)
             {
                 // send to owner endpoint accept data to log and send to the user the notification
@@ -191,7 +197,9 @@ namespace FlexCatcher
 
         }
 
-        private void ValidateOffers(JToken offer)
+
+        private async Task ValidateOffers(JToken offer)
+
         {
             JToken serviceAreaId = offer["serviceAreaId"];
             JToken offerPrice = offer["rateInfo"]["priceAmount"];
@@ -200,11 +208,31 @@ namespace FlexCatcher
             // The time the offer will be available for pick up at the facility
             int pickUpTimespan = (int)startTime - GetTimestamp();
 
+            if ((float)offerPrice < _minimumPrice && !_areas.Contains((string)serviceAreaId) && pickUpTimespan < _pickUpTimeThreshold)
+            // if the validation is not success will try to find in the catch blocks the one did not passed the validation and forfeit them
+            {
+                ApiHelper.ApiClient.DefaultRequestHeaders.Clear();
+                var blocksArray = await ApiHelper.GetBlockFromDataBaseAsync(ApiHelper.AssignBlocks, _offersDataHeader[ApiHelper.TokenKeyConstant]);
 
+                Parallel.ForEach(blocksArray.Values(), async block =>
+               {
+
+                   if (block != null && !block.HasValues)
+                       return;
+
+                   int blockId = (int)block[0]["startTime"];
+
+                   if (blockId == (int)startTime)
+                       await ApiHelper.DeleteOfferAsync(blockId);
+
+               });
+
+            }
+
+            // if pass the validation will sum one to the win stack and send request to owner endpoint
             if ((float)offerPrice >= _minimumPrice && _areas.Contains((string)serviceAreaId) && pickUpTimespan >= _pickUpTimeThreshold)
             {
                 _totalValidOffers++;
-                Task.Run(() => AcceptOffer(offer));
             }
 
             // debug just output information to the console
@@ -225,6 +253,7 @@ namespace FlexCatcher
 
             ApiHelper.AddRequestHeaders(_offersDataHeader);
             var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, _serviceAreaFilterData);
+
             // keep a track how many calls has been made
             _totalApiCalls++;
 
@@ -237,12 +266,12 @@ namespace FlexCatcher
                     // validate offers
                     Parallel.ForEach(offerList, offer =>
                     {
+                        // Parallel offer validation and accept request.
+                        Task.Run(() => AcceptOffer(offer));
+                        Task.Run(() => ValidateOffers(offer));
+
                         // to track and debug how many offers has shown the request in total of the runtime
                         _totalOffersCounter++;
-
-                        // Parallel offer validation and accept request.
-                        ValidateOffers(offer);
-
                     });
                 }
             }
@@ -255,7 +284,6 @@ namespace FlexCatcher
             while (true)
 
             {
-
                 Stopwatch watcher = Stopwatch.StartNew();
                 Task.Delay(_speed).Wait();
                 Task.Run(GetOffers);
@@ -270,6 +298,7 @@ namespace FlexCatcher
                 //    break;
 
             }
+
         }
 
     }

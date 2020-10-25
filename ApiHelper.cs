@@ -15,6 +15,10 @@ namespace FlexCatcher
         private const string AcceptInputUrl = "http://internal.amazon.com/coral/com.amazon.omwbuseyservice.offers/";
         public static string AcceptUri { get; } = "AcceptOffer";
         public static string OffersUri { get; } = "GetOffersForProviderPost";
+        public static string AssignBlocks { get; } = "scheduledAssignments";
+        public static string ScheduleBlocks { get; } = "schedule/blocks";
+        public static string Areas { get; } = "pooledServiceAreasForProvider";
+        public static string Regions { get; } = "regions";
         public static string ServiceAreaUri { get; } = "eligibleServiceAreas";
         public static HttpClient ApiClient { get; set; }
         public static HttpResponseMessage CurrentResponse { get; set; }
@@ -37,6 +41,24 @@ namespace FlexCatcher
             var content = await GetDataAsync(uri);
             var value = content.GetValue("serviceAreaIds");
             return value;
+
+        }
+
+        //public static async Task<JToken> GetPool(string uri, string authToken)
+        //{
+
+        //    ApiClient.DefaultRequestHeaders.Add(TokenKeyConstant, authToken);
+        //    var content = GetDataAsync(uri).Result;
+        //    return content;
+
+        //}
+
+        public static async Task<JObject> GetBlockFromDataBaseAsync(string uri, string authToken)
+        {
+
+            ApiClient.DefaultRequestHeaders.Add(TokenKeyConstant, authToken);
+            JObject content = await GetDataAsync(uri);
+            return content;
 
         }
 
@@ -75,6 +97,7 @@ namespace FlexCatcher
             return null;
         }
 
+
         public static void AddRequestHeaders(Dictionary<string, string> headersDictionary)
         {
             ApiClient.DefaultRequestHeaders.Clear();
@@ -93,9 +116,19 @@ namespace FlexCatcher
                 {"offerId", offerId}
             };
 
-            string jsonData = JsonConvert.SerializeObject(acceptHeader);
             ApiHelper.AddRequestHeaders(offerHeaders);
+            string jsonData = JsonConvert.SerializeObject(acceptHeader);
             var response = await ApiHelper.PostDataAsync(ApiHelper.AcceptUri, jsonData);
         }
+
+
+        public static async Task DeleteOfferAsync(int blockId)
+        {
+            string url = ScheduleBlocks + "/" + blockId.ToString();
+            var response = await ApiHelper.ApiClient.DeleteAsync(url);
+            Console.WriteLine(response);
+            Console.WriteLine(url);
+        }
+
     }
 }

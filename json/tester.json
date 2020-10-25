@@ -1,0 +1,48 @@
+{
+  "creationDate": null,
+  "endTime": 1603553400.0,
+  "expirationDate": 1603546200.0,
+  "hidden": false,
+  "isPriorityOffer": false,
+  "offerId": "AAAAAAAAAAGut8C5q4wca4GuL42ZbrfRnW1+dT1QpdGJsHGpwjhpm2UDww3LmRyvJAd7gq4CNkkEDiCQ9bQW5a4MhoTXj4KyOciGBUEBn7Vthfz9ZBH6meBd2cmOhrX9tqWf4qmUBVLAS9z5EufaxdSypKhTED22PtJoC2/9534TqJgyGHHu9/ccswhhf9J0LMynNTcaDesgaB/OM3W5eVPFAueJcmPYpxnmLK/c6mxSVGpxnKQ+Tb0FoVuFD+HKQXifo8+NzCa4cos6viVP5ABhBxCHBOmIrekcFUSn6BDu0tW+uW+KbOJU7wEi+a7avNge4b8m0ujALRBUlkypADxC4fbPMDg1EvqJNhvsgwZjpVak3J5H|6+FJ71gGsvR76rrqjFJ8Xay4+IJyy0RUxyAXH9aF0As=",
+  "offerMetadata": null,
+  "offerType": "NON_EXCLUSIVE",
+  "rateInfo": {
+    "PriceDetails": null,
+    "currency": "USD",
+    "isSurge": false,
+    "priceAmount": 30.0,
+    "pricingUXVersion": "V2",
+    "projectedTips": 24.0,
+    "surgeMultiplier": null
+  },
+  "schedulingType": "BLOCK",
+  "serviceAreaId": "29571892-da88-4089-83f0-24135852c2e4",
+  "serviceTypeId": "amzn1.flex.st.v1.PuyOplzlR1idvfPkv5138g",
+  "serviceTypeMetadata": {
+    "nameClassification": "STANDARD"
+  },
+  "startTime": 1603546200.0,
+  "startingLocation": {
+    "address": {
+      "address1": "",
+      "address2": null,
+      "address3": null,
+      "addressId": null,
+      "city": null,
+      "countryCode": null,
+      "name": null,
+      "phone": null,
+      "postalCode": null,
+      "state": null
+    },
+    "geocode": {
+      "latitude": 0.0,
+      "longitude": 0.0
+    },
+    "locationType": null,
+    "startingLocationName": ""
+  },
+  "status": "OFFERED",
+  "trIds": null
+}
