@@ -310,6 +310,8 @@ namespace FlexCatcher
         public void LookingForBlocks()
         {
             Stopwatch watcher = Stopwatch.StartNew();
+            ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.SeekerClient);
+            ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.CatcherClient);
 
             while (true)
 
