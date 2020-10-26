@@ -201,11 +201,11 @@ namespace FlexCatcher
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 // send to owner endpoint accept data to log and send to the user the notification
-                Console.WriteLine($"\nOffer has been accepted status with status code: {response.StatusCode}");
+                Console.WriteLine($"\nOffer has been accepted >> Reason >> {response.StatusCode}");
                 _totalAcceptedOffers++;
             }
             else
-                Console.WriteLine($"\nSomething went wrong accepting the request >> Status code: {response.StatusCode}\n");
+                Console.WriteLine($"\nSomething went wrong accepting the offer >> Reason >> {response.StatusCode}\n");
 
 
         }
@@ -263,11 +263,10 @@ namespace FlexCatcher
             var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, _serviceAreaFilterData);
             JObject requestToken = await ApiHelper.GetRequestTokenAsync(response);
 
-            // keep a track how many calls has been made
-            _totalApiCalls++;
-
             if (response.IsSuccessStatusCode)
             {
+                // keep a track how many calls has been made
+                _totalApiCalls++;
                 JToken offerList = requestToken.GetValue("offerList");
 
                 if (offerList != null && offerList.HasValues)
@@ -285,12 +284,15 @@ namespace FlexCatcher
                     });
                 }
             }
+            else
+            {
+                Console.WriteLine($"\nRequest not Successful >> Reason >> {response.StatusCode}\n");
+            }
         }
 
         public void LookingForBlocks()
         {
             ApiHelper.AddRequestHeaders(_offersDataHeader);
-            int counter = 0;
 
             while (true)
 
@@ -304,10 +306,6 @@ namespace FlexCatcher
                                   $"Validated Offers: {_totalValidOffers} -- Accepted Offers: {_totalAcceptedOffers}");
 
                 watcher.Restart();
-                counter++;
-
-                //if (counter == 1)
-                //    break;
 
             }
 
