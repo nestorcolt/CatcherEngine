@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -198,7 +197,7 @@ namespace FlexCatcher
 
             var response = await ApiHelper.AcceptOfferAsync((string)offer[key: "offerId"]);
 
-            if (response.StatusCode == HttpStatusCode.OK)
+            if (response.IsSuccessStatusCode)
             {
                 // send to owner endpoint accept data to log and send to the user the notification
                 Console.WriteLine($"\nOffer has been accepted >> Reason >> {response.StatusCode}");
@@ -206,7 +205,6 @@ namespace FlexCatcher
             }
             else
                 Console.WriteLine($"\nSomething went wrong accepting the offer >> Reason >> {response.StatusCode}\n");
-
 
         }
 
