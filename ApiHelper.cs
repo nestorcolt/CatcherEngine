@@ -113,7 +113,7 @@ namespace FlexCatcher
             return await Task.Run(() => JObject.Parse(content));
         }
 
-        public static void AddRequestHeaders(Dictionary<string, string> headersDictionary, HttpClient customClient = null)
+        public static void AddRequestHeaders(Dictionary<string, string> headersDictionary, HttpClient customClient)
         {
             HttpClient client = customClient ?? ApiClient;
             client.DefaultRequestHeaders.Clear();

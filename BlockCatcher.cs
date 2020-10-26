@@ -198,10 +198,10 @@ namespace FlexCatcher
             _offersDataHeader = offerAcceptHeaders;
         }
 
-        private async Task AcceptOffer(JToken offer)
+        private async Task AcceptOffer(string offerId)
         {
 
-            var response = await ApiHelper.AcceptOfferAsync((string)offer[key: "offerId"]);
+            var response = await ApiHelper.AcceptOfferAsync(offerId);
 
             if (response.IsSuccessStatusCode)
             {
@@ -209,9 +209,12 @@ namespace FlexCatcher
                 Console.WriteLine($"\nOffer has been accepted >> Reason >> {response.StatusCode}");
                 _totalAcceptedOffers++;
             }
+            else if (response.StatusCode != HttpStatusCode.BadRequest)
+            {
+                _totalApiCalls++;
+            }
             else
                 Console.WriteLine($"\nSomething went wrong accepting the offer >> Reason >> {response.StatusCode}\n");
-
         }
 
         private async Task ValidateOffers(JToken offer)
@@ -283,7 +286,8 @@ namespace FlexCatcher
                     Parallel.ForEach(offerList, async offer =>
                     {
                         // Parallel offer validation and accept request.
-                        await AcceptOffer(offer);
+
+                        await AcceptOffer((string)offer[key: "offerId"]);
                         await ValidateOffers(offer);
 
                         // to track and debug how many offers has shown the request in total of the runtime
@@ -316,8 +320,9 @@ namespace FlexCatcher
             while (true)
 
             {
-                Task.Run(GetOffers);
-                Task.Delay(_speed).Wait();
+                //Task.Run(GetOffers);
+                Task.Run(() => AcceptOffer("offer"));
+                //Thread.Sleep(_speed);
 
                 Console.WriteLine($"Execution Speed: {watcher.Elapsed}  - | Api Calls: {_totalApiCalls} | OFFERS >> Total: {_totalOffersCounter} -- " +
                                   $"Validated: {_totalValidOffers} -- Accepted: {_totalAcceptedOffers} -- Rejected: {_totalRejectedOffers}");
