@@ -197,24 +197,17 @@ namespace FlexCatcher
         {
 
             var response = await ApiHelper.AcceptOfferAsync((string)offer[key: "offerId"]);
-            Console.WriteLine(response);
-            Console.WriteLine(response.StatusCode);
-            Console.WriteLine(HttpStatusCode.OK);
 
-            //if (response.StatusCode == HttpStatusCode.OK)
-            //{
-            //    // send to owner endpoint accept data to log and send to the user the notification
-            //    Console.WriteLine($"\nOffer has been accepted status: {response.StatusCode}");
-            //    _totalAcceptedOffers++;
-            //}
-            //else if (response.StatusCode == HttpStatusCode.Gone)
-            //{
-            //    Console.WriteLine("Offer Gone .........................\n");
-            //}
-            //else
-            //{
-            //    Console.WriteLine($"Other Status Code {response.StatusCode}");
-            //}
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                // send to owner endpoint accept data to log and send to the user the notification
+                Console.WriteLine($"\nOffer has been accepted status with status code: {response.StatusCode}");
+                _totalAcceptedOffers++;
+            }
+            else
+                Console.WriteLine($"\nSomething went wrong accepting the request >> Status code: {response.StatusCode}\n");
+
+
         }
 
         private async Task ValidateOffers(JToken offer)
@@ -230,7 +223,6 @@ namespace FlexCatcher
             // if the validation is not success will try to find in the catch blocks the one did not passed the validation and forfeit them
             if ((float)offerPrice < _minimumPrice && !_areas.Contains((string)serviceAreaId) && pickUpTimespan < _pickUpTimeThreshold)
             {
-                ApiHelper.ApiClient.DefaultRequestHeaders.Clear();
                 var blocksArray = await ApiHelper.GetBlockFromDataBaseAsync(ApiHelper.AssignedBlocks, _offersDataHeader[ApiHelper.TokenKeyConstant]);
 
                 Parallel.ForEach(blocksArray.Values(), async block =>
@@ -285,7 +277,7 @@ namespace FlexCatcher
                     {
                         // Parallel offer validation and accept request.
                         await AcceptOffer(offer);
-                        //await ValidateOffers(offer);
+                        await ValidateOffers(offer);
 
                         // to track and debug how many offers has shown the request in total of the runtime
                         _totalOffersCounter++;
