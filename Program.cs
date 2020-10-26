@@ -29,7 +29,7 @@ namespace FlexCatcher
                 catcher.ExecutionSpeed = 0.2f;
 
                 // Main loop method is being called here
-                if (catcher.AccessSuccessCode)
+                if (catcher.AccessSuccess)
                 {
                     catcher.LookingForBlocks();
                     //catcher.GetPool();

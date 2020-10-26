@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -26,8 +27,9 @@ namespace FlexCatcher
         private int _totalApiCalls = 0;
         private int _totalValidOffers = 0;
         private int _totalAcceptedOffers = 0;
+        private int _totalRejectedOffers = 0;
         private readonly string _userId;
-        public bool AccessSuccessCode;
+        public bool AccessSuccess;
         private bool _debug;
         private int _speed;
 
@@ -59,6 +61,9 @@ namespace FlexCatcher
 
             // Set the client service area to sent as extra data with the request on get blocks method
             SetServiceArea();
+
+            ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.SeekerClient);
+            ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.CatcherClient);
         }
 
         private int GetTimestamp()
@@ -137,6 +142,7 @@ namespace FlexCatcher
                 { "action", "access_token" }
 
             };
+
             string jsonData = JsonConvert.SerializeObject(data);
             HttpResponseMessage response = await ApiHelper.PostDataAsync(ApiHelper.OwnerEndpointUrl, jsonData);
             JObject requestToken = await ApiHelper.GetRequestTokenAsync(response);
@@ -145,14 +151,14 @@ namespace FlexCatcher
             if (responseValue == "failed")
             {
                 Console.WriteLine("Session token request failed. Operation aborted.\n");
-                AccessSuccessCode = false;
+                AccessSuccess = false;
             }
 
             else
             {
                 _offersDataHeader[ApiHelper.TokenKeyConstant] = responseValue;
                 Console.WriteLine("Access to the service granted!\n");
-                AccessSuccessCode = true;
+                AccessSuccess = true;
             }
 
         }
@@ -219,7 +225,7 @@ namespace FlexCatcher
             int pickUpTimespan = (int)startTime - GetTimestamp();
 
             // if the validation is not success will try to find in the catch blocks the one did not passed the validation and forfeit them
-            if ((float)offerPrice < _minimumPrice && !_areas.Contains((string)serviceAreaId) && pickUpTimespan < _pickUpTimeThreshold)
+            if ((float)offerPrice < _minimumPrice || !_areas.Contains((string)serviceAreaId) || pickUpTimespan < _pickUpTimeThreshold)
             {
                 var blocksArray = await ApiHelper.GetBlockFromDataBaseAsync(ApiHelper.AssignedBlocks, _offersDataHeader[ApiHelper.TokenKeyConstant]);
 
@@ -231,7 +237,11 @@ namespace FlexCatcher
                     int blockId = (int)block[0]["startTime"];
 
                     if (blockId == (int)startTime)
+                    {
                         await ApiHelper.DeleteOfferAsync(blockId);
+                        _totalRejectedOffers++;
+                    }
+
                 });
 
             }
@@ -264,6 +274,7 @@ namespace FlexCatcher
             {
                 // keep a track how many calls has been made
                 _totalApiCalls++;
+
                 JToken offerList = requestToken.GetValue("offerList");
 
                 if (offerList != null && offerList.HasValues)
@@ -283,28 +294,33 @@ namespace FlexCatcher
             }
             else
             {
+
+                if (response.StatusCode == HttpStatusCode.Forbidden)
+                {
+                    GetAccessData().Wait();
+                    Task.Delay(10000).Wait();
+                    ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.SeekerClient);
+                    ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.CatcherClient);
+                }
+
                 Console.WriteLine($"\nRequest not Successful >> Reason >> {response.StatusCode}\n");
             }
         }
 
         public void LookingForBlocks()
         {
-            ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.SeekerClient);
-            ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.CatcherClient);
+            Stopwatch watcher = Stopwatch.StartNew();
 
             while (true)
 
             {
-                // TODO REMEMBER TO RE-AUTHENTICATE WHEN THE SESSION EXPIRE EVERY HOUR OR SOMETHING. 
-                Stopwatch watcher = Stopwatch.StartNew();
                 Task.Run(GetOffers);
                 Task.Delay(_speed).Wait();
 
-                Console.WriteLine($"Execution Speed: {watcher.Elapsed}  - | Api Calls: {_totalApiCalls} -- Total Offers: {_totalOffersCounter} -- " +
-                                  $"Validated Offers: {_totalValidOffers} -- Accepted Offers: {_totalAcceptedOffers}");
+                Console.WriteLine($"Execution Speed: {watcher.Elapsed}  - | Api Calls: {_totalApiCalls} | OFFERS >> Total: {_totalOffersCounter} -- " +
+                                  $"Validated: {_totalValidOffers} -- Accepted: {_totalAcceptedOffers} -- Rejected: {_totalRejectedOffers}");
 
                 watcher.Restart();
-
             }
 
         }
