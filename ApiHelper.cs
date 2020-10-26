@@ -23,8 +23,6 @@ namespace FlexCatcher
         public static string Regions = "regions";
 
         public static HttpClient ApiClient { get; set; }
-        public static HttpResponseMessage CurrentResponse { get; set; }
-
         public const string TokenKeyConstant = "x-amz-access-token";
 
         public static void InitializeClient()
@@ -41,7 +39,8 @@ namespace FlexCatcher
 
             ApiClient.DefaultRequestHeaders.Add(TokenKeyConstant, authToken);
             var content = await GetDataAsync(uri);
-            var value = content.GetValue("serviceAreaIds");
+            JObject requestToken = await GetRequestTokenAsync(content);
+            JToken value = requestToken.GetValue("serviceAreaIds");
             return value;
 
         }
@@ -59,18 +58,18 @@ namespace FlexCatcher
         {
 
             ApiClient.DefaultRequestHeaders.Add(TokenKeyConstant, authToken);
-            JObject content = await GetDataAsync(uri);
-            return content;
+            HttpResponseMessage content = await GetDataAsync(uri);
+            JObject requestToken = await GetRequestTokenAsync(content);
+            return requestToken;
 
         }
 
-        public static async Task<JObject> GetDataAsync(string uri)
+        public static async Task<HttpResponseMessage> GetDataAsync(string uri)
         {
             try
             {
                 HttpResponseMessage response = await ApiClient.GetAsync(uri);
-                var content = await response.Content.ReadAsStringAsync();
-                return await Task.Run(() => JObject.Parse(content));
+                return response;
             }
             catch (HttpRequestException e)
             {
@@ -81,14 +80,12 @@ namespace FlexCatcher
             return null;
         }
 
-        public static async Task<JObject> PostDataAsync(string uri, string data)
+        public static async Task<HttpResponseMessage> PostDataAsync(string uri, string data)
         {
             try
             {
                 HttpResponseMessage response = await ApiClient.PostAsync(uri, new StringContent(data));
-                response.EnsureSuccessStatusCode();
-                string content = await response.Content.ReadAsStringAsync();
-                return await Task.Run(() => JObject.Parse(content));
+                return response;
             }
             catch (HttpRequestException e)
             {
@@ -97,6 +94,12 @@ namespace FlexCatcher
             }
 
             return null;
+        }
+
+        public static async Task<JObject> GetRequestTokenAsync(HttpResponseMessage requestMessage)
+        {
+            string content = await requestMessage.Content.ReadAsStringAsync();
+            return await Task.Run(() => JObject.Parse(content));
         }
 
         public static void AddRequestHeaders(Dictionary<string, string> headersDictionary)
@@ -109,7 +112,7 @@ namespace FlexCatcher
             }
         }
 
-        public static async Task<JObject> AcceptOfferAsync(string offerId, Dictionary<string, string> offerHeaders)
+        public static async Task<HttpResponseMessage> AcceptOfferAsync(string offerId)
         {
             var acceptHeader = new Dictionary<string, string>
             {
@@ -117,16 +120,15 @@ namespace FlexCatcher
                 {"offerId", offerId}
             };
 
-            ApiHelper.AddRequestHeaders(offerHeaders);
             string jsonData = JsonConvert.SerializeObject(acceptHeader);
-            JObject response = await ApiHelper.PostDataAsync(ApiHelper.AcceptUri, jsonData);
+            HttpResponseMessage response = await PostDataAsync(ApiHelper.AcceptUri, jsonData);
             return response;
         }
 
         public static async Task DeleteOfferAsync(int blockId)
         {
             string url = ScheduleBlocks + "/" + blockId.ToString();
-            var response = await ApiHelper.ApiClient.DeleteAsync(url);
+            var response = await ApiClient.DeleteAsync(url);
         }
 
     }

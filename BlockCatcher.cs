@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace FlexCatcher
@@ -137,8 +139,9 @@ namespace FlexCatcher
 
             };
             string jsonData = JsonConvert.SerializeObject(data);
-            var response = await ApiHelper.PostDataAsync(ApiHelper.OwnerEndpointUrl, jsonData);
-            string responseValue = response.GetValue("access_token").ToString();
+            HttpResponseMessage response = await ApiHelper.PostDataAsync(ApiHelper.OwnerEndpointUrl, jsonData);
+            JObject requestToken = await ApiHelper.GetRequestTokenAsync(response);
+            string responseValue = requestToken.GetValue("access_token").ToString();
 
             if (responseValue == "failed")
             {
@@ -161,16 +164,16 @@ namespace FlexCatcher
             {
                 { "userId", _userId },
                 { "action", "instance_id" }
-
             };
 
             String jsonData = JsonConvert.SerializeObject(data);
-            var response = await ApiHelper.PostDataAsync(ApiHelper.OwnerEndpointUrl, jsonData);
+            HttpResponseMessage response = await ApiHelper.PostDataAsync(ApiHelper.OwnerEndpointUrl, jsonData);
+            JObject requestToken = await ApiHelper.GetRequestTokenAsync(response);
 
-            string androidVersion = response.GetValue("androidVersion").ToString();
-            string deviceModel = response.GetValue("deviceModel").ToString();
-            string instanceId = response.GetValue("instanceId").ToString();
-            string build = response.GetValue("build").ToString();
+            string androidVersion = requestToken.GetValue("androidVersion").ToString();
+            string deviceModel = requestToken.GetValue("deviceModel").ToString();
+            string instanceId = requestToken.GetValue("instanceId").ToString();
+            string build = requestToken.GetValue("build").ToString();
             string uuid = Guid.NewGuid().ToString();
             int time = GetTimestamp();
 
@@ -190,25 +193,28 @@ namespace FlexCatcher
             _offersDataHeader = offerAcceptHeaders;
         }
 
-
         private async Task AcceptOffer(JToken offer)
         {
 
-            await Task.Run(() => ApiHelper.AcceptOfferAsync((string)offer[key: "offerId"], _offersDataHeader));
-            Console.WriteLine(offer);
+            var response = await ApiHelper.AcceptOfferAsync((string)offer[key: "offerId"]);
+            Console.WriteLine(response);
+            Console.WriteLine(response.StatusCode);
+            Console.WriteLine(HttpStatusCode.OK);
 
-            //if (ApiHelper.CurrentResponse.StatusCode == HttpStatusCode.OK)
+            //if (response.StatusCode == HttpStatusCode.OK)
             //{
             //    // send to owner endpoint accept data to log and send to the user the notification
-            //    Console.WriteLine($"\nOffer has been accepted status: {ApiHelper.CurrentResponse.StatusCode}");
+            //    Console.WriteLine($"\nOffer has been accepted status: {response.StatusCode}");
             //    _totalAcceptedOffers++;
-
             //}
-            //else if (ApiHelper.CurrentResponse.StatusCode == HttpStatusCode.Gone)
+            //else if (response.StatusCode == HttpStatusCode.Gone)
             //{
             //    Console.WriteLine("Offer Gone .........................\n");
             //}
-
+            //else
+            //{
+            //    Console.WriteLine($"Other Status Code {response.StatusCode}");
+            //}
         }
 
         private async Task ValidateOffers(JToken offer)
@@ -229,7 +235,6 @@ namespace FlexCatcher
 
                 Parallel.ForEach(blocksArray.Values(), async block =>
                 {
-
                     if (block != null && !block.HasValues)
                         return;
 
@@ -237,8 +242,6 @@ namespace FlexCatcher
 
                     if (blockId == (int)startTime)
                         await ApiHelper.DeleteOfferAsync(blockId);
-
-
                 });
 
             }
@@ -247,41 +250,42 @@ namespace FlexCatcher
             if ((float)offerPrice >= _minimumPrice && _areas.Contains((string)serviceAreaId) && pickUpTimespan >= _pickUpTimeThreshold)
             {
                 _totalValidOffers++;
-            }
 
-            // debug just output information to the console
-            if (_debug)
-            {
-                Console.WriteLine("\nValidation debug Info:");
-                string logInfo = $"Service Area -- {(string)serviceAreaId} in -->  Areas List\n" +
-                                 $"Price -- {(float)offerPrice} Grater or Equal than {_minimumPrice}\n" +
-                                 $"PickUp -- {pickUpTimespan} Grater or Equal than {_pickUpTimeThreshold}";
+                // debug just output information to the console
+                if (_debug)
+                {
+                    Console.WriteLine("\nValidation debug Info:");
+                    string logInfo = $"Service Area -- {(string)serviceAreaId} in -->  Areas List\n" +
+                                     $"Price -- {(float)offerPrice} Grater or Equal than {_minimumPrice}\n" +
+                                     $"PickUp -- {pickUpTimespan} Grater or Equal than {_pickUpTimeThreshold}";
 
-                Console.WriteLine(logInfo);
-                Console.WriteLine("\n\n");
+                    Console.WriteLine(logInfo);
+                    Console.WriteLine("\n\n");
+                }
             }
         }
 
         private async Task GetOffers()
         {
-
-            ApiHelper.AddRequestHeaders(_offersDataHeader);
+            //ApiHelper.AddRequestHeaders(_offersDataHeader);
             var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, _serviceAreaFilterData);
+            JObject requestToken = await ApiHelper.GetRequestTokenAsync(response);
 
             // keep a track how many calls has been made
             _totalApiCalls++;
 
-            if (ApiHelper.CurrentResponse.IsSuccessStatusCode)
+            if (response.IsSuccessStatusCode)
             {
-                JToken offerList = response.GetValue("offerList");
+                JToken offerList = requestToken.GetValue("offerList");
 
-                if (offerList.HasValues)
+                if (offerList != null && offerList.HasValues)
                 {
                     // validate offers
                     Parallel.ForEach(offerList, async offer =>
                     {
                         // Parallel offer validation and accept request.
-                        await AcceptOffer(offer).ContinueWith(task => ValidateOffers(offer));
+                        await AcceptOffer(offer);
+                        //await ValidateOffers(offer);
 
                         // to track and debug how many offers has shown the request in total of the runtime
                         _totalOffersCounter++;
@@ -293,6 +297,7 @@ namespace FlexCatcher
 
         public void LookingForBlocks()
         {
+            ApiHelper.AddRequestHeaders(_offersDataHeader);
             int counter = 0;
 
             while (true)
@@ -300,8 +305,8 @@ namespace FlexCatcher
             {
                 // TODO REMEMBER TO RE-AUTHENTICATE WHEN THE SESSION EXPIRE EVERY HOUR OR SOMETHING. 
                 Stopwatch watcher = Stopwatch.StartNew();
-                Task.Delay(_speed).Wait();
                 Task.Run(GetOffers);
+                Task.Delay(_speed).Wait();
 
                 Console.WriteLine($"Execution Speed: {watcher.Elapsed}  - | Api Calls: {_totalApiCalls} -- Total Offers: {_totalOffersCounter} -- " +
                                   $"Validated Offers: {_totalValidOffers} -- Accepted Offers: {_totalAcceptedOffers}");
