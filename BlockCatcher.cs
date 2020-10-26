@@ -60,7 +60,6 @@ namespace FlexCatcher
 
             // Set the client service area to sent as extra data with the request on get blocks method
             SetServiceArea();
-            //GetPool();
         }
 
         private int GetTimestamp()
@@ -81,14 +80,15 @@ namespace FlexCatcher
 
             return null;
         }
-        private void GetPool()
+        public void GetPool()
         {
             //ApiHelper.AddRequestHeaders(_offersDataHeader);
-            ApiHelper.ApiClient.DefaultRequestHeaders.Clear();
+            //ApiHelper.ApiClient.DefaultRequestHeaders.Clear();
             var result = ApiHelper.GetBlockFromDataBaseAsync(ApiHelper.AssignedBlocks, _offersDataHeader[ApiHelper.TokenKeyConstant]).Result;
-            string a = "AAAAAAAAAAGut8C5q4wca4H4coiePO3azW0pIDwKpdGBuCupmzlrm2UEllqenkepcAB73qkCNkkEDiCQ9bQW5a4MhoTXj4KyOciGBUEBn7Vthfz9ZBH6meBd2cmOhrX9tqWf4qmUBVLAS9z5EufXwtaypKhTED22PthoC2/9534QzIQqC3Ga/JIZxQ8Hf9J0Kpr8M2hMCO4gYhifMnW5JgjCAr+JJm3Y8ka1IKmAu2hUU2ggnKQ+H+pUoV+IXeHKFXTK9M+NxX27cotg7XFP5wI8VxqAA7aFrLtOFUSn6BDu0tW+uW+KbOJU7wEi+a7avNge4b8m0ujALRBUlkypADxC6/3ZITMdc/ou5cglg2/FHCzYMvroJYuGtcsSrZkr43qaVTuk55jKjjt68mAI|99kuo5yUKTEC/MAPLbtpNUGc/a6be2nZQykjMMYlf+U=";
+            Console.WriteLine(result);
+            //string a = "AAAAAAAAAAGut8C5q4wca4H4coiePO3azW0pIDwKpdGBuCupmzlrm2UEllqenkepcAB73qkCNkkEDiCQ9bQW5a4MhoTXj4KyOciGBUEBn7Vthfz9ZBH6meBd2cmOhrX9tqWf4qmUBVLAS9z5EufXwtaypKhTED22PthoC2/9534QzIQqC3Ga/JIZxQ8Hf9J0Kpr8M2hMCO4gYhifMnW5JgjCAr+JJm3Y8ka1IKmAu2hUU2ggnKQ+H+pUoV+IXeHKFXTK9M+NxX27cotg7XFP5wI8VxqAA7aFrLtOFUSn6BDu0tW+uW+KbOJU7wEi+a7avNge4b8m0ujALRBUlkypADxC6/3ZITMdc/ou5cglg2/FHCzYMvroJYuGtcsSrZkr43qaVTuk55jKjjt68mAI|99kuo5yUKTEC/MAPLbtpNUGc/a6be2nZQykjMMYlf+U=";
 
-            string b = "AAAAAAAAAAGut8C5q4wca4H4coiePO3azW0pIDwKpdGBuCupmzlrm2UEllqenkepcAB73qkCNkkEDiCQ9bQW5a4MhoTXj4KyOciGBUEBn7Vthfz9ZBH6meBd2cmOhrX9tqWf4qmUBVLAS9z5EufXwtGzpKhTED22PthoC2/9534QzIQqC3Ga/JIZxQ8Hf9J0Kpr8M2hMCO4gYhifMnW5JgjCAr+JJm3Y8ka1IKmAu2hUU2ggnKQ+SrpWoFKMXbzKEH+a/M+Nkim5ctJg7yNP4wZnBRqBBLmFobscFUSn6BDu0tW+uW+KbOJU7wEi+a7avNge4b8m0ujALRBUlkypADxC6/3ZITMdc/ou5cglg2/FHCzYMvroJYuGtcsSrZm+QJtVg2NL912aXrvEsVu3|4MlcE4fsvNxgIo0eB3ILscRFvs9K2T89vT0fym4R0rc=";
+            //string b = "AAAAAAAAAAGut8C5q4wca4H4coiePO3azW0pIDwKpdGBuCupmzlrm2UEllqenkepcAB73qkCNkkEDiCQ9bQW5a4MhoTXj4KyOciGBUEBn7Vthfz9ZBH6meBd2cmOhrX9tqWf4qmUBVLAS9z5EufXwtGzpKhTED22PthoC2/9534QzIQqC3Ga/JIZxQ8Hf9J0Kpr8M2hMCO4gYhifMnW5JgjCAr+JJm3Y8ka1IKmAu2hUU2ggnKQ+SrpWoFKMXbzKEH+a/M+Nkim5ctJg7yNP4wZnBRqBBLmFobscFUSn6BDu0tW+uW+KbOJU7wEi+a7avNge4b8m0ujALRBUlkypADxC6/3ZITMdc/ou5cglg2/FHCzYMvroJYuGtcsSrZm+QJtVg2NL912aXrvEsVu3|4MlcE4fsvNxgIo0eB3ILscRFvs9K2T89vT0fym4R0rc=";
 
             Parallel.ForEach(result.Values(), async block =>
             {
@@ -103,7 +103,7 @@ namespace FlexCatcher
 
 
             });
-            Task.Run(() => AcceptOffer(b)).Wait();
+            //Task.Run(() => AcceptOffer(b)).Wait();
 
         }
         private void SetServiceArea()

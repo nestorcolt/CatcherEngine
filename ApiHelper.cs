@@ -23,11 +23,12 @@ namespace FlexCatcher
         public static string Regions = "regions";
 
         public static HttpClient ApiClient { get; set; }
+        public static HttpClient DisposableClient { get; set; }
         public const string TokenKeyConstant = "x-amz-access-token";
 
         public static void InitializeClient()
         {
-
+            DisposableClient = new HttpClient { BaseAddress = new Uri(ApiBaseUrl) };
             ApiClient = new HttpClient { BaseAddress = new Uri(ApiBaseUrl) };
             ApiClient.DefaultRequestHeaders.Accept.Clear();
             ApiClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -45,20 +46,20 @@ namespace FlexCatcher
 
         }
 
-        //public static async Task<JToken> GetPool(string uri, string authToken)
-        //{
-
-        //    ApiClient.DefaultRequestHeaders.Add(TokenKeyConstant, authToken);
-        //    var content = GetDataAsync(uri).Result;
-        //    return content;
-
-        //}
-
-        public static async Task<JObject> GetBlockFromDataBaseAsync(string uri, string authToken)
+        public static async Task<JToken> GetPool(string uri, string authToken)
         {
 
             ApiClient.DefaultRequestHeaders.Add(TokenKeyConstant, authToken);
             HttpResponseMessage content = await GetDataAsync(uri);
+            JObject requestToken = await GetRequestTokenAsync(content);
+            return requestToken;
+        }
+
+        public static async Task<JObject> GetBlockFromDataBaseAsync(string uri, string authToken)
+        {
+
+            DisposableClient.DefaultRequestHeaders.Add(TokenKeyConstant, authToken);
+            HttpResponseMessage content = await DisposableClient.GetAsync(uri);
             JObject requestToken = await GetRequestTokenAsync(content);
             return requestToken;
 
@@ -128,7 +129,7 @@ namespace FlexCatcher
         public static async Task DeleteOfferAsync(int blockId)
         {
             string url = ScheduleBlocks + "/" + blockId.ToString();
-            var response = await ApiClient.DeleteAsync(url);
+            await ApiClient.DeleteAsync(url);
         }
 
     }

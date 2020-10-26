@@ -31,7 +31,8 @@ namespace FlexCatcher
                 // Main loop method is being called here
                 if (catcher.AccessSuccessCode)
                 {
-                    catcher.LookingForBlocks();
+                    //catcher.LookingForBlocks();
+                    catcher.GetPool();
                     Console.WriteLine("Looking for blocks 1, 2, 3 ...");
                 }
 
