@@ -23,13 +23,18 @@ namespace FlexCatcher
         public static string Regions = "regions";
 
         public static HttpClient ApiClient { get; set; }
-        public static HttpClient DisposableClient { get; set; }
+        //public static HttpClient DisposableClient { get; set; }
+        public static HttpClient CatcherClient { get; set; }
+        public static HttpClient SeekerClient { get; set; }
         public const string TokenKeyConstant = "x-amz-access-token";
 
         public static void InitializeClient()
         {
-            DisposableClient = new HttpClient { BaseAddress = new Uri(ApiBaseUrl) };
+            //DisposableClient = new HttpClient { BaseAddress = new Uri(ApiBaseUrl) };
+            CatcherClient = new HttpClient { BaseAddress = new Uri(ApiBaseUrl) };
+            SeekerClient = new HttpClient { BaseAddress = new Uri(ApiBaseUrl) };
             ApiClient = new HttpClient { BaseAddress = new Uri(ApiBaseUrl) };
+
             ApiClient.DefaultRequestHeaders.Accept.Clear();
             ApiClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
@@ -58,18 +63,21 @@ namespace FlexCatcher
         public static async Task<JObject> GetBlockFromDataBaseAsync(string uri, string authToken)
         {
 
-            DisposableClient.DefaultRequestHeaders.Add(TokenKeyConstant, authToken);
-            HttpResponseMessage content = await DisposableClient.GetAsync(uri);
+            ApiClient.DefaultRequestHeaders.Clear();
+            ApiClient.DefaultRequestHeaders.Add(TokenKeyConstant, authToken);
+            HttpResponseMessage content = await ApiClient.GetAsync(uri);
             JObject requestToken = await GetRequestTokenAsync(content);
             return requestToken;
 
         }
 
-        public static async Task<HttpResponseMessage> GetDataAsync(string uri)
+        public static async Task<HttpResponseMessage> GetDataAsync(string uri, HttpClient customClient = null)
         {
+            HttpClient client = customClient ?? ApiClient;
+
             try
             {
-                HttpResponseMessage response = await ApiClient.GetAsync(uri);
+                HttpResponseMessage response = await client.GetAsync(uri);
                 return response;
             }
             catch (HttpRequestException e)
@@ -81,11 +89,13 @@ namespace FlexCatcher
             return null;
         }
 
-        public static async Task<HttpResponseMessage> PostDataAsync(string uri, string data)
+        public static async Task<HttpResponseMessage> PostDataAsync(string uri, string data, HttpClient customClient = null)
         {
+            HttpClient client = customClient ?? ApiClient;
+
             try
             {
-                HttpResponseMessage response = await ApiClient.PostAsync(uri, new StringContent(data));
+                HttpResponseMessage response = await client.PostAsync(uri, new StringContent(data));
                 return response;
             }
             catch (HttpRequestException e)
@@ -103,13 +113,14 @@ namespace FlexCatcher
             return await Task.Run(() => JObject.Parse(content));
         }
 
-        public static void AddRequestHeaders(Dictionary<string, string> headersDictionary)
+        public static void AddRequestHeaders(Dictionary<string, string> headersDictionary, HttpClient customClient = null)
         {
-            ApiClient.DefaultRequestHeaders.Clear();
+            HttpClient client = customClient ?? ApiClient;
+            client.DefaultRequestHeaders.Clear();
 
             foreach (var data in headersDictionary)
             {
-                ApiClient.DefaultRequestHeaders.Add(data.Key, (string)data.Value);
+                client.DefaultRequestHeaders.Add(data.Key, (string)data.Value);
             }
         }
 
@@ -122,7 +133,7 @@ namespace FlexCatcher
             };
 
             string jsonData = JsonConvert.SerializeObject(acceptHeader);
-            HttpResponseMessage response = await PostDataAsync(ApiHelper.AcceptUri, jsonData);
+            HttpResponseMessage response = await PostDataAsync(ApiHelper.AcceptUri, jsonData, CatcherClient);
             return response;
         }
 

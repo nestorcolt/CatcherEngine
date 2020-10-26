@@ -257,8 +257,7 @@ namespace FlexCatcher
 
         private async Task GetOffers()
         {
-            //ApiHelper.AddRequestHeaders(_offersDataHeader);
-            var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, _serviceAreaFilterData);
+            var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, _serviceAreaFilterData, ApiHelper.SeekerClient);
             JObject requestToken = await ApiHelper.GetRequestTokenAsync(response);
 
             if (response.IsSuccessStatusCode)
@@ -290,7 +289,8 @@ namespace FlexCatcher
 
         public void LookingForBlocks()
         {
-            ApiHelper.AddRequestHeaders(_offersDataHeader);
+            ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.SeekerClient);
+            ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.CatcherClient);
 
             while (true)
 
