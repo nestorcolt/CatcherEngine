@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 
 namespace FlexCatcher
@@ -31,7 +30,6 @@ namespace FlexCatcher
         private bool _debug;
         private int _speed;
 
-
         public bool Debug
         {
             get => _debug;
@@ -40,10 +38,7 @@ namespace FlexCatcher
 
         public float ExecutionSpeed
         {
-            get
-            {
-                return _speed;
-            }
+            get => _speed;
             set => _speed = (int)(value * 1000);
         }
 
@@ -63,7 +58,7 @@ namespace FlexCatcher
 
             // Set the client service area to sent as extra data with the request on get blocks method
             SetServiceArea();
-
+            //GetPool();
         }
 
         private int GetTimestamp()
@@ -84,10 +79,29 @@ namespace FlexCatcher
 
             return null;
         }
-        private void getPool()
+        private void GetPool()
         {
             //ApiHelper.AddRequestHeaders(_offersDataHeader);
-            //var result = await ApiHelper.GetBlockFromDataBaseAsync(ApiHelper.AssignBlocks, _offersDataHeader[ApiHelper.TokenKeyConstant]);
+            ApiHelper.ApiClient.DefaultRequestHeaders.Clear();
+            var result = ApiHelper.GetBlockFromDataBaseAsync(ApiHelper.AssignedBlocks, _offersDataHeader[ApiHelper.TokenKeyConstant]).Result;
+            string a = "AAAAAAAAAAGut8C5q4wca4H4coiePO3azW0pIDwKpdGBuCupmzlrm2UEllqenkepcAB73qkCNkkEDiCQ9bQW5a4MhoTXj4KyOciGBUEBn7Vthfz9ZBH6meBd2cmOhrX9tqWf4qmUBVLAS9z5EufXwtaypKhTED22PthoC2/9534QzIQqC3Ga/JIZxQ8Hf9J0Kpr8M2hMCO4gYhifMnW5JgjCAr+JJm3Y8ka1IKmAu2hUU2ggnKQ+H+pUoV+IXeHKFXTK9M+NxX27cotg7XFP5wI8VxqAA7aFrLtOFUSn6BDu0tW+uW+KbOJU7wEi+a7avNge4b8m0ujALRBUlkypADxC6/3ZITMdc/ou5cglg2/FHCzYMvroJYuGtcsSrZkr43qaVTuk55jKjjt68mAI|99kuo5yUKTEC/MAPLbtpNUGc/a6be2nZQykjMMYlf+U=";
+
+            string b = "AAAAAAAAAAGut8C5q4wca4H4coiePO3azW0pIDwKpdGBuCupmzlrm2UEllqenkepcAB73qkCNkkEDiCQ9bQW5a4MhoTXj4KyOciGBUEBn7Vthfz9ZBH6meBd2cmOhrX9tqWf4qmUBVLAS9z5EufXwtGzpKhTED22PthoC2/9534QzIQqC3Ga/JIZxQ8Hf9J0Kpr8M2hMCO4gYhifMnW5JgjCAr+JJm3Y8ka1IKmAu2hUU2ggnKQ+SrpWoFKMXbzKEH+a/M+Nkim5ctJg7yNP4wZnBRqBBLmFobscFUSn6BDu0tW+uW+KbOJU7wEi+a7avNge4b8m0ujALRBUlkypADxC6/3ZITMdc/ou5cglg2/FHCzYMvroJYuGtcsSrZm+QJtVg2NL912aXrvEsVu3|4MlcE4fsvNxgIo0eB3ILscRFvs9K2T89vT0fym4R0rc=";
+
+            Parallel.ForEach(result.Values(), async block =>
+            {
+
+                if (block != null && !block.HasValues)
+                    return;
+
+                int blockId = (int)block[0]["startTime"];
+                string offerId = (string)block[0]["scheduledAssignmentId"];
+                Console.WriteLine(block);
+                await ApiHelper.DeleteOfferAsync(blockId);
+
+
+            });
+            Task.Run(() => AcceptOffer(b)).Wait();
 
         }
         private void SetServiceArea()
@@ -183,20 +197,19 @@ namespace FlexCatcher
             await Task.Run(() => ApiHelper.AcceptOfferAsync((string)offer[key: "offerId"], _offersDataHeader));
             Console.WriteLine(offer);
 
-            if (ApiHelper.CurrentResponse.StatusCode == HttpStatusCode.OK)
-            {
-                // send to owner endpoint accept data to log and send to the user the notification
-                Console.WriteLine($"{ApiHelper.CurrentResponse.StatusCode}");
-                _totalAcceptedOffers++;
+            //if (ApiHelper.CurrentResponse.StatusCode == HttpStatusCode.OK)
+            //{
+            //    // send to owner endpoint accept data to log and send to the user the notification
+            //    Console.WriteLine($"\nOffer has been accepted status: {ApiHelper.CurrentResponse.StatusCode}");
+            //    _totalAcceptedOffers++;
 
-            }
-            else if (ApiHelper.CurrentResponse.StatusCode == HttpStatusCode.Gone)
-            {
-                Console.WriteLine("Offer Gone .........................\n");
-            }
+            //}
+            //else if (ApiHelper.CurrentResponse.StatusCode == HttpStatusCode.Gone)
+            //{
+            //    Console.WriteLine("Offer Gone .........................\n");
+            //}
 
         }
-
 
         private async Task ValidateOffers(JToken offer)
 
@@ -208,24 +221,25 @@ namespace FlexCatcher
             // The time the offer will be available for pick up at the facility
             int pickUpTimespan = (int)startTime - GetTimestamp();
 
-            if ((float)offerPrice < _minimumPrice && !_areas.Contains((string)serviceAreaId) && pickUpTimespan < _pickUpTimeThreshold)
             // if the validation is not success will try to find in the catch blocks the one did not passed the validation and forfeit them
+            if ((float)offerPrice < _minimumPrice && !_areas.Contains((string)serviceAreaId) && pickUpTimespan < _pickUpTimeThreshold)
             {
                 ApiHelper.ApiClient.DefaultRequestHeaders.Clear();
-                var blocksArray = await ApiHelper.GetBlockFromDataBaseAsync(ApiHelper.AssignBlocks, _offersDataHeader[ApiHelper.TokenKeyConstant]);
+                var blocksArray = await ApiHelper.GetBlockFromDataBaseAsync(ApiHelper.AssignedBlocks, _offersDataHeader[ApiHelper.TokenKeyConstant]);
 
                 Parallel.ForEach(blocksArray.Values(), async block =>
-               {
+                {
 
-                   if (block != null && !block.HasValues)
-                       return;
+                    if (block != null && !block.HasValues)
+                        return;
 
-                   int blockId = (int)block[0]["startTime"];
+                    int blockId = (int)block[0]["startTime"];
 
-                   if (blockId == (int)startTime)
-                       await ApiHelper.DeleteOfferAsync(blockId);
+                    if (blockId == (int)startTime)
+                        await ApiHelper.DeleteOfferAsync(blockId);
 
-               });
+
+                });
 
             }
 
@@ -264,14 +278,14 @@ namespace FlexCatcher
                 if (offerList.HasValues)
                 {
                     // validate offers
-                    Parallel.ForEach(offerList, offer =>
+                    Parallel.ForEach(offerList, async offer =>
                     {
                         // Parallel offer validation and accept request.
-                        Task.Run(() => AcceptOffer(offer));
-                        Task.Run(() => ValidateOffers(offer));
+                        await AcceptOffer(offer).ContinueWith(task => ValidateOffers(offer));
 
                         // to track and debug how many offers has shown the request in total of the runtime
                         _totalOffersCounter++;
+
                     });
                 }
             }
@@ -284,6 +298,7 @@ namespace FlexCatcher
             while (true)
 
             {
+                // TODO REMEMBER TO RE-AUTHENTICATE WHEN THE SESSION EXPIRE EVERY HOUR OR SOMETHING. 
                 Stopwatch watcher = Stopwatch.StartNew();
                 Task.Delay(_speed).Wait();
                 Task.Run(GetOffers);

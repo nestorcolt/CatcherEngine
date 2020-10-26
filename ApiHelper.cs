@@ -10,16 +10,18 @@ namespace FlexCatcher
 {
     public class ApiHelper
     {
-        public static string OwnerEndpointUrl = "https://www.thunderflex.us/admin/script_functions.php";
-        private const string ApiBaseUrl = "https://flex-capacity-na.amazon.com/";
         private const string AcceptInputUrl = "http://internal.amazon.com/coral/com.amazon.omwbuseyservice.offers/";
-        public static string AcceptUri { get; } = "AcceptOffer";
-        public static string OffersUri { get; } = "GetOffersForProviderPost";
-        public static string AssignBlocks { get; } = "scheduledAssignments";
-        public static string ScheduleBlocks { get; } = "schedule/blocks";
-        public static string Areas { get; } = "pooledServiceAreasForProvider";
-        public static string Regions { get; } = "regions";
-        public static string ServiceAreaUri { get; } = "eligibleServiceAreas";
+        public static string OwnerEndpointUrl = "https://www.thunderflex.us/admin/script_functions.php";
+
+        private const string ApiBaseUrl = "https://flex-capacity-na.amazon.com/";
+        public static string AcceptUri = "AcceptOffer";
+        public static string OffersUri = "GetOffersForProviderPost";
+        public static string AssignedBlocks = "scheduledAssignments";
+        public static string ScheduleBlocks = "schedule/blocks";
+        public static string ServiceAreaUri = "eligibleServiceAreas";
+        public static string Areas = "pooledServiceAreasForProvider";
+        public static string Regions = "regions";
+
         public static HttpClient ApiClient { get; set; }
         public static HttpResponseMessage CurrentResponse { get; set; }
 
@@ -66,8 +68,8 @@ namespace FlexCatcher
         {
             try
             {
-                CurrentResponse = await ApiClient.GetAsync(uri);
-                var content = await CurrentResponse.Content.ReadAsStringAsync();
+                HttpResponseMessage response = await ApiClient.GetAsync(uri);
+                var content = await response.Content.ReadAsStringAsync();
                 return await Task.Run(() => JObject.Parse(content));
             }
             catch (HttpRequestException e)
@@ -83,9 +85,9 @@ namespace FlexCatcher
         {
             try
             {
-                CurrentResponse = await ApiClient.PostAsync(uri, new StringContent(data));
-                CurrentResponse.EnsureSuccessStatusCode();
-                string content = await CurrentResponse.Content.ReadAsStringAsync();
+                HttpResponseMessage response = await ApiClient.PostAsync(uri, new StringContent(data));
+                response.EnsureSuccessStatusCode();
+                string content = await response.Content.ReadAsStringAsync();
                 return await Task.Run(() => JObject.Parse(content));
             }
             catch (HttpRequestException e)
@@ -97,7 +99,6 @@ namespace FlexCatcher
             return null;
         }
 
-
         public static void AddRequestHeaders(Dictionary<string, string> headersDictionary)
         {
             ApiClient.DefaultRequestHeaders.Clear();
@@ -108,7 +109,7 @@ namespace FlexCatcher
             }
         }
 
-        public static async Task AcceptOfferAsync(string offerId, Dictionary<string, string> offerHeaders)
+        public static async Task<JObject> AcceptOfferAsync(string offerId, Dictionary<string, string> offerHeaders)
         {
             var acceptHeader = new Dictionary<string, string>
             {
@@ -118,16 +119,14 @@ namespace FlexCatcher
 
             ApiHelper.AddRequestHeaders(offerHeaders);
             string jsonData = JsonConvert.SerializeObject(acceptHeader);
-            var response = await ApiHelper.PostDataAsync(ApiHelper.AcceptUri, jsonData);
+            JObject response = await ApiHelper.PostDataAsync(ApiHelper.AcceptUri, jsonData);
+            return response;
         }
-
 
         public static async Task DeleteOfferAsync(int blockId)
         {
             string url = ScheduleBlocks + "/" + blockId.ToString();
             var response = await ApiHelper.ApiClient.DeleteAsync(url);
-            Console.WriteLine(response);
-            Console.WriteLine(url);
         }
 
     }
