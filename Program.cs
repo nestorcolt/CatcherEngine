@@ -1,4 +1,5 @@
 ﻿using System;
+using Amazon.Lambda.Core;
 
 
 // The Main program for looking, catching and accepting blocks for the amazon flex service. Automate the process and handle a single user process instance and this needs
@@ -12,10 +13,10 @@ namespace FlexCatcher
         static void Main()
 
         {
-            Catch();
+            CatchHandle();
         }
 
-        public static void Catch()
+        public static void CatchHandle()
         {
             string[] areas = {
 
