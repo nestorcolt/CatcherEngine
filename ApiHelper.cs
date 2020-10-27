@@ -27,6 +27,7 @@ namespace FlexCatcher
         public static HttpClient CatcherClient { get; set; }
         public static HttpClient SeekerClient { get; set; }
         public const string TokenKeyConstant = "x-amz-access-token";
+        public static int TotalAcceptedOffers = 0;
 
         public static void InitializeClient()
         {
@@ -134,6 +135,16 @@ namespace FlexCatcher
 
             string jsonData = JsonConvert.SerializeObject(acceptHeader);
             HttpResponseMessage response = await PostDataAsync(ApiHelper.AcceptUri, jsonData, CatcherClient);
+
+            if (response.IsSuccessStatusCode)
+            {
+                // send to owner endpoint accept data to log and send to the user the notification
+                Console.WriteLine($"\nOffer has been accepted >> Reason >> {response.StatusCode}");
+                TotalAcceptedOffers++;
+            }
+            else
+                Console.WriteLine($"\nSomething went wrong accepting the offer >> Reason >> {response.StatusCode}\n");
+
             return response;
         }
 

@@ -4,8 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FlexCatcher
@@ -23,10 +23,10 @@ namespace FlexCatcher
         private readonly float _minimumPrice;
         private readonly int _pickUpTimeThreshold;
         private readonly string[] _areas;
+
         private int _totalOffersCounter = 0;
         private int _totalApiCalls = 0;
-        private int _totalValidOffers = 0;
-        private int _totalAcceptedOffers = 0;
+
         private int _totalRejectedOffers = 0;
         private readonly string _userId;
         public bool AccessSuccess;
@@ -62,8 +62,6 @@ namespace FlexCatcher
             // Set the client service area to sent as extra data with the request on get blocks method
             SetServiceArea();
 
-            ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.SeekerClient);
-            ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.CatcherClient);
         }
 
         private int GetTimestamp()
@@ -73,8 +71,6 @@ namespace FlexCatcher
             int timestamp = (int)time.TotalSeconds;
             return timestamp;
         }
-
-
         private string GetServiceAreaId()
         {
             var result = ApiHelper.GetServiceAuthentication(ApiHelper.ServiceAreaUri, _offersDataHeader[ApiHelper.TokenKeyConstant]).Result;
@@ -132,7 +128,6 @@ namespace FlexCatcher
             // MERGE THE HEADERS OFFERS AND SERVICE DATA IN ONE MAIN HEADER DICTIONARY
             _serviceAreaFilterData = JsonConvert.SerializeObject(serviceDataDictionary).Replace("\\", "");
         }
-
         public async Task GetAccessData()
         {
             var data = new Dictionary<string, object>
@@ -162,7 +157,6 @@ namespace FlexCatcher
             }
 
         }
-
         private async Task EmulateDevice()
         {
             var data = new Dictionary<string, string>
@@ -197,118 +191,49 @@ namespace FlexCatcher
             // Set the class field with the new offer headers
             _offersDataHeader = offerAcceptHeaders;
         }
-
-        private async Task AcceptOffer(string offerId)
-        {
-
-            var response = await ApiHelper.AcceptOfferAsync(offerId);
-
-            if (response.IsSuccessStatusCode)
-            {
-                // send to owner endpoint accept data to log and send to the user the notification
-                Console.WriteLine($"\nOffer has been accepted >> Reason >> {response.StatusCode}");
-                _totalAcceptedOffers++;
-            }
-            else if (response.StatusCode != HttpStatusCode.BadRequest)
-            {
-                _totalApiCalls++;
-            }
-            else
-                Console.WriteLine($"\nSomething went wrong accepting the offer >> Reason >> {response.StatusCode}\n");
-        }
-
-        private async Task ValidateOffers(JToken offer)
+        private async Task ValidateOffers()
 
         {
-            JToken serviceAreaId = offer["serviceAreaId"];
-            JToken offerPrice = offer["rateInfo"]["priceAmount"];
-            JToken startTime = offer["startTime"];
-
-            // The time the offer will be available for pick up at the facility
-            int pickUpTimespan = (int)startTime - GetTimestamp();
 
             // if the validation is not success will try to find in the catch blocks the one did not passed the validation and forfeit them
-            if ((float)offerPrice < _minimumPrice || !_areas.Contains((string)serviceAreaId) || pickUpTimespan < _pickUpTimeThreshold)
+            var blocksArray = await ApiHelper.GetBlockFromDataBaseAsync(ApiHelper.AssignedBlocks, _offersDataHeader[ApiHelper.TokenKeyConstant]);
+
+            Parallel.ForEach(blocksArray.Values(), async block =>
             {
-                var blocksArray = await ApiHelper.GetBlockFromDataBaseAsync(ApiHelper.AssignedBlocks, _offersDataHeader[ApiHelper.TokenKeyConstant]);
+                if (block != null && !block.HasValues)
+                    return;
 
-                Parallel.ForEach(blocksArray.Values(), async block =>
+                JToken serviceAreaId = block["serviceAreaId"];
+                JToken offerPrice = block["rateInfo"]["priceAmount"];
+                JToken startTime = block["startTime"];
+
+                // The time the offer will be available for pick up at the facility
+                int pickUpTimespan = (int)startTime - GetTimestamp();
+
+                if ((float)offerPrice < _minimumPrice || !_areas.Contains((string)serviceAreaId) || pickUpTimespan < _pickUpTimeThreshold)
                 {
-                    if (block != null && !block.HasValues)
-                        return;
-
-                    int blockId = (int)block[0]["startTime"];
-
-                    if (blockId == (int)startTime)
-                    {
-                        await ApiHelper.DeleteOfferAsync(blockId);
-                        _totalRejectedOffers++;
-                    }
-
-                });
-
-            }
-
-            // if pass the validation will sum one to the win stack and send request to owner endpoint
-            if ((float)offerPrice >= _minimumPrice && _areas.Contains((string)serviceAreaId) && pickUpTimespan >= _pickUpTimeThreshold)
-            {
-                _totalValidOffers++;
-
-                // debug just output information to the console
-                if (_debug)
-                {
-                    Console.WriteLine("\nValidation debug Info:");
-                    string logInfo = $"Service Area -- {(string)serviceAreaId} in -->  Areas List\n" +
-                                     $"Price -- {(float)offerPrice} Grater or Equal than {_minimumPrice}\n" +
-                                     $"PickUp -- {pickUpTimespan} Grater or Equal than {_pickUpTimeThreshold}";
-
-                    Console.WriteLine(logInfo);
-                    Console.WriteLine("\n\n");
+                    await ApiHelper.DeleteOfferAsync((int)startTime);
+                    _totalRejectedOffers++;
                 }
-            }
+
+            });
+
         }
 
-        private async Task GetOffers()
+        private async Task FetchOffers()
         {
             var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, _serviceAreaFilterData, ApiHelper.SeekerClient);
             JObject requestToken = await ApiHelper.GetRequestTokenAsync(response);
+            Console.WriteLine($"\nRequest Status >> Reason >> {response.StatusCode}\n");
 
             if (response.IsSuccessStatusCode)
             {
-                // keep a track how many calls has been made
+                var offerList = requestToken.GetValue("offerList");
+                Parallel.For(0, offerList.Count(), async n => await ApiHelper.AcceptOfferAsync((string)offerList[n]["offerId"]));
                 _totalApiCalls++;
-
-                JToken offerList = requestToken.GetValue("offerList");
-
-                if (offerList != null && offerList.HasValues)
-                {
-                    // validate offers
-                    Parallel.ForEach(offerList, async offer =>
-                    {
-                        // Parallel offer validation and accept request.
-
-                        await AcceptOffer((string)offer[key: "offerId"]);
-                        await ValidateOffers(offer);
-
-                        // to track and debug how many offers has shown the request in total of the runtime
-                        _totalOffersCounter++;
-
-                    });
-                }
+                _totalOffersCounter += offerList.Count();
             }
-            else
-            {
 
-                if (response.StatusCode == HttpStatusCode.Forbidden)
-                {
-                    GetAccessData().Wait();
-                    Task.Delay(10000).Wait();
-                    ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.SeekerClient);
-                    ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.CatcherClient);
-                }
-
-                Console.WriteLine($"\nRequest not Successful >> Reason >> {response.StatusCode}\n");
-            }
         }
 
         public void LookingForBlocks()
@@ -320,12 +245,19 @@ namespace FlexCatcher
             while (true)
 
             {
-                //Task.Run(GetOffers);
-                Task.Run(() => AcceptOffer("offer"));
-                //Thread.Sleep(_speed);
+                Thread fetchThread = new Thread(async task => await FetchOffers());
+                Thread validateThread = new Thread(async task => await ValidateOffers());
 
+                // start threads
+                fetchThread.Start();
+                validateThread.Start();
+
+                // custom delay
+                Thread.Sleep(_speed);
+
+                // output log to console
                 Console.WriteLine($"Execution Speed: {watcher.Elapsed}  - | Api Calls: {_totalApiCalls} | OFFERS >> Total: {_totalOffersCounter} -- " +
-                                  $"Validated: {_totalValidOffers} -- Accepted: {_totalAcceptedOffers} -- Rejected: {_totalRejectedOffers}");
+                                  $"Accepted: {ApiHelper.TotalAcceptedOffers} -- Rejected: {_totalRejectedOffers}");
 
                 watcher.Restart();
             }
