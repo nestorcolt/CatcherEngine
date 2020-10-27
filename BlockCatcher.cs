@@ -198,9 +198,10 @@ namespace FlexCatcher
                 if (!block.HasValues)
                     return;
 
-                JToken serviceAreaId = block["serviceAreaId"];
-                JToken offerPrice = block["rateInfo"]["priceAmount"];
-                JToken startTime = block["startTime"];
+                JToken innerBlock = block[0];
+                JToken serviceAreaId = innerBlock["serviceAreaId"];
+                JToken offerPrice = innerBlock["bookedPrice"]["amount"];
+                JToken startTime = innerBlock["startTime"];
 
                 // The time the offer will be available for pick up at the facility
                 int pickUpTimespan = (int)startTime - GetTimestamp();
@@ -259,6 +260,7 @@ namespace FlexCatcher
                                       $"Lost: {_totalOffersCounter - ApiHelper.TotalAcceptedOffers}");
 
                 watcher.Restart();
+
             }
 
         }
