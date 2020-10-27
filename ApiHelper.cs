@@ -10,10 +10,12 @@ namespace FlexCatcher
 {
     public class ApiHelper
     {
+        // main URLS
         private const string AcceptInputUrl = "http://internal.amazon.com/coral/com.amazon.omwbuseyservice.offers/";
         public static string OwnerEndpointUrl = "https://www.thunderflex.us/admin/script_functions.php";
-
         private const string ApiBaseUrl = "https://flex-capacity-na.amazon.com/";
+
+        // directories
         public static string AcceptUri = "AcceptOffer";
         public static string OffersUri = "GetOffersForProviderPost";
         public static string AssignedBlocks = "scheduledAssignments";
@@ -23,9 +25,9 @@ namespace FlexCatcher
         public static string Regions = "regions";
 
         public static HttpClient ApiClient { get; set; }
-        //public static HttpClient DisposableClient { get; set; }
         public static HttpClient CatcherClient { get; set; }
         public static HttpClient SeekerClient { get; set; }
+
         public const string TokenKeyConstant = "x-amz-access-token";
         public static int TotalAcceptedOffers = 0;
 
@@ -125,7 +127,7 @@ namespace FlexCatcher
             }
         }
 
-        public static async Task<HttpResponseMessage> AcceptOfferAsync(string offerId)
+        public static async Task AcceptOfferAsync(string offerId)
         {
             var acceptHeader = new Dictionary<string, string>
             {
@@ -139,13 +141,11 @@ namespace FlexCatcher
             if (response.IsSuccessStatusCode)
             {
                 // send to owner endpoint accept data to log and send to the user the notification
-                Console.WriteLine($"\nOffer has been accepted >> Reason >> {response.StatusCode}");
+                Console.WriteLine($"\nOffer has been accepted >> Reason >> {response.StatusCode}\n");
                 TotalAcceptedOffers++;
             }
             else
                 Console.WriteLine($"\nSomething went wrong accepting the offer >> Reason >> {response.StatusCode}\n");
-
-            return response;
         }
 
         public static async Task DeleteOfferAsync(int blockId)

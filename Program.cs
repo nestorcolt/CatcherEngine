@@ -18,7 +18,7 @@ namespace FlexCatcher
             };
 
             string flexAppVersion = "3.39.29.0";
-            string user = "100";
+            string user = "1527";
             float price = 22.0f;
             int arrivalTime = 0;
 
@@ -31,14 +31,14 @@ namespace FlexCatcher
                 // Main loop method is being called here
                 if (catcher.AccessSuccess)
                 {
+                    Console.WriteLine("Looking for blocks 3, 2, 1 ...");
                     catcher.LookingForBlocks();
-                    Console.WriteLine("Looking for blocks 1, 2, 3 ...");
                 }
 
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                Console.WriteLine(e.Message);
             }
 
         }

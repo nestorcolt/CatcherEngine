@@ -23,21 +23,16 @@ namespace FlexCatcher
         private readonly float _minimumPrice;
         private readonly int _pickUpTimeThreshold;
         private readonly string[] _areas;
+        private readonly string _userId;
 
         private int _totalOffersCounter = 0;
         private int _totalApiCalls = 0;
-
         private int _totalRejectedOffers = 0;
-        private readonly string _userId;
+
         public bool AccessSuccess;
-        private bool _debug;
         private int _speed;
 
-        public bool Debug
-        {
-            get => _debug;
-            set => _debug = value;
-        }
+        public bool Debug { get; set; }
 
         public float ExecutionSpeed
         {
@@ -200,7 +195,7 @@ namespace FlexCatcher
 
             Parallel.ForEach(blocksArray.Values(), async block =>
             {
-                if (block != null && !block.HasValues)
+                if (!block.HasValues)
                     return;
 
                 JToken serviceAreaId = block["serviceAreaId"];
@@ -223,13 +218,15 @@ namespace FlexCatcher
         private async Task FetchOffers()
         {
             var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, _serviceAreaFilterData, ApiHelper.SeekerClient);
-            JObject requestToken = await ApiHelper.GetRequestTokenAsync(response);
-            Console.WriteLine($"\nRequest Status >> Reason >> {response.StatusCode}\n");
+
+            if (Debug)
+                Console.WriteLine($"\nRequest Status >> Reason >> {response.StatusCode}\n");
 
             if (response.IsSuccessStatusCode)
             {
+                JObject requestToken = await ApiHelper.GetRequestTokenAsync(response);
                 var offerList = requestToken.GetValue("offerList");
-                Parallel.For(0, offerList.Count(), async n => await ApiHelper.AcceptOfferAsync((string)offerList[n]["offerId"]));
+                Parallel.For(0, offerList.Count(), async n => await ApiHelper.AcceptOfferAsync(offerList[n]["offerId"].ToString()));
                 _totalApiCalls++;
                 _totalOffersCounter += offerList.Count();
             }
@@ -255,9 +252,11 @@ namespace FlexCatcher
                 // custom delay
                 Thread.Sleep(_speed);
 
-                // output log to console
-                Console.WriteLine($"Execution Speed: {watcher.Elapsed}  - | Api Calls: {_totalApiCalls} | OFFERS >> Total: {_totalOffersCounter} -- " +
-                                  $"Accepted: {ApiHelper.TotalAcceptedOffers} -- Rejected: {_totalRejectedOffers}");
+                if (Debug)
+                    // output log to console
+                    Console.WriteLine($"Execution Speed: {watcher.Elapsed}  - | Api Calls: {_totalApiCalls} | OFFERS >> Total: {_totalOffersCounter} -- " +
+                                      $"Accepted: {ApiHelper.TotalAcceptedOffers} -- Rejected: {_totalRejectedOffers} -- " +
+                                      $"Lost: {_totalOffersCounter - ApiHelper.TotalAcceptedOffers}");
 
                 watcher.Restart();
             }
