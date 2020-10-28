@@ -14,8 +14,8 @@ namespace FlexCatcher
 
         {
 
-            string signature = SignatureObject.CreateSignature();
-            Console.WriteLine(signature);
+            //string signature = SignatureObject.CreateSignature();
+            //Console.WriteLine(signature);
             //CatchHandle();
         }
 

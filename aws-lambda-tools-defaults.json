@@ -8,7 +8,7 @@
     "function-handler" : "FlexCatcher::FlexCatcher.Program::CatchHandle",
     "function-memory-size" : 3008,
     "function-role"        : "arn:aws:iam::436783151981:role/lambda_exec_CatcherLambda_001-1",
-    "function-timeout"     : 900,
+    "function-timeout"     : 10,
     "function-runtime"     : "dotnetcore3.1",
     "tracing-mode"         : "PassThrough",
     "environment-variables" : ""

@@ -11,64 +11,39 @@ namespace FlexCatcher
 
     public static class SignatureObject
     {
+        private const string SignaturePrefix = "RABBIT3-HMAC-SHA256";
 
-        public static string Url = "https://aws-url-host.com/v1/reports/MyService?EndDateTime=2020-01-13&Siteid=63&StartDateTime=2019-09-20";
-        public static string XApiKey = "APIKEY-TOCALLAWSFUNCTION-IFNEEDED";
-        public static string SecretKey = "YOURAWS-SECRETKEY-INHERE";
-        public static string AwsServiceName = "execute-api";
-        public static string AwsRegion = "eu-west-2";
-
-        public static string CreateSignature()
+        public static string CreateSignature(string url, string token)
         {
             // 0. Prepare request message.
-            HttpRequestMessage msg = new HttpRequestMessage(HttpMethod.Get, Url);
-            msg.Headers.Host = msg.RequestUri.Host;
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url);
 
-            // Get and save dates ready for further use.
-            DateTimeOffset utcNowSaved = DateTimeOffset.UtcNow;
-            string amzLongDate = utcNowSaved.ToString("yyyyMMddTHHmmssZ");
-            string amzShortDate = utcNowSaved.ToString("yyyyMMdd");
+            string amzLongDate = DateTimeOffset.UtcNow.ToString("yyyyMMddTHHmmssZ");
+            string canonicalUrl = request.RequestUri.AbsolutePath;
+            string requestId = Guid.NewGuid().ToString();
+            string hostUrl = request.RequestUri.Host;
 
-            // Add to headers. 
-            msg.Headers.Add("x-amz-date", amzLongDate);
-            msg.Headers.Add("x-api-key", XApiKey); // My API call needs an x-api-key passing also for function security.
+            var headers = new SortedDictionary<string, string>()
+
+            {
+                ["host"] = hostUrl,
+                ["x-amz-access-token"] = token,
+                ["X-Amz-RequestId"] = requestId,
+                ["X-Amz-Date"] = amzLongDate
+            };
 
 
             // **************************************************** SIGNING PORTION ****************************************************
-            // 1. Create Canonical Request            
-            var canonicalRequest = new StringBuilder();
-            canonicalRequest.Append(msg.Method + "\n");
-            canonicalRequest.Append(string.Join("/", msg.RequestUri.AbsolutePath.Split('/').Select(Uri.EscapeDataString)) + "\n");
-            canonicalRequest.Append(GetCanonicalQueryParams(msg) + "\n"); // Query params to do.
 
-            var headersToBeSigned = new List<string>();
+            var canonicalRequest = GetCanonicalRequest(headers, canonicalUrl);
+            string stringToSign = GetStringToSign(canonicalRequest[0], amzLongDate);
+            var secret = token.Reverse();
 
-            foreach (var header in msg.Headers.OrderBy(a => a.Key.ToLowerInvariant(), StringComparer.OrdinalIgnoreCase))
-            {
-                canonicalRequest.Append(header.Key.ToLowerInvariant());
-                canonicalRequest.Append(":");
-                canonicalRequest.Append(string.Join(",", header.Value.Select(s => s.Trim())));
-                canonicalRequest.Append("\n");
-                headersToBeSigned.Add(header.Key.ToLowerInvariant());
-            }
+            var sequence = new List<string>() { "RABBIT" + secret, amzLongDate.Substring(0, 8), "rabbit_request", stringToSign };
+            var signedHexString = SignSequenceString(sequence);
 
-            canonicalRequest.Append("\n");
-            var signedHeaders = string.Join(";", headersToBeSigned);
-
-            canonicalRequest.Append(signedHeaders + "\n");
-            canonicalRequest.Append("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"); // Signature for empty body.
-
-            // 2. String to sign.            
-            string stringToSign = "AWS4-HMAC-SHA256" + "\n" + amzLongDate + "\n" + amzShortDate + "/" + AwsRegion + "/" + AwsServiceName + "/aws4_request" + "\n" + Hash(Encoding.UTF8.GetBytes(canonicalRequest.ToString()));
-
-            // 3. Signature with compounded elements.
-            var dateKey = HmacSha256(Encoding.UTF8.GetBytes("AWS4" + SecretKey), amzShortDate);
-            var dateRegionKey = HmacSha256(dateKey, AwsRegion);
-            var dateRegionServiceKey = HmacSha256(dateRegionKey, AwsServiceName);
-            var signingKey = HmacSha256(dateRegionServiceKey, "aws4_request");
-
-            var signature = ToHexString(HmacSha256(signingKey, stringToSign.ToString()));
-            return signature;
+            string authHeader = $"{SignaturePrefix} SignedHeaders={canonicalRequest[1]},Signature={signedHexString}";
+            return authHeader;
 
             // **************************************************** END SIGNING PORTION ****************************************************
 
@@ -77,37 +52,70 @@ namespace FlexCatcher
 
         // --------------------------------- Utilities ----------------------------------------------------------------
 
-        private static string GetCanonicalQueryParams(HttpRequestMessage request)
+        private static List<string> GetCanonicalRequest(SortedDictionary<string, string> headers, string canonicalPath)
         {
-            var values = new SortedDictionary<string, string>();
-            var querystring = HttpUtility.ParseQueryString(request.RequestUri.Query);
+            string canonicalHeaderString = "";
 
-            foreach (var key in querystring.AllKeys)
+            foreach (var key in headers)
             {
-                if (key == null)//Handles keys without values
-                {
-                    values.Add(Uri.EscapeDataString(querystring[key]), $"{Uri.EscapeDataString(querystring[key])}=");
-                }
-                else
-                {
-                    // Escape to upper case. Required.
-                    values.Add(Uri.EscapeDataString(key), $"{Uri.EscapeDataString(key)}={Uri.EscapeDataString(querystring[key])}");
-                }
+                canonicalHeaderString += key.Key.ToLower() + ":" + key.Value.ToString() + "\n";
             }
 
             // Put in order - this is important.
-            var queryParams = values.Select(a => a.Value);
-            return string.Join("&", queryParams);
+            var queryParams = headers.Select(header => header.Key.ToLower());
+            string signHeader = string.Join(";", queryParams);
+            var stringRequest = $"POST\n{canonicalPath}\n{canonicalHeaderString}\n{signHeader}";
+            var returnInfo = new List<string>() { stringRequest, signHeader };
+            return returnInfo;
         }
 
-        private static string ToHexString(IReadOnlyCollection<byte> array)
+
+        private static string SignSequenceString(List<string> inputStringSequence)
         {
-            var hex = new StringBuilder(array.Count * 2);
-            foreach (var b in array)
+
+            dynamic key = null;
+
+            foreach (var row in inputStringSequence)
             {
-                hex.AppendFormat("{0:x2}", b);
+                if (key == null)
+                {
+                    byte[] bytes = Convert.FromBase64String(row);
+                    key = Encoding.UTF8.GetString(bytes);
+                }
+                else
+                {
+                    byte[] bytes = Convert.FromBase64String(row);
+                    var data = Encoding.UTF8.GetString(bytes);
+                    key = HmacSha256(key, data);
+                }
             }
-            return hex.ToString();
+
+            var hexKey = ToHex(key, false);
+            return hexKey;
+        }
+
+        private static string ToHex(byte[] bytes, bool upperCase)
+        {
+            StringBuilder result = new StringBuilder(bytes.Length * 2);
+
+            foreach (var n in bytes)
+                result.Append(n.ToString(upperCase ? "X2" : "x2"));
+
+            return result.ToString();
+        }
+
+        private static string SHA256HexHashString(string stringIn)
+        {
+            string hashString;
+
+            using (var sha256 = SHA256Managed.Create())
+            {
+                var hash = sha256.ComputeHash(Encoding.Default.GetBytes(stringIn));
+                hashString = ToHex(hash, false);
+            }
+
+            return hashString;
+
         }
 
         private static byte[] HmacSha256(byte[] key, string data)
@@ -115,9 +123,9 @@ namespace FlexCatcher
             return new HMACSHA256(key).ComputeHash(Encoding.UTF8.GetBytes(data));
         }
 
-        public static string Hash(byte[] bytesToHash)
+        private static string GetStringToSign(string canonicalRequest, string time)
         {
-            return ToHexString(SHA256.Create().ComputeHash(bytesToHash));
+            return $"{SignaturePrefix}\n{time}\n{SHA256HexHashString(canonicalRequest)}";
         }
     }
 
