@@ -63,14 +63,13 @@ namespace FlexCatcher
             return requestToken;
         }
 
-        public static async Task<JObject> GetBlockFromDataBaseAsync(string uri, string authToken)
+        public static async Task<HttpResponseMessage> GetBlockFromDataBaseAsync(string uri, string authToken)
         {
 
             ApiClient.DefaultRequestHeaders.Clear();
             ApiClient.DefaultRequestHeaders.Add(TokenKeyConstant, authToken);
             HttpResponseMessage content = await ApiClient.GetAsync(uri);
-            JObject requestToken = await GetRequestTokenAsync(content);
-            return requestToken;
+            return content;
 
         }
 
