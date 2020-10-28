@@ -233,7 +233,6 @@ namespace FlexCatcher
 
                 Parallel.For(0, offerList.Count(), async n =>
                 {
-                    //SignRequestHeaders($"{ApiHelper.ApiBaseUrl}{ApiHelper.AcceptUri}");
                     await ApiHelper.AcceptOfferAsync(offerList[n]["offerId"].ToString());
                 });
 
