@@ -13,7 +13,7 @@ namespace FlexCatcher
         // main URLS
         private const string AcceptInputUrl = "http://internal.amazon.com/coral/com.amazon.omwbuseyservice.offers/";
         public static string OwnerEndpointUrl = "https://www.thunderflex.us/admin/script_functions.php";
-        private const string ApiBaseUrl = "https://flex-capacity-na.amazon.com/";
+        public const string ApiBaseUrl = "https://flex-capacity-na.amazon.com/";
 
         // directories
         public static string AcceptUri = "AcceptOffer";

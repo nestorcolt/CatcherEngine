@@ -9,16 +9,17 @@ using System.Text;
 namespace FlexCatcher
 {
 
-    public static class SignatureObject
+    public class SignatureObject
     {
         private const string SignaturePrefix = "RABBIT3-HMAC-SHA256";
 
-        public static string CreateSignature(string url, string token)
+        public SortedDictionary<string, string> CreateSignature(string url, string token)
         {
             // 0. Prepare request message.
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url);
 
             string amzLongDate = DateTimeOffset.UtcNow.ToString("yyyyMMddTHHmmssZ");
+            string randomSecret = "krY14bGw2xQ60jnT";
             string canonicalUrl = request.RequestUri.AbsolutePath;
             string requestId = Guid.NewGuid().ToString();
             string hostUrl = request.RequestUri.Host;
@@ -28,7 +29,7 @@ namespace FlexCatcher
             {
                 ["host"] = hostUrl,
                 ["x-amz-access-token"] = token,
-                ["X-Amz-RequestId"] = requestId,
+                ["X-Amzn-RequestId"] = requestId,
                 ["X-Amz-Date"] = amzLongDate
             };
 
@@ -37,13 +38,14 @@ namespace FlexCatcher
 
             var canonicalRequest = GetCanonicalRequest(headers, canonicalUrl);
             string stringToSign = GetStringToSign(canonicalRequest[0], amzLongDate);
-            var secret = token.Reverse();
+            var secret = ReverseString(token);
 
-            var sequence = new List<string>() { "RABBIT" + secret, amzLongDate.Substring(0, 8), "rabbit_request", stringToSign };
+            var sequence = new List<string>() { randomSecret + secret, amzLongDate.Substring(0, 8), "rabbit_request", stringToSign };
             var signedHexString = SignSequenceString(sequence);
 
             string authHeader = $"{SignaturePrefix} SignedHeaders={canonicalRequest[1]},Signature={signedHexString}";
-            return authHeader;
+            headers["Authorization"] = authHeader;
+            return headers;
 
             // **************************************************** END SIGNING PORTION ****************************************************
 
@@ -51,6 +53,14 @@ namespace FlexCatcher
 
 
         // --------------------------------- Utilities ----------------------------------------------------------------
+
+
+        public static string ReverseString(string stringToReverse)
+        {
+            char[] charArray = stringToReverse.ToCharArray();
+            Array.Reverse(charArray);
+            return new string(charArray);
+        }
 
         private static List<string> GetCanonicalRequest(SortedDictionary<string, string> headers, string canonicalPath)
         {
@@ -73,20 +83,19 @@ namespace FlexCatcher
         private static string SignSequenceString(List<string> inputStringSequence)
         {
 
-            dynamic key = null;
+            byte[] key = new byte[] { };
 
-            foreach (var row in inputStringSequence)
+            foreach (var value in inputStringSequence)
             {
-                if (key == null)
+
+                if (key.Length == 0)
                 {
-                    byte[] bytes = Convert.FromBase64String(row);
-                    key = Encoding.UTF8.GetString(bytes);
+                    key = Encoding.Default.GetBytes(value);
                 }
                 else
                 {
-                    byte[] bytes = Convert.FromBase64String(row);
-                    var data = Encoding.UTF8.GetString(bytes);
-                    key = HmacSha256(key, data);
+                    byte[] bytesData = Encoding.Default.GetBytes(value);
+                    key = HmacSha256(key, bytesData);
                 }
             }
 
@@ -118,9 +127,9 @@ namespace FlexCatcher
 
         }
 
-        private static byte[] HmacSha256(byte[] key, string data)
+        private static byte[] HmacSha256(byte[] key, byte[] data)
         {
-            return new HMACSHA256(key).ComputeHash(Encoding.UTF8.GetBytes(data));
+            return new HMACSHA256(key).ComputeHash(data);
         }
 
         private static string GetStringToSign(string canonicalRequest, string time)

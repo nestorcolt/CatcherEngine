@@ -33,6 +33,7 @@ namespace FlexCatcher
         private int _speed;
 
         public bool Debug { get; set; }
+        public SignatureObject Signature { get; set; }
 
         public float ExecutionSpeed
         {
@@ -42,6 +43,7 @@ namespace FlexCatcher
 
         public BlockCatcher(string userId, string flexAppVersion, float minimumPrice, int pickUpTimeThreshold, string[] areas)
         {
+            Signature = new SignatureObject();
             _flexAppVersion = flexAppVersion;
             _minimumPrice = minimumPrice;
             _pickUpTimeThreshold = pickUpTimeThreshold;
@@ -194,8 +196,6 @@ namespace FlexCatcher
             // if the validation is not success will try to find in the catch blocks the one did not passed the validation and forfeit them
             var response = await ApiHelper.GetBlockFromDataBaseAsync(ApiHelper.AssignedBlocks, _offersDataHeader[ApiHelper.TokenKeyConstant]);
             JObject blocksArray = await ApiHelper.GetRequestTokenAsync(response);
-            //Console.WriteLine((int)response.StatusCode);
-            //Console.WriteLine(response.StatusCode);
 
             Parallel.ForEach(blocksArray.Values(), async block =>
             {
@@ -220,9 +220,25 @@ namespace FlexCatcher
 
         }
 
+        private void SignRequestHeaders(string url)
+        {
+            SortedDictionary<string, string> signatureHeaders = Signature.CreateSignature(url, _offersDataHeader[ApiHelper.TokenKeyConstant]);
+
+            _offersDataHeader["X-Amz-Date"] = signatureHeaders["X-Amz-Date"];
+            _offersDataHeader["X-Flex-Client-Time"] = GetTimestamp().ToString();
+            _offersDataHeader["X-Amzn-RequestId"] = signatureHeaders["X-Amzn-RequestId"];
+            _offersDataHeader["Authorization"] = signatureHeaders["Authorization"];
+
+            ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.SeekerClient);
+            ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.CatcherClient);
+        }
+
         private async Task FetchOffers()
         {
+
+            SignRequestHeaders($"{ApiHelper.ApiBaseUrl}{ApiHelper.OffersUri}");
             var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, _serviceAreaFilterData, ApiHelper.SeekerClient);
+
 
             if (Debug)
                 Console.WriteLine($"\nRequest Status >> Reason >> {response.StatusCode}\n");
@@ -231,7 +247,13 @@ namespace FlexCatcher
             {
                 JObject requestToken = await ApiHelper.GetRequestTokenAsync(response);
                 var offerList = requestToken.GetValue("offerList");
-                Parallel.For(0, offerList.Count(), async n => await ApiHelper.AcceptOfferAsync(offerList[n]["offerId"].ToString()));
+
+                Parallel.For(0, offerList.Count(), async n =>
+                {
+                    SignRequestHeaders($"{ApiHelper.ApiBaseUrl}{ApiHelper.AcceptUri}");
+                    await ApiHelper.AcceptOfferAsync(offerList[n]["offerId"].ToString());
+                });
+
                 _totalApiCalls++;
                 _totalOffersCounter += offerList.Count();
             }
@@ -241,8 +263,7 @@ namespace FlexCatcher
         public void LookingForBlocks()
         {
             Stopwatch watcher = Stopwatch.StartNew();
-            ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.SeekerClient);
-            ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.CatcherClient);
+
 
             while (true)
 

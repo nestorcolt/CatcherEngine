@@ -14,9 +14,7 @@ namespace FlexCatcher
 
         {
 
-            //string signature = SignatureObject.CreateSignature();
-            //Console.WriteLine(signature);
-            //CatchHandle();
+            CatchHandle();
         }
 
         public static void CatchHandle()
@@ -35,7 +33,7 @@ namespace FlexCatcher
             {
                 var catcher = new BlockCatcher(userId: user, flexAppVersion: flexAppVersion, minimumPrice: price, pickUpTimeThreshold: arrivalTime, areas: areas);
                 catcher.Debug = true;
-                catcher.ExecutionSpeed = 0.1f;
+                catcher.ExecutionSpeed = 1.0f;
 
                 // Main loop method is being called here
                 if (catcher.AccessSuccess)
