@@ -2,9 +2,11 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using FlexCatcher.Properties;
 
 namespace FlexCatcher
 {
@@ -27,6 +29,7 @@ namespace FlexCatcher
         public static HttpClient ApiClient { get; set; }
         public static HttpClient CatcherClient { get; set; }
         public static HttpClient SeekerClient { get; set; }
+        private static bool Debug = settings.Default.debug;
 
         public const string TokenKeyConstant = "x-amz-access-token";
         public static int TotalAcceptedOffers = 0;
@@ -138,13 +141,12 @@ namespace FlexCatcher
             HttpResponseMessage response = await PostDataAsync(ApiHelper.AcceptUri, jsonData, CatcherClient);
 
             if (response.IsSuccessStatusCode)
-            {
                 // send to owner endpoint accept data to log and send to the user the notification
-                Console.WriteLine($"\nOffer has been accepted >> Reason >> {response.StatusCode}\n");
                 TotalAcceptedOffers++;
-            }
-            else
-                Console.WriteLine($"\nSomething went wrong accepting the offer >> Reason >> {response.StatusCode}\n");
+
+
+            if (ApiHelper.Debug)
+                Console.WriteLine($"\nAccept Block Operation Status >> Code >> {response.StatusCode}\n");
         }
 
         public static async Task DeleteOfferAsync(int blockId)

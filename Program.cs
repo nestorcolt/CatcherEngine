@@ -1,5 +1,6 @@
 ﻿using System;
 using Amazon.Lambda.Core;
+using FlexCatcher.Properties;
 
 
 // The Main program for looking, catching and accepting blocks for the amazon flex service. Automate the process and handle a single user process instance and this needs
@@ -13,7 +14,7 @@ namespace FlexCatcher
         static void Main()
 
         {
-
+            settings.Default.debug = true;
             CatchHandle();
         }
 
@@ -32,7 +33,6 @@ namespace FlexCatcher
             try
             {
                 var catcher = new BlockCatcher(userId: user, flexAppVersion: flexAppVersion, minimumPrice: price, pickUpTimeThreshold: arrivalTime, areas: areas);
-                catcher.Debug = true;
                 catcher.ExecutionSpeed = 1.0f;
 
                 // Main loop method is being called here

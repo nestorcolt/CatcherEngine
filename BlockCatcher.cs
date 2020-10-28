@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using FlexCatcher.Properties;
 
 namespace FlexCatcher
 {
@@ -43,12 +44,14 @@ namespace FlexCatcher
 
         public BlockCatcher(string userId, string flexAppVersion, float minimumPrice, int pickUpTimeThreshold, string[] areas)
         {
+            var connectionString =
             Signature = new SignatureObject();
             _flexAppVersion = flexAppVersion;
             _minimumPrice = minimumPrice;
             _pickUpTimeThreshold = pickUpTimeThreshold;
             _userId = userId;
             _areas = areas;
+            Debug = settings.Default.debug;
 
             ApiHelper.InitializeClient();
 
@@ -58,6 +61,9 @@ namespace FlexCatcher
 
             // Set the client service area to sent as extra data with the request on get blocks method
             SetServiceArea();
+
+            ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.SeekerClient);
+            ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.CatcherClient);
 
         }
 
@@ -171,17 +177,12 @@ namespace FlexCatcher
             string deviceModel = requestToken.GetValue("deviceModel").ToString();
             string instanceId = requestToken.GetValue("instanceId").ToString();
             string build = requestToken.GetValue("build").ToString();
-            string uuid = Guid.NewGuid().ToString();
-            int time = GetTimestamp();
 
             var offerAcceptHeaders = new Dictionary<string, string>
             {
                 ["x-flex-instance-id"] = $"{instanceId.Substring(0, 8)}-{instanceId.Substring(8, 4)}-" +
                                          $"{instanceId.Substring(12, 4)}-{instanceId.Substring(16, 4)}-{instanceId.Substring(20, 12)}",
-                ["X-Flex-Client-Time"] = time.ToString(),
                 ["User-Agent"] = $"Dalvik/2.1.0 (Linux; U; Android {androidVersion}; {deviceModel} {build}) RabbitAndroid/{_flexAppVersion}",
-                ["X-Amzn-RequestId"] = uuid,
-                ["Host"] = "flex-capacity-na.amazon.com",
                 ["Connection"] = "Keep-Alive",
                 ["Accept-Encoding"] = "gzip"
             };
@@ -239,7 +240,6 @@ namespace FlexCatcher
             SignRequestHeaders($"{ApiHelper.ApiBaseUrl}{ApiHelper.OffersUri}");
             var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, _serviceAreaFilterData, ApiHelper.SeekerClient);
 
-
             if (Debug)
                 Console.WriteLine($"\nRequest Status >> Reason >> {response.StatusCode}\n");
 
@@ -264,15 +264,12 @@ namespace FlexCatcher
         {
             Stopwatch watcher = Stopwatch.StartNew();
 
-
             while (true)
 
             {
                 Thread fetchThread = new Thread(async task => await FetchOffers());
-                Thread validateThread = new Thread(async task => await ValidateOffers());
-
-                // start threads
                 fetchThread.Start();
+                Thread validateThread = new Thread(async task => await ValidateOffers());
                 validateThread.Start();
 
                 // custom delay
