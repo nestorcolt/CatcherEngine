@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -83,32 +84,6 @@ namespace FlexCatcher
 
             return null;
         }
-        //public void GetPool()
-        //{
-        //    //ApiHelper.AddRequestHeaders(_offersDataHeader);
-        //    //ApiHelper.ApiClient.DefaultRequestHeaders.Clear();
-        //    var result = ApiHelper.GetBlockFromDataBaseAsync(ApiHelper.AssignedBlocks, _offersDataHeader[ApiHelper.TokenKeyConstant]).Result;
-        //    Console.WriteLine(result);
-        //    //string a = "AAAAAAAAAAGut8C5q4wca4H4coiePO3azW0pIDwKpdGBuCupmzlrm2UEllqenkepcAB73qkCNkkEDiCQ9bQW5a4MhoTXj4KyOciGBUEBn7Vthfz9ZBH6meBd2cmOhrX9tqWf4qmUBVLAS9z5EufXwtaypKhTED22PthoC2/9534QzIQqC3Ga/JIZxQ8Hf9J0Kpr8M2hMCO4gYhifMnW5JgjCAr+JJm3Y8ka1IKmAu2hUU2ggnKQ+H+pUoV+IXeHKFXTK9M+NxX27cotg7XFP5wI8VxqAA7aFrLtOFUSn6BDu0tW+uW+KbOJU7wEi+a7avNge4b8m0ujALRBUlkypADxC6/3ZITMdc/ou5cglg2/FHCzYMvroJYuGtcsSrZkr43qaVTuk55jKjjt68mAI|99kuo5yUKTEC/MAPLbtpNUGc/a6be2nZQykjMMYlf+U=";
-
-        //    //string b = "AAAAAAAAAAGut8C5q4wca4H4coiePO3azW0pIDwKpdGBuCupmzlrm2UEllqenkepcAB73qkCNkkEDiCQ9bQW5a4MhoTXj4KyOciGBUEBn7Vthfz9ZBH6meBd2cmOhrX9tqWf4qmUBVLAS9z5EufXwtGzpKhTED22PthoC2/9534QzIQqC3Ga/JIZxQ8Hf9J0Kpr8M2hMCO4gYhifMnW5JgjCAr+JJm3Y8ka1IKmAu2hUU2ggnKQ+SrpWoFKMXbzKEH+a/M+Nkim5ctJg7yNP4wZnBRqBBLmFobscFUSn6BDu0tW+uW+KbOJU7wEi+a7avNge4b8m0ujALRBUlkypADxC6/3ZITMdc/ou5cglg2/FHCzYMvroJYuGtcsSrZm+QJtVg2NL912aXrvEsVu3|4MlcE4fsvNxgIo0eB3ILscRFvs9K2T89vT0fym4R0rc=";
-
-        //    Parallel.ForEach(result.Values(), async block =>
-        //    {
-
-        //        if (block != null && !block.HasValues)
-        //            return;
-
-        //        int blockId = (int)block[0]["startTime"];
-        //        string offerId = (string)block[0]["scheduledAssignmentId"];
-        //        Console.WriteLine(block);
-        //        await ApiHelper.DeleteOfferAsync(blockId);
-
-
-        //    });
-        //    //Task.Run(() => AcceptOffer(b)).Wait();
-
-        //}
 
         private void SetServiceArea()
         {
@@ -221,10 +196,16 @@ namespace FlexCatcher
 
         }
 
-        private void SignRequestHeaders(string url)
+        private SortedDictionary<string, string> SignRequestHeaders(string url)
         {
-            SortedDictionary<string, string> signatureHeaders = Signature.CreateSignature(url, _offersDataHeader[ApiHelper.TokenKeyConstant]);
+            return Signature.CreateSignature(url, _offersDataHeader[ApiHelper.TokenKeyConstant]);
 
+        }
+
+        private async Task FetchOffers()
+        {
+
+            SortedDictionary<string, string> signatureHeaders = SignRequestHeaders($"{ApiHelper.ApiBaseUrl}{ApiHelper.OffersUri}");
             _offersDataHeader["X-Amz-Date"] = signatureHeaders["X-Amz-Date"];
             _offersDataHeader["X-Flex-Client-Time"] = GetTimestamp().ToString();
             _offersDataHeader["X-Amzn-RequestId"] = signatureHeaders["X-Amzn-RequestId"];
@@ -232,13 +213,15 @@ namespace FlexCatcher
 
             ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.SeekerClient);
             ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.CatcherClient);
-        }
 
-        private async Task FetchOffers()
-        {
-
-            SignRequestHeaders($"{ApiHelper.ApiBaseUrl}{ApiHelper.OffersUri}");
             var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, _serviceAreaFilterData, ApiHelper.SeekerClient);
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                GetAccessData().RunSynchronously();
+                Thread.Sleep(10000);
+                return;
+            }
 
             if (Debug)
                 Console.WriteLine($"\nRequest Status >> Reason >> {response.StatusCode}\n");
@@ -250,7 +233,7 @@ namespace FlexCatcher
 
                 Parallel.For(0, offerList.Count(), async n =>
                 {
-                    SignRequestHeaders($"{ApiHelper.ApiBaseUrl}{ApiHelper.AcceptUri}");
+                    //SignRequestHeaders($"{ApiHelper.ApiBaseUrl}{ApiHelper.AcceptUri}");
                     await ApiHelper.AcceptOfferAsync(offerList[n]["offerId"].ToString());
                 });
 

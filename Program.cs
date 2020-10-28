@@ -26,14 +26,14 @@ namespace FlexCatcher
             };
 
             string flexAppVersion = "3.39.29.0";
-            string user = "1527";
+            string user = "100";
             float price = 22.0f;
             int arrivalTime = 0;
 
             try
             {
                 var catcher = new BlockCatcher(userId: user, flexAppVersion: flexAppVersion, minimumPrice: price, pickUpTimeThreshold: arrivalTime, areas: areas);
-                catcher.ExecutionSpeed = 1.0f;
+                catcher.ExecutionSpeed = 1.44f;
 
                 // Main loop method is being called here
                 if (catcher.AccessSuccess)

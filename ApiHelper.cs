@@ -3,6 +3,8 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Dynamic;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
@@ -28,7 +30,9 @@ namespace FlexCatcher
 
         public static HttpClient ApiClient { get; set; }
         public static HttpClient CatcherClient { get; set; }
+        public static HttpClientHandler CatcherClientHandler { get; set; }
         public static HttpClient SeekerClient { get; set; }
+        public static HttpClientHandler SeekerClientHandler { get; set; }
         private static bool Debug = settings.Default.debug;
 
         public const string TokenKeyConstant = "x-amz-access-token";
@@ -36,10 +40,22 @@ namespace FlexCatcher
 
         public static void InitializeClient()
         {
-            //DisposableClient = new HttpClient { BaseAddress = new Uri(ApiBaseUrl) };
-            CatcherClient = new HttpClient { BaseAddress = new Uri(ApiBaseUrl) };
-            SeekerClient = new HttpClient { BaseAddress = new Uri(ApiBaseUrl) };
             ApiClient = new HttpClient { BaseAddress = new Uri(ApiBaseUrl) };
+            int maxConnectionsPerServerThreshold = 500;
+
+            CatcherClientHandler = new HttpClientHandler();
+            CatcherClientHandler.UseDefaultCredentials = true;
+            CatcherClientHandler.MaxConnectionsPerServer = maxConnectionsPerServerThreshold;
+            CatcherClient = new HttpClient(CatcherClientHandler) { BaseAddress = new Uri(ApiBaseUrl) };
+
+            SeekerClientHandler = new HttpClientHandler();
+            SeekerClientHandler.UseDefaultCredentials = true;
+            SeekerClientHandler.MaxConnectionsPerServer = maxConnectionsPerServerThreshold;
+            SeekerClient = new HttpClient(SeekerClientHandler) { BaseAddress = new Uri(ApiBaseUrl) };
+
+            int connectionLimitThreshold = 10000;
+            ServicePointManager.DefaultConnectionLimit = connectionLimitThreshold;
+            SetMaxConcurrency(ApiBaseUrl, connectionLimitThreshold);
 
             ApiClient.DefaultRequestHeaders.Accept.Clear();
             ApiClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -57,13 +73,9 @@ namespace FlexCatcher
 
         }
 
-        public static async Task<JToken> GetPool(string uri, string authToken)
+        private static void SetMaxConcurrency(string url, int maxConcurrentRequests)
         {
-
-            ApiClient.DefaultRequestHeaders.Add(TokenKeyConstant, authToken);
-            HttpResponseMessage content = await GetDataAsync(uri);
-            JObject requestToken = await GetRequestTokenAsync(content);
-            return requestToken;
+            ServicePointManager.FindServicePoint(new Uri(url)).ConnectionLimit = maxConcurrentRequests;
         }
 
         public static async Task<HttpResponseMessage> GetBlockFromDataBaseAsync(string uri, string authToken)
