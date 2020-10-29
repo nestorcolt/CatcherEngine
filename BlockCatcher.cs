@@ -30,13 +30,23 @@ namespace FlexCatcher
         private int _totalOffersCounter;
         private int _totalApiCalls;
         private int _totalRejectedOffers;
+        private int _cleanUpOffersCounter;
+        private int _cleanUpOffersEveryValue;
 
         public bool AccessSuccess;
         private int _speed;
 
         public bool Debug { get; set; }
-        public SignatureObject Signature { get; set; }
-        public Stopwatch MainTimer { get; set; }
+
+        private SignatureObject Signature { get; set; }
+        private Stopwatch MainTimer { get; set; }
+
+
+        public int CleanUpOffersValue
+        {
+            get => _cleanUpOffersEveryValue;
+            set => _cleanUpOffersEveryValue = value;
+        }
 
         public float ExecutionSpeed
         {
@@ -47,7 +57,7 @@ namespace FlexCatcher
         public BlockCatcher(string userId, string flexAppVersion, float minimumPrice, int pickUpTimeThreshold, string[] areas)
         {
             Signature = new SignatureObject();
-            MainTimer = new Stopwatch();
+            MainTimer = Stopwatch.StartNew();
             Debug = settings.Default.debug;
 
             _pickUpTimeThreshold = pickUpTimeThreshold;
@@ -256,18 +266,25 @@ namespace FlexCatcher
             {
                 Thread fetchThread = new Thread(async task => await FetchOffers());
                 fetchThread.Start();
-                Thread validateThread = new Thread(async task => await ValidateOffers());
-                validateThread.Start();
+
+                if (_cleanUpOffersCounter > _cleanUpOffersEveryValue)
+                {
+                    Thread validateThread = new Thread(async task => await ValidateOffers());
+                    validateThread.Start();
+                    _cleanUpOffersCounter = 0;
+                }
+
 
                 // custom delay
                 Thread.Sleep(_speed);
 
                 if (Debug)
                     // output log to console
-                    Console.WriteLine($"Execution Speed: {watcher.Elapsed}  - | Api Calls: {_totalApiCalls} | OFFERS >> Total: {_totalOffersCounter} -- " +
+                    Console.WriteLine($"Total On Air: {MainTimer.Elapsed}  |  Execution Speed: {watcher.Elapsed}  - | Api Calls: {_totalApiCalls} | OFFERS >> Total: {_totalOffersCounter} -- " +
                                       $"Accepted: {ApiHelper.TotalAcceptedOffers} -- Rejected: {_totalRejectedOffers} -- " +
                                       $"Lost: {_totalOffersCounter - ApiHelper.TotalAcceptedOffers}");
 
+                _cleanUpOffersCounter++;
                 watcher.Restart();
 
             }

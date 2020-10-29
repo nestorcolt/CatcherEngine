@@ -25,6 +25,7 @@ namespace FlexCatcher
             };
 
             float executionSpeed = 1.0f;
+            int cleanUpOffersEverySecondsValue = 60;
             string flexAppVersion = "3.39.29.0";
             string user = "100";
             float price = 22.0f;
@@ -33,6 +34,7 @@ namespace FlexCatcher
             try
             {
                 var catcher = new BlockCatcher(userId: user, flexAppVersion: flexAppVersion, minimumPrice: price, pickUpTimeThreshold: arrivalTime, areas: areas);
+                catcher.CleanUpOffersValue = cleanUpOffersEverySecondsValue;
                 catcher.ExecutionSpeed = executionSpeed;
 
                 // Main loop method is being called here
