@@ -26,31 +26,25 @@ namespace FlexCatcher
         private readonly int _pickUpTimeThreshold;
         private readonly string[] _areas;
         private readonly string _userId;
-        DateTime _startTime = DateTime.Now;
+        readonly DateTime _startTime;
 
         private int _totalOffersCounter;
         private int _totalApiCalls;
         private int _totalRejectedOffers;
-        private int _cleanUpOffersCounter;
-        private int _cleanUpOffersEveryValue;
+        private int _cleanUpOffersDelay;
 
         public bool AccessSuccess;
         private int _speed;
 
         public bool Debug { get; set; }
 
-        private SignatureObject Signature { get; set; }
-        private Stopwatch MainTimer { get; set; }
+        private SignatureObject Signature { get; }
+        private Stopwatch MainTimer { get; }
+        private Stopwatch CleanUpTimer { get; }
         public bool ApiIsThrottling { get; set; }
         public int ExecutionDelay { get; set; }
-        public int CleanUpDelay { get; set; }
+        public int CleanUpDelay { get => _cleanUpOffersDelay; set => _cleanUpOffersDelay = value * 1000; }
 
-
-        public int CleanUpOffersValue
-        {
-            get => _cleanUpOffersEveryValue;
-            set => _cleanUpOffersEveryValue = value;
-        }
 
         public float ExecutionSpeed
         {
@@ -62,7 +56,9 @@ namespace FlexCatcher
         {
             Signature = new SignatureObject();
             MainTimer = Stopwatch.StartNew();
-            DateTime _startTime = DateTime.Now;
+            CleanUpTimer = new Stopwatch();
+
+            _startTime = DateTime.Now;
             Debug = settings.Default.debug;
             _pickUpTimeThreshold = pickUpTimeThreshold;
             _flexAppVersion = flexAppVersion;
@@ -252,7 +248,7 @@ namespace FlexCatcher
             else if (response.StatusCode is HttpStatusCode.Unauthorized || response.StatusCode is HttpStatusCode.Forbidden)
             {
                 GetAccessData().Wait();
-                Thread.Sleep(CleanUpDelay);
+                Thread.Sleep(10000);
                 return;
             }
             else if (response.StatusCode is HttpStatusCode.BadRequest || response.StatusCode is HttpStatusCode.TooManyRequests)
@@ -269,6 +265,7 @@ namespace FlexCatcher
         public void LookingForBlocks()
         {
             Stopwatch watcher = Stopwatch.StartNew();
+            CleanUpTimer.Start();
 
             while (true)
 
@@ -284,11 +281,11 @@ namespace FlexCatcher
                 Thread fetchThread = new Thread(async task => await FetchOffers());
                 fetchThread.Start();
 
-                if (_cleanUpOffersCounter >= _cleanUpOffersEveryValue)
+                if (CleanUpTimer.ElapsedMilliseconds >= CleanUpDelay)
                 {
                     Thread validateThread = new Thread(async task => await ValidateOffers());
                     validateThread.Start();
-                    _cleanUpOffersCounter = 0;
+                    CleanUpTimer.Restart();
                 }
 
                 // custom delay
@@ -300,7 +297,6 @@ namespace FlexCatcher
                                           $"Accepted: {ApiHelper.TotalAcceptedOffers} -- Rejected: {_totalRejectedOffers} -- " +
                                           $"Lost: {_totalOffersCounter - ApiHelper.TotalAcceptedOffers}");
 
-                _cleanUpOffersCounter++;
                 watcher.Restart();
 
             }
