@@ -26,9 +26,10 @@ namespace FlexCatcher
 
             float executionSpeed = 2.0f;
             int executionDelay = 9000;
+            int cleanUpDelay = 9000;
             int cleanUpOffersEverySecondsValue = 60;
             string flexAppVersion = "3.39.29.0";
-            string user = "1527";
+            string user = "100";
             float price = 22.0f;
             int arrivalTime = 0;
 
@@ -38,6 +39,7 @@ namespace FlexCatcher
                 catcher.CleanUpOffersValue = cleanUpOffersEverySecondsValue;
                 catcher.ExecutionSpeed = executionSpeed;
                 catcher.ExecutionDelay = executionDelay;
+                catcher.CleanUpnDelay = cleanUpDelay;
 
                 // Main loop method is being called here
                 if (catcher.AccessSuccess)

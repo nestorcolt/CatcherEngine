@@ -43,6 +43,7 @@ namespace FlexCatcher
         private Stopwatch MainTimer { get; set; }
         public bool ApiIsThrottling { get; set; }
         public int ExecutionDelay { get; set; }
+        public int CleanUpDelay { get; set; }
 
 
         public int CleanUpOffersValue
@@ -251,7 +252,7 @@ namespace FlexCatcher
             else if (response.StatusCode is HttpStatusCode.Unauthorized || response.StatusCode is HttpStatusCode.Forbidden)
             {
                 GetAccessData().Wait();
-                Thread.Sleep(10000);
+                Thread.Sleep(CleanUpDelay);
                 return;
             }
             else if (response.StatusCode is HttpStatusCode.BadRequest || response.StatusCode is HttpStatusCode.TooManyRequests)
