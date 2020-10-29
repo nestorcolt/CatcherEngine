@@ -42,7 +42,7 @@ namespace FlexCatcher
         private Stopwatch MainTimer { get; }
         private Stopwatch CleanUpTimer { get; }
         public bool ApiIsThrottling { get; set; }
-        public int ExecutionDelay { get; set; }
+        public int AfterThrottlingTimeOut { get; set; }
         public int CleanUpDelay { get => _cleanUpOffersDelay; set => _cleanUpOffersDelay = value * 1000; }
 
 
@@ -272,7 +272,7 @@ namespace FlexCatcher
             {
                 if (ApiIsThrottling)
                 {
-                    Thread.Sleep(ExecutionDelay);
+                    Thread.Sleep(AfterThrottlingTimeOut);
                     ApiIsThrottling = false;
                     continue;
                 }
