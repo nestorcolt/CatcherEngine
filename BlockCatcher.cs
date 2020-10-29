@@ -317,8 +317,8 @@ namespace FlexCatcher
                 {
                     Console.WriteLine($"\nRequest Status >> Reason >> {response.StatusCode}\n");
                     // output log to console
-                    Console.WriteLine($"Start Time: {_startTime}  |  On Air: {MainTimer.Elapsed}  |  Execution Speed: {watcher.Elapsed}  - | Api Calls: {_totalApiCalls} |" +
-                                      $"  - OFFERS DATA >> Total: {_totalOffersCounter} -- Accepted: {{_totalAcceptedOffers}} -- Rejected: {{_totalRejectedOffers}} -- " +
+                    Console.WriteLine($"Start Time: {_startTime}  |  On Air: {MainTimer.Elapsed}  |  Execution Speed: {watcher.ElapsedMilliseconds / 1000.0}  - | Api Calls: {_totalApiCalls} |" +
+                                      $"  - OFFERS DATA >> Total: {_totalOffersCounter} -- Accepted: {_totalAcceptedOffers} -- Rejected: {_totalRejectedOffers} -- " +
                                       $"Lost: {_totalOffersCounter - _totalAcceptedOffers}");
                 }
 
