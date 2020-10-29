@@ -267,13 +267,12 @@ namespace FlexCatcher
                 Thread fetchThread = new Thread(async task => await FetchOffers());
                 fetchThread.Start();
 
-                if (_cleanUpOffersCounter > _cleanUpOffersEveryValue)
+                if (_cleanUpOffersCounter >= _cleanUpOffersEveryValue)
                 {
                     Thread validateThread = new Thread(async task => await ValidateOffers());
                     validateThread.Start();
                     _cleanUpOffersCounter = 0;
                 }
-
 
                 // custom delay
                 Thread.Sleep(_speed);
