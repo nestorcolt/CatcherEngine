@@ -26,6 +26,7 @@ namespace FlexCatcher
         private readonly int _pickUpTimeThreshold;
         private readonly string[] _areas;
         private readonly string _userId;
+        DateTime _startTime = DateTime.Now;
 
         private int _totalOffersCounter;
         private int _totalApiCalls;
@@ -40,6 +41,8 @@ namespace FlexCatcher
 
         private SignatureObject Signature { get; set; }
         private Stopwatch MainTimer { get; set; }
+        public bool ApiIsThrottling { get; set; }
+        public int ExecutionDelay { get; set; }
 
 
         public int CleanUpOffersValue
@@ -58,8 +61,8 @@ namespace FlexCatcher
         {
             Signature = new SignatureObject();
             MainTimer = Stopwatch.StartNew();
+            DateTime _startTime = DateTime.Now;
             Debug = settings.Default.debug;
-
             _pickUpTimeThreshold = pickUpTimeThreshold;
             _flexAppVersion = flexAppVersion;
             _minimumPrice = minimumPrice;
@@ -228,16 +231,6 @@ namespace FlexCatcher
 
             var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, _serviceAreaFilterData, ApiHelper.SeekerClient);
 
-            if (response.StatusCode is HttpStatusCode.Unauthorized || response.StatusCode is HttpStatusCode.Forbidden)
-            {
-                GetAccessData().RunSynchronously();
-                Thread.Sleep(10000);
-                return;
-            }
-
-            if (Debug)
-                Console.WriteLine($"\nRequest Status >> Reason >> {response.StatusCode}\n");
-
             if (response.IsSuccessStatusCode)
             {
                 JObject requestToken = await ApiHelper.GetRequestTokenAsync(response);
@@ -255,6 +248,21 @@ namespace FlexCatcher
                 _totalOffersCounter += offerList.Count();
             }
 
+            else if (response.StatusCode is HttpStatusCode.Unauthorized || response.StatusCode is HttpStatusCode.Forbidden)
+            {
+                GetAccessData().Wait();
+                Thread.Sleep(10000);
+                return;
+            }
+            else if (response.StatusCode is HttpStatusCode.BadRequest || response.StatusCode is HttpStatusCode.TooManyRequests)
+            {
+
+                ApiIsThrottling = true;
+                return;
+            }
+
+            if (Debug)
+                Console.WriteLine($"\nRequest Status >> Reason >> {response.StatusCode}\n");
         }
 
         public void LookingForBlocks()
@@ -264,6 +272,14 @@ namespace FlexCatcher
             while (true)
 
             {
+                if (ApiIsThrottling)
+                {
+                    Thread.Sleep(ExecutionDelay);
+                    ApiIsThrottling = false;
+                    continue;
+                }
+
+                // start
                 Thread fetchThread = new Thread(async task => await FetchOffers());
                 fetchThread.Start();
 
@@ -279,9 +295,9 @@ namespace FlexCatcher
 
                 if (Debug)
                     // output log to console
-                    Console.WriteLine($"Total On Air: {MainTimer.Elapsed}  |  Execution Speed: {watcher.Elapsed}  - | Api Calls: {_totalApiCalls} | OFFERS >> Total: {_totalOffersCounter} -- " +
-                                      $"Accepted: {ApiHelper.TotalAcceptedOffers} -- Rejected: {_totalRejectedOffers} -- " +
-                                      $"Lost: {_totalOffersCounter - ApiHelper.TotalAcceptedOffers}");
+                    Console.WriteLine($"Start Time: {_startTime}  |  On Air: {MainTimer.Elapsed}  |  Execution Speed: {watcher.Elapsed}  - | Api Calls: {_totalApiCalls} |  - OFFERS DATA >> Total: {_totalOffersCounter} -- " +
+                                          $"Accepted: {ApiHelper.TotalAcceptedOffers} -- Rejected: {_totalRejectedOffers} -- " +
+                                          $"Lost: {_totalOffersCounter - ApiHelper.TotalAcceptedOffers}");
 
                 _cleanUpOffersCounter++;
                 watcher.Restart();
