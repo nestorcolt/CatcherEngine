@@ -34,7 +34,7 @@ namespace FlexCatcher
         private static bool Debug = settings.Default.debug;
 
         public const string TokenKeyConstant = "x-amz-access-token";
-        public static int TotalAcceptedOffers = 0;
+        public static int TotalAcceptedOffers;
 
         public static void InitializeClient()
         {
@@ -135,7 +135,7 @@ namespace FlexCatcher
 
             foreach (var data in headersDictionary)
             {
-                client.DefaultRequestHeaders.Add(data.Key, (string)data.Value);
+                client.DefaultRequestHeaders.Add(data.Key, data.Value);
             }
         }
 
