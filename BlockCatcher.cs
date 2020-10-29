@@ -270,6 +270,13 @@ namespace FlexCatcher
             var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, _serviceAreaFilterData, ApiHelper.SeekerClient);
             _currentOfferRequestObject = response;
 
+            if (response.IsSuccessStatusCode)
+            {
+                Thread acceptThread = new Thread(async task => await AcceptOffersAsync(response));
+                acceptThread.Start();
+                _totalApiCalls++;
+            }
+
         }
 
         public void LookingForBlocks()
@@ -283,14 +290,16 @@ namespace FlexCatcher
                 Thread requestThread = new Thread(async task => await FetchOffers());
                 requestThread.Start();
 
-                if (_currentOfferRequestObject.IsSuccessStatusCode)
+
+                // as the first request process runs super fast because the multi-threading I validate if the _currentOfferRequestObject is null which means
+                // the request hasn't been resolved yet. once this is done I can proceed with the logic.
+                if (_currentOfferRequestObject is null)
                 {
-                    Thread acceptThread = new Thread(async task => await AcceptOffersAsync(_currentOfferRequestObject));
-                    acceptThread.Start();
-                    _totalApiCalls++;
+                    Thread.Sleep(_speed);
+                    continue;
                 }
 
-                else if (_currentOfferRequestObject.StatusCode is HttpStatusCode.Unauthorized || _currentOfferRequestObject.StatusCode is HttpStatusCode.Forbidden)
+                if (_currentOfferRequestObject.StatusCode is HttpStatusCode.Unauthorized || _currentOfferRequestObject.StatusCode is HttpStatusCode.Forbidden)
                 {
 
                     GetAccessData().Wait();
@@ -298,7 +307,7 @@ namespace FlexCatcher
                     continue;
                 }
 
-                else if (_currentOfferRequestObject.StatusCode is HttpStatusCode.BadRequest || _currentOfferRequestObject.StatusCode is HttpStatusCode.TooManyRequests)
+                if (_currentOfferRequestObject.StatusCode is HttpStatusCode.BadRequest || _currentOfferRequestObject.StatusCode is HttpStatusCode.TooManyRequests)
                 {
 
                     Thread.Sleep(AfterThrottlingTimeOut);
