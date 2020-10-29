@@ -1,5 +1,4 @@
 ﻿using System;
-using Amazon.Lambda.Core;
 using FlexCatcher.Properties;
 
 
@@ -33,7 +32,7 @@ namespace FlexCatcher
             try
             {
                 var catcher = new BlockCatcher(userId: user, flexAppVersion: flexAppVersion, minimumPrice: price, pickUpTimeThreshold: arrivalTime, areas: areas);
-                catcher.ExecutionSpeed = 1.44f;
+                catcher.ExecutionSpeed = 1.0f;
 
                 // Main loop method is being called here
                 if (catcher.AccessSuccess)

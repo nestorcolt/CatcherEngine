@@ -27,15 +27,16 @@ namespace FlexCatcher
         private readonly string[] _areas;
         private readonly string _userId;
 
-        private int _totalOffersCounter = 0;
-        private int _totalApiCalls = 0;
-        private int _totalRejectedOffers = 0;
+        private int _totalOffersCounter;
+        private int _totalApiCalls;
+        private int _totalRejectedOffers;
 
         public bool AccessSuccess;
         private int _speed;
 
         public bool Debug { get; set; }
         public SignatureObject Signature { get; set; }
+        public Stopwatch MainTimer { get; set; }
 
         public float ExecutionSpeed
         {
@@ -45,14 +46,15 @@ namespace FlexCatcher
 
         public BlockCatcher(string userId, string flexAppVersion, float minimumPrice, int pickUpTimeThreshold, string[] areas)
         {
-            var connectionString =
             Signature = new SignatureObject();
+            MainTimer = new Stopwatch();
+            Debug = settings.Default.debug;
+
+            _pickUpTimeThreshold = pickUpTimeThreshold;
             _flexAppVersion = flexAppVersion;
             _minimumPrice = minimumPrice;
-            _pickUpTimeThreshold = pickUpTimeThreshold;
             _userId = userId;
             _areas = areas;
-            Debug = settings.Default.debug;
 
             ApiHelper.InitializeClient();
 
@@ -216,7 +218,7 @@ namespace FlexCatcher
 
             var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, _serviceAreaFilterData, ApiHelper.SeekerClient);
 
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            if (response.StatusCode is HttpStatusCode.Unauthorized || response.StatusCode is HttpStatusCode.Forbidden)
             {
                 GetAccessData().RunSynchronously();
                 Thread.Sleep(10000);
@@ -230,13 +232,16 @@ namespace FlexCatcher
             {
                 JObject requestToken = await ApiHelper.GetRequestTokenAsync(response);
                 var offerList = requestToken.GetValue("offerList");
+                _totalApiCalls++;
+
+                if (offerList != null && !offerList.HasValues)
+                    return;
 
                 Parallel.For(0, offerList.Count(), async n =>
                 {
                     await ApiHelper.AcceptOfferAsync(offerList[n]["offerId"].ToString());
                 });
 
-                _totalApiCalls++;
                 _totalOffersCounter += offerList.Count();
             }
 
