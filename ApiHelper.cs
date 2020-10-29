@@ -13,7 +13,7 @@ namespace FlexCatcher
     public class ApiHelper
     {
         // main URLS
-        private const string AcceptInputUrl = "http://internal.amazon.com/coral/com.amazon.omwbuseyservice.offers/";
+        public const string AcceptInputUrl = "http://internal.amazon.com/coral/com.amazon.omwbuseyservice.offers/";
         public static string OwnerEndpointUrl = "https://www.thunderflex.us/admin/script_functions.php";
         public const string ApiBaseUrl = "https://flex-capacity-na.amazon.com/";
 
@@ -31,10 +31,9 @@ namespace FlexCatcher
         public static HttpClientHandler CatcherClientHandler { get; set; }
         public static HttpClient SeekerClient { get; set; }
         public static HttpClientHandler SeekerClientHandler { get; set; }
-        private static bool Debug = settings.Default.debug;
 
         public const string TokenKeyConstant = "x-amz-access-token";
-        public static int TotalAcceptedOffers;
+
 
         public static void InitializeClient()
         {
@@ -137,26 +136,6 @@ namespace FlexCatcher
             {
                 client.DefaultRequestHeaders.Add(data.Key, data.Value);
             }
-        }
-
-        public static async Task AcceptOfferAsync(string offerId)
-        {
-            var acceptHeader = new Dictionary<string, string>
-            {
-                {"__type", $"AcceptOfferInput:{AcceptInputUrl}"},
-                {"offerId", offerId}
-            };
-
-            string jsonData = JsonConvert.SerializeObject(acceptHeader);
-            HttpResponseMessage response = await PostDataAsync(ApiHelper.AcceptUri, jsonData, CatcherClient);
-
-            if (response.IsSuccessStatusCode)
-                // send to owner endpoint accept data to log and send to the user the notification
-                TotalAcceptedOffers++;
-
-
-            if (ApiHelper.Debug)
-                Console.WriteLine($"\nAccept Block Operation Status >> Code >> {response.StatusCode}\n");
         }
 
         public static async Task DeleteOfferAsync(int blockId)

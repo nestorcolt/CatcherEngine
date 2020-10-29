@@ -26,16 +26,14 @@ namespace FlexCatcher
 
             float executionSpeed = 2.0f;
             int ExecutionTimeOut = 9000;
-            int cleanUpOffersEverySecondsValue = 90;
             string flexAppVersion = "3.39.29.0";
-            string user = "100";
+            string user = "1527";
             float price = 22.0f;
             int arrivalTime = 0;
 
             try
             {
                 var catcher = new BlockCatcher(userId: user, flexAppVersion: flexAppVersion, minimumPrice: price, pickUpTimeThreshold: arrivalTime, areas: areas);
-                catcher.CleanUpDelay = cleanUpOffersEverySecondsValue;
                 catcher.ExecutionSpeed = executionSpeed;
                 catcher.AfterThrottlingTimeOut = ExecutionTimeOut;
 
@@ -43,7 +41,7 @@ namespace FlexCatcher
                 if (catcher.AccessSuccess)
                 {
                     Console.WriteLine("Looking for blocks 3, 2, 1 ...");
-                    catcher.LookingForBlocks();
+                    catcher.LookingForBlocks().Wait();
                 }
 
             }

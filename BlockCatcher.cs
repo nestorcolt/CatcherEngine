@@ -31,7 +31,8 @@ namespace FlexCatcher
         private int _totalOffersCounter;
         private int _totalApiCalls;
         private int _totalRejectedOffers;
-        private int _cleanUpOffersDelay;
+        private int _totalAcceptedOffers;
+        private bool _cleanUpOffers;
 
         public bool AccessSuccess;
         private int _speed;
@@ -40,10 +41,8 @@ namespace FlexCatcher
 
         private SignatureObject Signature { get; }
         private Stopwatch MainTimer { get; }
-        private Stopwatch CleanUpTimer { get; }
         public bool ApiIsThrottling { get; set; }
         public int AfterThrottlingTimeOut { get; set; }
-        public int CleanUpDelay { get => _cleanUpOffersDelay; set => _cleanUpOffersDelay = value * 1000; }
 
 
         public float ExecutionSpeed
@@ -56,7 +55,6 @@ namespace FlexCatcher
         {
             Signature = new SignatureObject();
             MainTimer = Stopwatch.StartNew();
-            CleanUpTimer = new Stopwatch();
 
             _startTime = DateTime.Now;
             Debug = settings.Default.debug;
@@ -109,7 +107,6 @@ namespace FlexCatcher
 
             // Id Dictionary to parse to offer headers later
             var serviceDataDictionary = new Dictionary<string, object>
-
             {
                 ["serviceAreaIds"] = new[] { serviceAreaId },
                 ["filters"] = filtersDict,
@@ -122,7 +119,6 @@ namespace FlexCatcher
         public async Task GetAccessData()
         {
             var data = new Dictionary<string, object>
-
             {
                 { "userId", _userId },
                 { "action", "access_token" }
@@ -207,6 +203,24 @@ namespace FlexCatcher
             });
 
         }
+        public async Task AcceptSingleOfferAsync(string offerId)
+        {
+            var acceptHeader = new Dictionary<string, string>
+            {
+                {"__type", $"AcceptOfferInput:{ ApiHelper.AcceptInputUrl}"},
+                {"offerId", offerId}
+            };
+
+            string jsonData = JsonConvert.SerializeObject(acceptHeader);
+            HttpResponseMessage response = await ApiHelper.PostDataAsync(ApiHelper.AcceptUri, jsonData, ApiHelper.CatcherClient);
+
+            if (response.IsSuccessStatusCode)
+                // send to owner endpoint accept data to log and send to the user the notification
+                _totalAcceptedOffers++;
+
+            if (Debug)
+                Console.WriteLine($"\nAccept Block Operation Status >> Code >> {response.StatusCode}\n");
+        }
 
         private SortedDictionary<string, string> SignRequestHeaders(string url)
         {
@@ -214,7 +228,33 @@ namespace FlexCatcher
 
         }
 
-        private async Task FetchOffers()
+        public async Task<List<string>> AcceptOffersAsync(HttpResponseMessage response)
+        {
+
+            var outputTuple = new List<string>();
+
+            if (response.IsSuccessStatusCode)
+            {
+                JObject requestToken = await ApiHelper.GetRequestTokenAsync(response);
+                var offerList = requestToken.GetValue("offerList");
+
+
+                if (offerList != null && !offerList.HasValues)
+                    return outputTuple;
+
+                Parallel.For(0, offerList.Count(), async n =>
+                {
+                    await AcceptSingleOfferAsync(offerList[n]["offerId"].ToString());
+                });
+
+                _totalOffersCounter += offerList.Count();
+                _cleanUpOffers = true;
+            }
+            return outputTuple;
+        }
+
+
+        private async Task<HttpResponseMessage> FetchOffers()
         {
 
             SortedDictionary<string, string> signatureHeaders = SignRequestHeaders($"{ApiHelper.ApiBaseUrl}{ApiHelper.OffersUri}");
@@ -222,86 +262,71 @@ namespace FlexCatcher
             _offersDataHeader["X-Flex-Client-Time"] = GetTimestamp().ToString();
             _offersDataHeader["X-Amzn-RequestId"] = signatureHeaders["X-Amzn-RequestId"];
             _offersDataHeader["Authorization"] = signatureHeaders["Authorization"];
-
             ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.SeekerClient);
             ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.CatcherClient);
-
             var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, _serviceAreaFilterData, ApiHelper.SeekerClient);
 
-            if (response.IsSuccessStatusCode)
-            {
-                JObject requestToken = await ApiHelper.GetRequestTokenAsync(response);
-                var offerList = requestToken.GetValue("offerList");
-                _totalApiCalls++;
+            return response;
 
-                if (offerList != null && !offerList.HasValues)
-                    return;
-
-                Parallel.For(0, offerList.Count(), async n =>
-                {
-                    await ApiHelper.AcceptOfferAsync(offerList[n]["offerId"].ToString());
-                });
-
-                _totalOffersCounter += offerList.Count();
-            }
-
-            else if (response.StatusCode is HttpStatusCode.Unauthorized || response.StatusCode is HttpStatusCode.Forbidden)
-            {
-                GetAccessData().Wait();
-                Thread.Sleep(10000);
-                return;
-            }
-            else if (response.StatusCode is HttpStatusCode.BadRequest || response.StatusCode is HttpStatusCode.TooManyRequests)
-            {
-
-                ApiIsThrottling = true;
-                return;
-            }
-
-            if (Debug)
-                Console.WriteLine($"\nRequest Status >> Reason >> {response.StatusCode}\n");
         }
 
-        public void LookingForBlocks()
+        public async Task LookingForBlocks()
         {
             Stopwatch watcher = Stopwatch.StartNew();
-            CleanUpTimer.Start();
 
             while (true)
 
             {
-                if (ApiIsThrottling)
+                // start logic here
+                HttpResponseMessage response = await FetchOffers();
+
+                if (response.IsSuccessStatusCode)
                 {
-                    Thread.Sleep(AfterThrottlingTimeOut);
-                    ApiIsThrottling = false;
+                    Thread acceptThread = new Thread(async task => await AcceptOffersAsync(response));
+                    acceptThread.Start();
+                    _totalApiCalls++;
+                }
+
+                else if (response.StatusCode is HttpStatusCode.Unauthorized || response.StatusCode is HttpStatusCode.Forbidden)
+                {
+
+                    GetAccessData().Wait();
+                    Thread.Sleep(10000);
                     continue;
                 }
 
-                // start
-                Thread fetchThread = new Thread(async task => await FetchOffers());
-                fetchThread.Start();
+                else if (response.StatusCode is HttpStatusCode.BadRequest || response.StatusCode is HttpStatusCode.TooManyRequests)
+                {
 
-                if (CleanUpTimer.ElapsedMilliseconds >= CleanUpDelay)
+                    Thread.Sleep(AfterThrottlingTimeOut);
+
+                }
+
+                //Will launch the catch offers clean up every time an offers is accepted
+                if (_cleanUpOffers)
                 {
                     Thread validateThread = new Thread(async task => await ValidateOffers());
                     validateThread.Start();
-                    CleanUpTimer.Restart();
+                    _cleanUpOffers = false;
                 }
 
-                // custom delay
+                // custom delay to save request
                 Thread.Sleep(_speed);
 
                 if (Debug)
+                {
+                    Console.WriteLine($"\nRequest Status >> Reason >> {response.StatusCode}\n");
                     // output log to console
-                    Console.WriteLine($"Start Time: {_startTime}  |  On Air: {MainTimer.Elapsed}  |  Execution Speed: {watcher.Elapsed}  - | Api Calls: {_totalApiCalls} |  - OFFERS DATA >> Total: {_totalOffersCounter} -- " +
-                                          $"Accepted: {ApiHelper.TotalAcceptedOffers} -- Rejected: {_totalRejectedOffers} -- " +
-                                          $"Lost: {_totalOffersCounter - ApiHelper.TotalAcceptedOffers}");
+                    Console.WriteLine($"Start Time: {_startTime}  |  On Air: {MainTimer.Elapsed}  |  Execution Speed: {watcher.Elapsed}  - | Api Calls: {_totalApiCalls} |" +
+                                      $"  - OFFERS DATA >> Total: {_totalOffersCounter} -- Accepted: {{_totalAcceptedOffers}} -- Rejected: {{_totalRejectedOffers}} -- " +
+                                      $"Lost: {_totalOffersCounter - _totalAcceptedOffers}");
+                }
 
+                // restart counter to measure performance
                 watcher.Restart();
 
             }
 
         }
-
     }
 }
