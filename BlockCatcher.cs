@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -37,13 +38,19 @@ namespace FlexCatcher
 
         public bool AccessSuccess;
         private int _speed;
+        private int _throttlingTimeOut;
 
         public bool Debug { get; set; }
         private SignatureObject Signature { get; }
         private Stopwatch MainTimer { get; }
-        public bool ApiIsThrottling { get; set; }
-        public int AfterThrottlingTimeOut { get; set; }
 
+
+        public float AfterThrottlingTimeOut
+
+        {
+            get => _throttlingTimeOut;
+            set => _throttlingTimeOut = (int)(value * 60000);
+        }
 
         public float ExecutionSpeed
         {
@@ -246,13 +253,13 @@ namespace FlexCatcher
                 JObject requestToken = await ApiHelper.GetRequestTokenAsync(response);
                 var offerList = requestToken.GetValue("offerList");
 
-
                 if (offerList != null && !offerList.HasValues)
                     return outputTuple;
 
                 Parallel.For(0, offerList.Count(), async n =>
                 {
-                    await AcceptSingleOfferAsync(offerList[n]["offerId"].ToString());
+                    Thread accept = new Thread(async task => await AcceptSingleOfferAsync(offerList[n]["offerId"].ToString()));
+                    accept.Start();
                 });
 
                 _totalOffersCounter += offerList.Count();
@@ -272,8 +279,7 @@ namespace FlexCatcher
 
             if (response.IsSuccessStatusCode)
             {
-                Thread acceptThread = new Thread(async task => await AcceptOffersAsync(response));
-                acceptThread.Start();
+                await AcceptOffersAsync(response);
                 _totalApiCalls++;
             }
 
@@ -303,14 +309,23 @@ namespace FlexCatcher
                 {
 
                     GetAccessData().Wait();
+                    _currentOfferRequestObject.StatusCode = HttpStatusCode.OK;
                     Thread.Sleep(10000);
                     continue;
                 }
 
                 if (_currentOfferRequestObject.StatusCode is HttpStatusCode.BadRequest || _currentOfferRequestObject.StatusCode is HttpStatusCode.TooManyRequests)
                 {
+                    // Set a variable to the Documents path.
+                    string docPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
-                    Thread.Sleep(AfterThrottlingTimeOut);
+                    // Append text to an existing file named "WriteLines.txt".
+                    using (StreamWriter outputFile = new StreamWriter(Path.Combine(docPath, "MaxRequestDebug.txt"), true))
+                    {
+                        outputFile.WriteLine($"BAD-REQUEST >> Start Time: {DateTime.Now}  |  On Air: {MainTimer.Elapsed}  |  Api Calls: {_totalApiCalls} |");
+                    }
+
+                    Thread.Sleep(_throttlingTimeOut);
 
                 }
 
@@ -327,6 +342,8 @@ namespace FlexCatcher
 
                 if (Debug)
                 {
+
+
                     Console.WriteLine($"\nRequest Status >> Reason >> {_currentOfferRequestObject.StatusCode}\n");
                     // output log to console
                     Console.WriteLine($"Start Time: {_startTime}  |  On Air: {MainTimer.Elapsed}  |  Execution Speed: {watcher.ElapsedMilliseconds / 1000.0}  - | Api Calls: {_totalApiCalls} |" +
