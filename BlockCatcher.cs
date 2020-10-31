@@ -36,8 +36,9 @@ namespace FlexCatcher
         private int _totalAcceptedOffers;
 
         public bool AccessSuccess;
-        private int _speed;
         private int _throttlingTimeOut;
+        private int _speed;
+        private int _cleanUpThresholdTime;
 
         public bool Debug { get; set; }
         public bool CleanUpAll { get; set; }
@@ -65,8 +66,10 @@ namespace FlexCatcher
 
             _startTime = DateTime.Now;
             Debug = settings.Default.debug;
+
             _pickUpTimeThreshold = pickUpTimeThreshold;
             _flexAppVersion = flexAppVersion;
+            _cleanUpThresholdTime = 120000;
             _minimumPrice = minimumPrice;
             _userId = userId;
             _areas = areas;
@@ -318,7 +321,7 @@ namespace FlexCatcher
                 {
 
                     GetAccessData().Wait();
-                    Thread.Sleep(10000);
+                    Thread.Sleep(100000);
                     _currentOfferRequestObject.StatusCode = HttpStatusCode.OK;
                     continue;
                 }
@@ -339,7 +342,7 @@ namespace FlexCatcher
                 }
 
                 //Will launch the catch offers clean up every time an offers is accepted
-                if (cleanWatcher.ElapsedMilliseconds >= 120000)
+                if (cleanWatcher.ElapsedMilliseconds >= _cleanUpThresholdTime)
                 {
                     Task.Run(ValidateOffers);
                     cleanWatcher.Restart();
