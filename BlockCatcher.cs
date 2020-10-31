@@ -241,6 +241,7 @@ namespace FlexCatcher
         private void SignRequestHeaders(string url)
         {
             SortedDictionary<string, string> signatureHeaders = Signature.CreateSignature(url, _offersDataHeader[ApiHelper.TokenKeyConstant]);
+
             _offersDataHeader["X-Amz-Date"] = signatureHeaders["X-Amz-Date"];
             _offersDataHeader["X-Flex-Client-Time"] = GetTimestamp().ToString();
             _offersDataHeader["X-Amzn-RequestId"] = signatureHeaders["X-Amzn-RequestId"];
@@ -311,8 +312,8 @@ namespace FlexCatcher
                 {
 
                     GetAccessData().Wait();
-                    _currentOfferRequestObject.StatusCode = HttpStatusCode.OK;
                     Thread.Sleep(10000);
+                    _currentOfferRequestObject.StatusCode = HttpStatusCode.OK;
                     continue;
                 }
 
@@ -334,16 +335,12 @@ namespace FlexCatcher
                 //Will launch the catch offers clean up every time an offers is accepted
                 if (_cleanUpOffers)
                 {
-                    Task.Run(ValidateOffers);
+                    //Task.Run(ValidateOffers);
                     _cleanUpOffers = false;
                 }
 
-                // custom delay to save request
-                Thread.Sleep(_speed);
-
                 if (Debug)
                 {
-
 
                     Console.WriteLine($"\nRequest Status >> Reason >> {_currentOfferRequestObject.StatusCode}\n");
                     // output log to console
@@ -351,6 +348,9 @@ namespace FlexCatcher
                                       $"  - OFFERS DATA >> Total: {_totalOffersCounter} -- Accepted: {_totalAcceptedOffers} -- Rejected: {_totalRejectedOffers} -- " +
                                       $"Lost: {_totalOffersCounter - _totalAcceptedOffers}");
                 }
+
+                // custom delay to save request
+                Thread.Sleep(_speed);
 
                 // restart counter to measure performance
                 watcher.Restart();
