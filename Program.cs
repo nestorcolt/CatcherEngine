@@ -36,6 +36,7 @@ namespace FlexCatcher
                 var catcher = new BlockCatcher(userId: user, flexAppVersion: flexAppVersion, minimumPrice: price, pickUpTimeThreshold: arrivalTime, areas: areas);
                 catcher.ExecutionSpeed = executionSpeed;
                 catcher.AfterThrottlingTimeOut = ExecutionTimeOut;
+                catcher.CleanUpAll = true;
 
                 // Main loop method is being called here
                 if (catcher.AccessSuccess)

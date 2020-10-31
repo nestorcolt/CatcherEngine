@@ -34,13 +34,13 @@ namespace FlexCatcher
         private int _totalApiCalls;
         private int _totalRejectedOffers;
         private int _totalAcceptedOffers;
-        private bool _cleanUpOffers;
 
         public bool AccessSuccess;
         private int _speed;
         private int _throttlingTimeOut;
 
         public bool Debug { get; set; }
+        public bool CleanUpAll { get; set; }
         private SignatureObject Signature { get; }
         private Stopwatch MainTimer { get; }
 
@@ -198,7 +198,7 @@ namespace FlexCatcher
             foreach (var block in blocksArray.Values())
             {
                 if (!block.HasValues)
-                    return;
+                    continue;
 
                 JToken innerBlock = block[0];
                 JToken serviceAreaId = innerBlock["serviceAreaId"];
@@ -208,10 +208,16 @@ namespace FlexCatcher
                 // The time the offer will be available for pick up at the facility
                 int pickUpTimespan = (int)startTime - GetTimestamp();
 
-                if ((float)offerPrice < _minimumPrice || !_areas.Contains((string)serviceAreaId) || pickUpTimespan < _pickUpTimeThreshold)
+
+                if (CleanUpAll)
                 {
                     await ApiHelper.DeleteOfferAsync((int)startTime);
-                    Console.WriteLine(block);
+                    _totalRejectedOffers++;
+                }
+
+                else if ((float)offerPrice < _minimumPrice || !_areas.Contains((string)serviceAreaId) || pickUpTimespan < _pickUpTimeThreshold)
+                {
+                    await ApiHelper.DeleteOfferAsync((int)startTime);
                     _totalRejectedOffers++;
                 }
 
@@ -266,7 +272,6 @@ namespace FlexCatcher
                });
 
                 _totalOffersCounter += offerList.Count();
-                _cleanUpOffers = true;
             }
 
         }
@@ -292,6 +297,7 @@ namespace FlexCatcher
         public void LookingForBlocks()
         {
             Stopwatch watcher = Stopwatch.StartNew();
+            Stopwatch cleanWatcher = Stopwatch.StartNew();
 
             while (true)
 
@@ -333,10 +339,10 @@ namespace FlexCatcher
                 }
 
                 //Will launch the catch offers clean up every time an offers is accepted
-                if (_cleanUpOffers)
+                if (cleanWatcher.ElapsedMilliseconds >= 120000)
                 {
-                    //Task.Run(ValidateOffers);
-                    _cleanUpOffers = false;
+                    Task.Run(ValidateOffers);
+                    cleanWatcher.Restart();
                 }
 
                 if (Debug)
