@@ -260,22 +260,19 @@ namespace FlexCatcher
         public async Task AcceptOffersAsync(HttpResponseMessage response)
         {
 
-            if (response.IsSuccessStatusCode)
-            {
-                JObject requestToken = await ApiHelper.GetRequestTokenAsync(response);
-                JToken offerList = requestToken.GetValue("offerList");
+            JObject requestToken = await ApiHelper.GetRequestTokenAsync(response);
+            JToken offerList = requestToken.GetValue("offerList");
 
-                if (offerList != null && !offerList.HasValues)
-                    return;
+            if (offerList != null && !offerList.HasValues)
+                return;
 
-                Parallel.For(0, offerList.Count(), n =>
-               {
-                   Thread accept = new Thread(async task => await AcceptSingleOfferAsync(offerList[n]["offerId"].ToString()));
-                   accept.Start();
-               });
+            Parallel.For(0, offerList.Count(), n =>
+           {
+               Thread accept = new Thread(async task => await AcceptSingleOfferAsync(offerList[n]["offerId"].ToString()));
+               accept.Start();
+           });
 
-                _totalOffersCounter += offerList.Count();
-            }
+            _totalOffersCounter += offerList.Count();
 
         }
 
