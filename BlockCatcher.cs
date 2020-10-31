@@ -192,7 +192,10 @@ namespace FlexCatcher
             var response = await ApiHelper.GetBlockFromDataBaseAsync(ApiHelper.AssignedBlocks, _offersDataHeader[ApiHelper.TokenKeyConstant]);
             JObject blocksArray = await ApiHelper.GetRequestTokenAsync(response);
 
-            Parallel.ForEach(blocksArray.Values(), async block =>
+            if (!blocksArray.HasValues)
+                return;
+
+            foreach (var block in blocksArray.Values())
             {
                 if (!block.HasValues)
                     return;
@@ -208,10 +211,11 @@ namespace FlexCatcher
                 if ((float)offerPrice < _minimumPrice || !_areas.Contains((string)serviceAreaId) || pickUpTimespan < _pickUpTimeThreshold)
                 {
                     await ApiHelper.DeleteOfferAsync((int)startTime);
+                    Console.WriteLine(block);
                     _totalRejectedOffers++;
                 }
 
-            });
+            }
 
         }
 
@@ -243,29 +247,27 @@ namespace FlexCatcher
             _offersDataHeader["Authorization"] = signatureHeaders["Authorization"];
         }
 
-        public async Task<List<string>> AcceptOffersAsync(HttpResponseMessage response)
+        public async Task AcceptOffersAsync(HttpResponseMessage response)
         {
-
-            var outputTuple = new List<string>();
 
             if (response.IsSuccessStatusCode)
             {
                 JObject requestToken = await ApiHelper.GetRequestTokenAsync(response);
-                var offerList = requestToken.GetValue("offerList");
+                JToken offerList = requestToken.GetValue("offerList");
 
                 if (offerList != null && !offerList.HasValues)
-                    return outputTuple;
+                    return;
 
-                Parallel.For(0, offerList.Count(), async n =>
-                {
-                    Thread accept = new Thread(async task => await AcceptSingleOfferAsync(offerList[n]["offerId"].ToString()));
-                    accept.Start();
-                });
+                Parallel.For(0, offerList.Count(), n =>
+               {
+                   Thread accept = new Thread(async task => await AcceptSingleOfferAsync(offerList[n]["offerId"].ToString()));
+                   accept.Start();
+               });
 
                 _totalOffersCounter += offerList.Count();
                 _cleanUpOffers = true;
             }
-            return outputTuple;
+
         }
 
         private async Task FetchOffers()
@@ -279,7 +281,8 @@ namespace FlexCatcher
 
             if (response.IsSuccessStatusCode)
             {
-                await AcceptOffersAsync(response);
+                Thread acceptThread = new Thread(async task => await AcceptOffersAsync(response));
+                acceptThread.Start();
                 _totalApiCalls++;
             }
 
@@ -295,7 +298,6 @@ namespace FlexCatcher
                 // start logic here
                 Thread requestThread = new Thread(async task => await FetchOffers());
                 requestThread.Start();
-
 
                 // as the first request process runs super fast because the multi-threading I validate if the _currentOfferRequestObject is null which means
                 // the request hasn't been resolved yet. once this is done I can proceed with the logic.
@@ -332,8 +334,7 @@ namespace FlexCatcher
                 //Will launch the catch offers clean up every time an offers is accepted
                 if (_cleanUpOffers)
                 {
-                    Thread validateThread = new Thread(async task => await ValidateOffers());
-                    validateThread.Start();
+                    Task.Run(ValidateOffers);
                     _cleanUpOffers = false;
                 }
 
