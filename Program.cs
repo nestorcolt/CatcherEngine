@@ -27,7 +27,7 @@ namespace FlexCatcher
             float executionSpeed = 1.8f; // seconds
             int ExecutionTimeOut = 31; // Minutes
             string flexAppVersion = "3.39.29.0";
-            string user = "100";
+            string user = "4918";
             float price = 22.0f;
             int arrivalTime = 0;
 
