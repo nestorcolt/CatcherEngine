@@ -23,25 +23,17 @@ namespace FlexCatcher
         private Dictionary<string, string> _offersDataHeader;
         private string _serviceAreaFilterData;
         private string _flexAppVersion;
-        private float _minimumPrice;
-        private int _pickUpTimeThreshold;
-        private string[] _areas;
         private string _userId;
-        private HttpResponseMessage _currentOfferRequestObject;
         DateTime _startTime;
 
         private int _totalOffersCounter;
         private int _totalApiCalls;
-        private int _totalRejectedOffers;
         private int _totalAcceptedOffers;
 
-        public bool AccessSuccess;
         private int _throttlingTimeOut;
         private int _speed;
-        private int _cleanUpThresholdTime;
 
         public bool Debug { get; set; }
-        public bool CleanUpAll { get; set; }
         private SignatureObject Signature { get; set; }
         private Stopwatch MainTimer { get; set; }
 
@@ -56,7 +48,7 @@ namespace FlexCatcher
         public float ExecutionSpeed
         {
             get => _speed;
-            set => _speed = (int)(value * 1000);
+            set => _speed = (int)((value - 0.2f) * 1000);
         }
 
         public void InitializeObject(string userId, string flexAppVersion)
@@ -68,7 +60,6 @@ namespace FlexCatcher
             Debug = settings.Default.debug;
 
             _flexAppVersion = flexAppVersion;
-            _cleanUpThresholdTime = 120000;
             _userId = userId;
 
             ApiHelper.InitializeClient();
@@ -141,14 +132,12 @@ namespace FlexCatcher
             if (responseValue == "failed")
             {
                 Console.WriteLine("\nSession token request failed. Operation aborted.\n");
-                AccessSuccess = false;
             }
 
             else
             {
                 _offersDataHeader[ApiHelper.TokenKeyConstant] = responseValue;
                 Console.WriteLine("\nAccess to the service granted!\n");
-                AccessSuccess = true;
             }
 
         }
@@ -183,7 +172,15 @@ namespace FlexCatcher
             _offersDataHeader = offerAcceptHeaders;
         }
 
+        private void SignRequestHeaders(string url)
+        {
+            SortedDictionary<string, string> signatureHeaders = Signature.CreateSignature(url, _offersDataHeader[ApiHelper.TokenKeyConstant]);
 
+            _offersDataHeader["X-Amz-Date"] = signatureHeaders["X-Amz-Date"];
+            _offersDataHeader["X-Flex-Client-Time"] = GetTimestamp().ToString();
+            _offersDataHeader["X-Amzn-RequestId"] = signatureHeaders["X-Amzn-RequestId"];
+            _offersDataHeader["Authorization"] = signatureHeaders["Authorization"];
+        }
 
         public async Task AcceptSingleOfferAsync(string offerId)
         {
@@ -204,83 +201,68 @@ namespace FlexCatcher
                 Console.WriteLine($"\nAccept Block Operation Status >> Code >> {response.StatusCode}\n");
         }
 
-        private void SignRequestHeaders(string url)
+        public void AcceptOffers(JToken offerList)
         {
-            SortedDictionary<string, string> signatureHeaders = Signature.CreateSignature(url, _offersDataHeader[ApiHelper.TokenKeyConstant]);
-
-            _offersDataHeader["X-Amz-Date"] = signatureHeaders["X-Amz-Date"];
-            _offersDataHeader["X-Flex-Client-Time"] = GetTimestamp().ToString();
-            _offersDataHeader["X-Amzn-RequestId"] = signatureHeaders["X-Amzn-RequestId"];
-            _offersDataHeader["Authorization"] = signatureHeaders["Authorization"];
-        }
-
-        public async Task AcceptOffersAsync(HttpResponseMessage response)
-        {
-
-            JObject requestToken = await ApiHelper.GetRequestTokenAsync(response);
-            JToken offerList = requestToken.GetValue("offerList");
-
-            if (offerList != null && !offerList.HasValues)
-                return;
-
             Parallel.For(0, offerList.Count(), n =>
            {
                Thread accept = new Thread(async task => await AcceptSingleOfferAsync(offerList[n]["offerId"].ToString()));
                accept.Start();
            });
 
-            _totalOffersCounter += offerList.Count();
-
         }
 
-        private async Task FetchOffers()
+        private async Task<HttpStatusCode> GetOffersAsync()
         {
 
             SignRequestHeaders($"{ApiHelper.ApiBaseUrl}{ApiHelper.OffersUri}");
             ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.SeekerClient);
             ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.CatcherClient);
+
             var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, _serviceAreaFilterData, ApiHelper.SeekerClient);
-            _currentOfferRequestObject = response;
+            _totalApiCalls++;
 
             if (response.IsSuccessStatusCode)
             {
-                Thread acceptThread = new Thread(async task => await AcceptOffersAsync(response));
-                acceptThread.Start();
-                _totalApiCalls++;
+                JObject requestToken = await ApiHelper.GetRequestTokenAsync(response);
+                JToken offerList = requestToken.GetValue("offerList");
+                Console.WriteLine(offerList);
+
+                if (offerList != null && offerList.HasValues)
+                {
+                    Console.WriteLine("has values");
+                    Thread acceptThread = new Thread(task => AcceptOffers(offerList));
+                    //acceptThread.Start();
+
+                    _totalOffersCounter += offerList.Count();
+
+                }
             }
 
+            return response.StatusCode;
         }
 
         public void LookingForBlocks()
         {
             Stopwatch watcher = Stopwatch.StartNew();
-            Stopwatch cleanWatcher = Stopwatch.StartNew();
 
             while (true)
 
             {
                 // start logic here
-                Thread requestThread = new Thread(async task => await FetchOffers());
-                requestThread.Start();
+                HttpStatusCode statusCode = GetOffersAsync().Result;
 
                 // as the first request process runs super fast because the multi-threading I validate if the _currentOfferRequestObject is null which means
                 // the request hasn't been resolved yet. once this is done I can proceed with the logic.
-                if (_currentOfferRequestObject is null)
-                {
-                    Thread.Sleep(_speed);
-                    continue;
-                }
 
-                if (_currentOfferRequestObject.StatusCode is HttpStatusCode.Unauthorized || _currentOfferRequestObject.StatusCode is HttpStatusCode.Forbidden)
+                if (statusCode is HttpStatusCode.Unauthorized || statusCode is HttpStatusCode.Forbidden)
                 {
 
                     GetAccessData().Wait();
                     Thread.Sleep(100000);
-                    _currentOfferRequestObject.StatusCode = HttpStatusCode.OK;
                     continue;
                 }
 
-                if (_currentOfferRequestObject.StatusCode is HttpStatusCode.BadRequest || _currentOfferRequestObject.StatusCode is HttpStatusCode.TooManyRequests)
+                if (statusCode is HttpStatusCode.BadRequest || statusCode is HttpStatusCode.TooManyRequests)
                 {
                     // Set a variable to the Documents path.
                     string docPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
@@ -295,18 +277,17 @@ namespace FlexCatcher
 
                 }
 
+                // custom delay to save request
+                Thread.Sleep(_speed);
+
                 if (Debug)
                 {
 
-                    Console.WriteLine($"\nRequest Status >> Reason >> {_currentOfferRequestObject.StatusCode}\n");
+                    Console.WriteLine($"\nRequest Status >> Reason >> {statusCode}\n");
                     // output log to console
                     Console.WriteLine($"Start Time: {_startTime}  |  On Air: {MainTimer.Elapsed}  |  Execution Speed: {watcher.ElapsedMilliseconds / 1000.0}  - | Api Calls: {_totalApiCalls} |" +
-                                      $"  - OFFERS DATA >> Total: {_totalOffersCounter} -- Accepted: {_totalAcceptedOffers} -- Rejected: {_totalRejectedOffers} -- " +
-                                      $"Lost: {_totalOffersCounter - _totalAcceptedOffers}");
+                                      $"  - OFFERS DATA >> Total: {_totalOffersCounter} -- Accepted: {_totalAcceptedOffers} -- Lost: {_totalOffersCounter - _totalAcceptedOffers}");
                 }
-
-                // custom delay to save request
-                Thread.Sleep(_speed);
 
                 // restart counter to measure performance
                 watcher.Restart();
