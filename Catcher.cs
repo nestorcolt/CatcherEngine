@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace FlexCatcher
 {
-    class BlockCatcher
+    class Catcher
 
     // The Engine of the program. Will look for available blocks depending on the parsed data, making API calls to amazon to check for blocks to pick up by drivers.
     // Will used asynchronous programming and multi-threading to speed up the process and the API request.
@@ -230,7 +230,7 @@ namespace FlexCatcher
             return response.StatusCode;
         }
 
-        public void LookingForBlocksGenericMethod()
+        public void LookingForBlocksLegacy()
         {
             Stopwatch watcher = Stopwatch.StartNew();
 

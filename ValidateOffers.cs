@@ -4,7 +4,7 @@ using Newtonsoft.Json.Linq;
 
 namespace FlexCatcher
 {
-    class ValidateOffers : BlockCatcher
+    class ValidateOffers : Catcher
     {
 
         public async Task ValidateOffersAsyncHandle(string token)
@@ -27,9 +27,9 @@ namespace FlexCatcher
                     continue;
 
                 JToken innerBlock = block[0];
+                JToken startTime = innerBlock["startTime"];
                 JToken serviceAreaId = innerBlock["serviceAreaId"];
                 JToken offerPrice = innerBlock["bookedPrice"]["amount"];
-                JToken startTime = innerBlock["startTime"];
 
                 // The time the offer will be available for pick up at the facility
                 int pickUpTimespan = (int)startTime - GetTimestamp();
