@@ -9,7 +9,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using FlexCatcher.Properties;
 
 namespace FlexCatcher
 {
@@ -24,7 +23,6 @@ namespace FlexCatcher
         private readonly Stopwatch _mainTimer = Stopwatch.StartNew();
         private readonly DateTime _startTime = DateTime.Now;
         private string _serviceAreaFilterData;
-        private string _flexAppVersion;
         private string _userId;
 
         private int _totalOffersCounter;
@@ -34,6 +32,7 @@ namespace FlexCatcher
         private int _speed;
 
         public bool Debug { get; set; }
+        public string AppVersion { get; set; }
 
         public float AfterThrottlingTimeOut
 
@@ -48,23 +47,21 @@ namespace FlexCatcher
             set => _speed = (int)((value - 0.2f) * 1000);
         }
 
-        public void InitializeObject(string userId, string flexAppVersion)
+        public void InitializeObject(string userId)
         {
-
-            Debug = settings.Default.debug;
-
-            _flexAppVersion = flexAppVersion;
             _userId = userId;
 
+            // HttpClients are init here
             ApiHelper.InitializeClient();
 
-            // Primary methods resolution
+            // Primary methods resolution to get access to the request headers
             Task.Run(GetAccessDataAsync).Wait();
             Task.Run(EmulateDeviceAsync).Wait();
 
             // Set the client service area to sent as extra data with the request on get blocks method
             SetServiceArea();
 
+            // set headers to clients
             ApiHelper.AddRequestHeaders(_requestDataHeadersDictionary, ApiHelper.SeekerClient);
             ApiHelper.AddRequestHeaders(_requestDataHeadersDictionary, ApiHelper.CatcherClient);
 
@@ -90,7 +87,6 @@ namespace FlexCatcher
 
         private void SetServiceArea()
         {
-
             string serviceAreaId = GetServiceAreaId();
             var filtersDict = new Dictionary<string, object>
             {
@@ -133,7 +129,6 @@ namespace FlexCatcher
                 _requestDataHeadersDictionary[ApiHelper.TokenKeyConstant] = responseValue;
                 Console.WriteLine("\nAccess to the service granted!\n");
             }
-
         }
 
         private async Task EmulateDeviceAsync()
@@ -157,7 +152,7 @@ namespace FlexCatcher
             {
                 ["x-flex-instance-id"] = $"{instanceId.Substring(0, 8)}-{instanceId.Substring(8, 4)}-" +
                                          $"{instanceId.Substring(12, 4)}-{instanceId.Substring(16, 4)}-{instanceId.Substring(20, 12)}",
-                ["User-Agent"] = $"Dalvik/2.1.0 (Linux; U; Android {androidVersion}; {deviceModel} {build}) RabbitAndroid/{_flexAppVersion}",
+                ["User-Agent"] = $"Dalvik/2.1.0 (Linux; U; Android {androidVersion}; {deviceModel} {build}) RabbitAndroid/{AppVersion}",
                 ["Connection"] = "Keep-Alive",
                 ["Accept-Encoding"] = "gzip"
             };
@@ -207,7 +202,7 @@ namespace FlexCatcher
            });
         }
 
-        private async Task<HttpStatusCode> GetOffersAsync()
+        private async Task<HttpStatusCode> GetOffersAsyncHandle()
         {
             SignRequestHeaders($"{ApiHelper.ApiBaseUrl}{ApiHelper.OffersUri}");
 
@@ -225,6 +220,7 @@ namespace FlexCatcher
                 if (offerList != null && offerList.HasValues)
                 {
                     Thread acceptThread = new Thread(task => AcceptOffers(offerList));
+                    // TODO NOT ACCEPTING BLOCKS
                     //acceptThread.Start();
 
                     _totalOffersCounter += offerList.Count();
@@ -234,7 +230,7 @@ namespace FlexCatcher
             return response.StatusCode;
         }
 
-        public void LookingForBlocks()
+        public void LookingForBlocksGenericMethod()
         {
             Stopwatch watcher = Stopwatch.StartNew();
 
@@ -242,7 +238,7 @@ namespace FlexCatcher
 
             {
                 // start logic here
-                HttpStatusCode statusCode = GetOffersAsync().Result;
+                HttpStatusCode statusCode = GetOffersAsyncHandle().Result;
 
                 // as the first request process runs super fast because the multi-threading I validate if the _currentOfferRequestObject is null which means
                 // the request hasn't been resolved yet. once this is done I can proceed with the logic.
@@ -267,7 +263,6 @@ namespace FlexCatcher
                     }
 
                     Thread.Sleep(_throttlingTimeOut);
-
                 }
 
                 // custom delay to save request

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
@@ -9,7 +7,7 @@ namespace FlexCatcher
     class ValidateOffers : BlockCatcher
     {
 
-        public async Task ValidateOffersAsync(string token)
+        public async Task ValidateOffersAsyncHandle(string token)
 
         {
             var areas = new List<string>();

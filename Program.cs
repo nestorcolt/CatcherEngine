@@ -33,14 +33,18 @@ namespace FlexCatcher
 
             try
             {
-                var catcher = new BlockCatcher();
-                catcher.InitializeObject(userId: user, flexAppVersion: flexAppVersion);
-                catcher.AfterThrottlingTimeOut = ExecutionTimeOut;
-                catcher.ExecutionSpeed = executionSpeed;
+                var catcher = new BlockCatcher
+                {
+                    AppVersion = flexAppVersion,
+                    AfterThrottlingTimeOut = ExecutionTimeOut,
+                    ExecutionSpeed = executionSpeed,
+                    Debug = settings.Default.debug
+                };
 
                 // Main loop method is being called here
                 Console.WriteLine("Looking for blocks 3, 2, 1 ...");
-                catcher.LookingForBlocks();
+                catcher.InitializeObject(userId: user);
+                catcher.LookingForBlocksGenericMethod();
 
             }
             catch (Exception e)
