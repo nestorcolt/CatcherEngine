@@ -22,13 +22,13 @@ namespace FlexCatcher
 
         private Dictionary<string, string> _offersDataHeader;
         private string _serviceAreaFilterData;
-        private readonly string _flexAppVersion;
-        private readonly float _minimumPrice;
-        private readonly int _pickUpTimeThreshold;
-        private readonly string[] _areas;
-        private readonly string _userId;
+        private string _flexAppVersion;
+        private float _minimumPrice;
+        private int _pickUpTimeThreshold;
+        private string[] _areas;
+        private string _userId;
         private HttpResponseMessage _currentOfferRequestObject;
-        readonly DateTime _startTime;
+        DateTime _startTime;
 
         private int _totalOffersCounter;
         private int _totalApiCalls;
@@ -42,8 +42,8 @@ namespace FlexCatcher
 
         public bool Debug { get; set; }
         public bool CleanUpAll { get; set; }
-        private SignatureObject Signature { get; }
-        private Stopwatch MainTimer { get; }
+        private SignatureObject Signature { get; set; }
+        private Stopwatch MainTimer { get; set; }
 
 
         public float AfterThrottlingTimeOut
@@ -59,7 +59,7 @@ namespace FlexCatcher
             set => _speed = (int)(value * 1000);
         }
 
-        public BlockCatcher(string userId, string flexAppVersion, float minimumPrice, int pickUpTimeThreshold, string[] areas)
+        public void InitializeObject(string userId, string flexAppVersion)
         {
             Signature = new SignatureObject();
             MainTimer = Stopwatch.StartNew();
@@ -67,12 +67,9 @@ namespace FlexCatcher
             _startTime = DateTime.Now;
             Debug = settings.Default.debug;
 
-            _pickUpTimeThreshold = pickUpTimeThreshold;
             _flexAppVersion = flexAppVersion;
             _cleanUpThresholdTime = 120000;
-            _minimumPrice = minimumPrice;
             _userId = userId;
-            _areas = areas;
 
             ApiHelper.InitializeClient();
 
@@ -85,10 +82,9 @@ namespace FlexCatcher
 
             ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.SeekerClient);
             ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.CatcherClient);
-
         }
 
-        private int GetTimestamp()
+        public int GetTimestamp()
         {
 
             TimeSpan time = (DateTime.UtcNow - new DateTime(1970, 1, 1));
@@ -187,46 +183,7 @@ namespace FlexCatcher
             _offersDataHeader = offerAcceptHeaders;
         }
 
-        private async Task ValidateOffers()
 
-        {
-
-            // if the validation is not success will try to find in the catch blocks the one did not passed the validation and forfeit them
-            var response = await ApiHelper.GetBlockFromDataBaseAsync(ApiHelper.AssignedBlocks, _offersDataHeader[ApiHelper.TokenKeyConstant]);
-            JObject blocksArray = await ApiHelper.GetRequestTokenAsync(response);
-
-            if (!blocksArray.HasValues)
-                return;
-
-            foreach (var block in blocksArray.Values())
-            {
-                if (!block.HasValues)
-                    continue;
-
-                JToken innerBlock = block[0];
-                JToken serviceAreaId = innerBlock["serviceAreaId"];
-                JToken offerPrice = innerBlock["bookedPrice"]["amount"];
-                JToken startTime = innerBlock["startTime"];
-
-                // The time the offer will be available for pick up at the facility
-                int pickUpTimespan = (int)startTime - GetTimestamp();
-
-
-                if (CleanUpAll)
-                {
-                    await ApiHelper.DeleteOfferAsync((int)startTime);
-                    _totalRejectedOffers++;
-                }
-
-                else if ((float)offerPrice < _minimumPrice || !_areas.Contains((string)serviceAreaId) || pickUpTimespan < _pickUpTimeThreshold)
-                {
-                    await ApiHelper.DeleteOfferAsync((int)startTime);
-                    _totalRejectedOffers++;
-                }
-
-            }
-
-        }
 
         public async Task AcceptSingleOfferAsync(string offerId)
         {
@@ -336,13 +293,6 @@ namespace FlexCatcher
 
                     Thread.Sleep(_throttlingTimeOut);
 
-                }
-
-                //Will launch the catch offers clean up every time an offers is accepted
-                if (cleanWatcher.ElapsedMilliseconds >= _cleanUpThresholdTime)
-                {
-                    Task.Run(ValidateOffers);
-                    cleanWatcher.Restart();
                 }
 
                 if (Debug)

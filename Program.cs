@@ -33,7 +33,8 @@ namespace FlexCatcher
 
             try
             {
-                var catcher = new BlockCatcher(userId: user, flexAppVersion: flexAppVersion, minimumPrice: price, pickUpTimeThreshold: arrivalTime, areas: areas);
+                var catcher = new BlockCatcher();
+                catcher.InitializeObject(userId: user, flexAppVersion: flexAppVersion);
                 catcher.ExecutionSpeed = executionSpeed;
                 catcher.AfterThrottlingTimeOut = ExecutionTimeOut;
                 catcher.CleanUpAll = true;
