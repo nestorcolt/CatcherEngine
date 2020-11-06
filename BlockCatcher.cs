@@ -19,24 +19,21 @@ namespace FlexCatcher
     // Will used asynchronous programming and multi-threading to speed up the process and the API request.
 
     {
-
-        private Dictionary<string, string> _offersDataHeader;
+        private Dictionary<string, string> _requestDataHeadersDictionary = new Dictionary<string, string>();
+        private readonly SignatureObject _signature = new SignatureObject();
+        private readonly Stopwatch _mainTimer = Stopwatch.StartNew();
+        private readonly DateTime _startTime = DateTime.Now;
         private string _serviceAreaFilterData;
         private string _flexAppVersion;
         private string _userId;
-        DateTime _startTime;
 
         private int _totalOffersCounter;
-        private int _totalApiCalls;
         private int _totalAcceptedOffers;
-
         private int _throttlingTimeOut;
+        private int _totalApiCalls;
         private int _speed;
 
         public bool Debug { get; set; }
-        private SignatureObject Signature { get; set; }
-        private Stopwatch MainTimer { get; set; }
-
 
         public float AfterThrottlingTimeOut
 
@@ -53,10 +50,7 @@ namespace FlexCatcher
 
         public void InitializeObject(string userId, string flexAppVersion)
         {
-            Signature = new SignatureObject();
-            MainTimer = Stopwatch.StartNew();
 
-            _startTime = DateTime.Now;
             Debug = settings.Default.debug;
 
             _flexAppVersion = flexAppVersion;
@@ -65,14 +59,15 @@ namespace FlexCatcher
             ApiHelper.InitializeClient();
 
             // Primary methods resolution
-            Task.Run(EmulateDevice).Wait();
-            Task.Run(GetAccessData).Wait();
+            Task.Run(GetAccessDataAsync).Wait();
+            Task.Run(EmulateDeviceAsync).Wait();
 
             // Set the client service area to sent as extra data with the request on get blocks method
             SetServiceArea();
 
-            ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.SeekerClient);
-            ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.CatcherClient);
+            ApiHelper.AddRequestHeaders(_requestDataHeadersDictionary, ApiHelper.SeekerClient);
+            ApiHelper.AddRequestHeaders(_requestDataHeadersDictionary, ApiHelper.CatcherClient);
+
         }
 
         public int GetTimestamp()
@@ -85,7 +80,7 @@ namespace FlexCatcher
 
         private string GetServiceAreaId()
         {
-            var result = ApiHelper.GetServiceAuthentication(ApiHelper.ServiceAreaUri, _offersDataHeader[ApiHelper.TokenKeyConstant]).Result;
+            var result = ApiHelper.GetServiceAuthentication(ApiHelper.ServiceAreaUri, _requestDataHeadersDictionary[ApiHelper.TokenKeyConstant]).Result;
 
             if (result.HasValues)
                 return (string)result[0];
@@ -115,18 +110,17 @@ namespace FlexCatcher
             _serviceAreaFilterData = JsonConvert.SerializeObject(serviceDataDictionary).Replace("\\", "");
         }
 
-        public async Task GetAccessData()
+        public async Task GetAccessDataAsync()
         {
             var data = new Dictionary<string, object>
             {
                 { "userId", _userId },
                 { "action", "access_token" }
-
             };
 
             string jsonData = JsonConvert.SerializeObject(data);
             HttpResponseMessage response = await ApiHelper.PostDataAsync(ApiHelper.OwnerEndpointUrl, jsonData);
-            JObject requestToken = await ApiHelper.GetRequestTokenAsync(response);
+            JObject requestToken = await ApiHelper.GetRequestJTokenAsync(response);
             string responseValue = requestToken.GetValue("access_token").ToString();
 
             if (responseValue == "failed")
@@ -136,13 +130,13 @@ namespace FlexCatcher
 
             else
             {
-                _offersDataHeader[ApiHelper.TokenKeyConstant] = responseValue;
+                _requestDataHeadersDictionary[ApiHelper.TokenKeyConstant] = responseValue;
                 Console.WriteLine("\nAccess to the service granted!\n");
             }
 
         }
 
-        private async Task EmulateDevice()
+        private async Task EmulateDeviceAsync()
         {
             var data = new Dictionary<string, string>
             {
@@ -150,9 +144,9 @@ namespace FlexCatcher
                 { "action", "instance_id" }
             };
 
-            String jsonData = JsonConvert.SerializeObject(data);
+            string jsonData = JsonConvert.SerializeObject(data);
             HttpResponseMessage response = await ApiHelper.PostDataAsync(ApiHelper.OwnerEndpointUrl, jsonData);
-            JObject requestToken = await ApiHelper.GetRequestTokenAsync(response);
+            JObject requestToken = await ApiHelper.GetRequestJTokenAsync(response);
 
             string androidVersion = requestToken.GetValue("androidVersion").ToString();
             string deviceModel = requestToken.GetValue("deviceModel").ToString();
@@ -169,17 +163,20 @@ namespace FlexCatcher
             };
 
             // Set the class field with the new offer headers
-            _offersDataHeader = offerAcceptHeaders;
+            foreach (var header in offerAcceptHeaders)
+            {
+                _requestDataHeadersDictionary[header.Key] = header.Value;
+            }
         }
 
         private void SignRequestHeaders(string url)
         {
-            SortedDictionary<string, string> signatureHeaders = Signature.CreateSignature(url, _offersDataHeader[ApiHelper.TokenKeyConstant]);
+            SortedDictionary<string, string> signatureHeaders = _signature.CreateSignature(url, _requestDataHeadersDictionary[ApiHelper.TokenKeyConstant]);
 
-            _offersDataHeader["X-Amz-Date"] = signatureHeaders["X-Amz-Date"];
-            _offersDataHeader["X-Flex-Client-Time"] = GetTimestamp().ToString();
-            _offersDataHeader["X-Amzn-RequestId"] = signatureHeaders["X-Amzn-RequestId"];
-            _offersDataHeader["Authorization"] = signatureHeaders["Authorization"];
+            _requestDataHeadersDictionary["X-Amz-Date"] = signatureHeaders["X-Amz-Date"];
+            _requestDataHeadersDictionary["X-Flex-Client-Time"] = GetTimestamp().ToString();
+            _requestDataHeadersDictionary["X-Amzn-RequestId"] = signatureHeaders["X-Amzn-RequestId"];
+            _requestDataHeadersDictionary["Authorization"] = signatureHeaders["Authorization"];
         }
 
         public async Task AcceptSingleOfferAsync(string offerId)
@@ -208,33 +205,29 @@ namespace FlexCatcher
                Thread accept = new Thread(async task => await AcceptSingleOfferAsync(offerList[n]["offerId"].ToString()));
                accept.Start();
            });
-
         }
 
         private async Task<HttpStatusCode> GetOffersAsync()
         {
-
             SignRequestHeaders($"{ApiHelper.ApiBaseUrl}{ApiHelper.OffersUri}");
-            ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.SeekerClient);
-            ApiHelper.AddRequestHeaders(_offersDataHeader, ApiHelper.CatcherClient);
+
+            ApiHelper.AddRequestHeaders(_requestDataHeadersDictionary, ApiHelper.SeekerClient);
+            ApiHelper.AddRequestHeaders(_requestDataHeadersDictionary, ApiHelper.CatcherClient);
 
             var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, _serviceAreaFilterData, ApiHelper.SeekerClient);
             _totalApiCalls++;
 
             if (response.IsSuccessStatusCode)
             {
-                JObject requestToken = await ApiHelper.GetRequestTokenAsync(response);
+                JObject requestToken = await ApiHelper.GetRequestJTokenAsync(response);
                 JToken offerList = requestToken.GetValue("offerList");
-                Console.WriteLine(offerList);
 
                 if (offerList != null && offerList.HasValues)
                 {
-                    Console.WriteLine("has values");
                     Thread acceptThread = new Thread(task => AcceptOffers(offerList));
                     //acceptThread.Start();
 
                     _totalOffersCounter += offerList.Count();
-
                 }
             }
 
@@ -257,7 +250,7 @@ namespace FlexCatcher
                 if (statusCode is HttpStatusCode.Unauthorized || statusCode is HttpStatusCode.Forbidden)
                 {
 
-                    GetAccessData().Wait();
+                    GetAccessDataAsync().Wait();
                     Thread.Sleep(100000);
                     continue;
                 }
@@ -270,7 +263,7 @@ namespace FlexCatcher
                     // Append text to an existing file named "WriteLines.txt".
                     using (StreamWriter outputFile = new StreamWriter(Path.Combine(docPath, "MaxRequestDebug.txt"), true))
                     {
-                        outputFile.WriteLine($"BAD-REQUEST >> Start Time: {DateTime.Now}  |  On Air: {MainTimer.Elapsed}  |  Api Calls: {_totalApiCalls} |");
+                        outputFile.WriteLine($"BAD-REQUEST >> Start Time: {DateTime.Now}  |  On Air: {_mainTimer.Elapsed}  |  Api Calls: {_totalApiCalls} |");
                     }
 
                     Thread.Sleep(_throttlingTimeOut);
@@ -285,7 +278,7 @@ namespace FlexCatcher
 
                     Console.WriteLine($"\nRequest Status >> Reason >> {statusCode}\n");
                     // output log to console
-                    Console.WriteLine($"Start Time: {_startTime}  |  On Air: {MainTimer.Elapsed}  |  Execution Speed: {watcher.ElapsedMilliseconds / 1000.0}  - | Api Calls: {_totalApiCalls} |" +
+                    Console.WriteLine($"Start Time: {_startTime}  |  On Air: {_mainTimer.Elapsed}  |  Execution Speed: {watcher.ElapsedMilliseconds / 1000.0}  - | Api Calls: {_totalApiCalls} |" +
                                       $"  - OFFERS DATA >> Total: {_totalOffersCounter} -- Accepted: {_totalAcceptedOffers} -- Lost: {_totalOffersCounter - _totalAcceptedOffers}");
                 }
 

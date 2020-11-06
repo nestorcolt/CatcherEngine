@@ -64,7 +64,7 @@ namespace FlexCatcher
 
             ApiClient.DefaultRequestHeaders.Add(TokenKeyConstant, authToken);
             var content = await GetDataAsync(uri);
-            JObject requestToken = await GetRequestTokenAsync(content);
+            JObject requestToken = await GetRequestJTokenAsync(content);
             JToken value = requestToken.GetValue("serviceAreaIds");
             return value;
 
@@ -121,7 +121,7 @@ namespace FlexCatcher
             return null;
         }
 
-        public static async Task<JObject> GetRequestTokenAsync(HttpResponseMessage requestMessage)
+        public static async Task<JObject> GetRequestJTokenAsync(HttpResponseMessage requestMessage)
         {
             string content = await requestMessage.Content.ReadAsStringAsync();
             return await Task.Run(() => JObject.Parse(content));

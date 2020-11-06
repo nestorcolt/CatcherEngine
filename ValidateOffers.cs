@@ -18,7 +18,7 @@ namespace FlexCatcher
 
             // if the validation is not success will try to find in the catch blocks the one did not passed the validation and forfeit them
             var response = await ApiHelper.GetBlockFromDataBaseAsync(ApiHelper.AssignedBlocks, token);
-            JObject blocksArray = await ApiHelper.GetRequestTokenAsync(response);
+            JObject blocksArray = await ApiHelper.GetRequestJTokenAsync(response);
 
             if (!blocksArray.HasValues)
                 return;
