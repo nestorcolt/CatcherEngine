@@ -1,12 +1,12 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-using CatcherTools.Properties;
+using Catcher.Properties;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
-namespace CatcherTools
+namespace Catcher.Modules
 {
     class Engine
 

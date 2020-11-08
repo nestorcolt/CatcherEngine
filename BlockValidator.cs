@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using Catcher.Modules;
 using Newtonsoft.Json.Linq;
 
-namespace CatcherTools
+namespace Catcher
 {
     class BlockValidator : Engine
     {
