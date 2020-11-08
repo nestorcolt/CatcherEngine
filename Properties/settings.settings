@@ -1,5 +1,5 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
-<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="CatcherTools.Properties" GeneratedClassName="settings">
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Catcher.Properties" GeneratedClassName="settings">
   <Profiles />
   <Settings>
     <Setting Name="Debug" Type="System.Boolean" Scope="User">
@@ -13,6 +13,18 @@
     </Setting>
     <Setting Name="ExecutionSpeed" Type="System.Single" Scope="User">
       <Value Profile="(Default)">1</Value>
+    </Setting>
+    <Setting Name="SpeedOffset" Type="System.Single" Scope="User">
+      <Value Profile="(Default)">0.158</Value>
+    </Setting>
+    <Setting Name="DeviceModel" Type="System.String" Scope="User">
+      <Value Profile="(Default)">SM-G977N</Value>
+    </Setting>
+    <Setting Name="OSVersion" Type="System.String" Scope="User">
+      <Value Profile="(Default)">7.1.2</Value>
+    </Setting>
+    <Setting Name="BuildVersion" Type="System.String" Scope="User">
+      <Value Profile="(Default)">N2G48C</Value>
     </Setting>
   </Settings>
 </SettingsFile>

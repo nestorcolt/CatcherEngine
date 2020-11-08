@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace CatcherTools.Properties {
+namespace Catcher.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
@@ -68,6 +68,54 @@ namespace CatcherTools.Properties {
             }
             set {
                 this["ExecutionSpeed"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0.158")]
+        public float SpeedOffset {
+            get {
+                return ((float)(this["SpeedOffset"]));
+            }
+            set {
+                this["SpeedOffset"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("SM-G977N")]
+        public string DeviceModel {
+            get {
+                return ((string)(this["DeviceModel"]));
+            }
+            set {
+                this["DeviceModel"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("7.1.2")]
+        public string OSVersion {
+            get {
+                return ((string)(this["OSVersion"]));
+            }
+            set {
+                this["OSVersion"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("N2G48C")]
+        public string BuildVersion {
+            get {
+                return ((string)(this["BuildVersion"]));
+            }
+            set {
+                this["BuildVersion"] = value;
             }
         }
     }
