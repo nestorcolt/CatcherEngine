@@ -90,8 +90,6 @@ namespace CatcherTools
             });
         }
 
-
-
         public void LookingForBlocksLegacy()
         {
             Stopwatch watcher = Stopwatch.StartNew();

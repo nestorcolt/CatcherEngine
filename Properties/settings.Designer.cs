@@ -26,12 +26,48 @@ namespace CatcherTools.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool debug {
+        public bool Debug {
             get {
-                return ((bool)(this["debug"]));
+                return ((bool)(this["Debug"]));
             }
             set {
-                this["debug"] = value;
+                this["Debug"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("3.39.29.0")]
+        public string FlexAppVersion {
+            get {
+                return ((string)(this["FlexAppVersion"]));
+            }
+            set {
+                this["FlexAppVersion"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("31")]
+        public int ExecutionTimeOut {
+            get {
+                return ((int)(this["ExecutionTimeOut"]));
+            }
+            set {
+                this["ExecutionTimeOut"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public float ExecutionSpeed {
+            get {
+                return ((float)(this["ExecutionSpeed"]));
+            }
+            set {
+                this["ExecutionSpeed"] = value;
             }
         }
     }

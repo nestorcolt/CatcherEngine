@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
+using CatcherTools.Properties;
 
 namespace CatcherTools
 {
@@ -17,30 +18,18 @@ namespace CatcherTools
         protected string ServiceAreaFilterData;
         protected int TotalOffersCounter;
         protected int TotalAcceptedOffers;
-        protected int ThrottlingTimeOut;
         protected int TotalApiCalls;
-        protected int Speed;
+
+        protected int ThrottlingTimeOut = settings.Default.ExecutionTimeOut * 60000;
+        protected int Speed = (int)(settings.Default.ExecutionSpeed - 0.2f) * 1000;
 
 
         public const string TokenKeyConstant = "x-amz-access-token";
         protected string CurrentUserToken;
         private string _userId;
 
-        public bool Debug { get; set; }
-        public string AppVersion { get; set; }
-
-        public float AfterThrottlingTimeOut
-
-        {
-            get => ThrottlingTimeOut;
-            set => ThrottlingTimeOut = (int)(value * 60000);
-        }
-
-        public float ExecutionSpeed
-        {
-            get => Speed;
-            set => Speed = (int)((value - 0.2f) * 1000);
-        }
+        public bool Debug => settings.Default.Debug;
+        public string AppVersion => settings.Default.FlexAppVersion;
 
         public void InitializeEngine(string userId)
         {

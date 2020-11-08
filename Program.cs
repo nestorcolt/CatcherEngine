@@ -13,7 +13,7 @@ namespace CatcherTools
         static void Main()
 
         {
-            settings.Default.debug = true;
+            settings.Default.Debug = true;
             CatchHandle();
         }
 
@@ -25,19 +25,10 @@ namespace CatcherTools
             };
 
             string user = "4918";
-            string flexAppVersion = "3.39.29.0";
-            float executionSpeed = 1.0f; // seconds
-            int ExecutionTimeOut = 31; // Minutes
 
             try
             {
-                var catcher = new BlockSeeker(user)
-                {
-                    AfterThrottlingTimeOut = ExecutionTimeOut,
-                    ExecutionSpeed = executionSpeed,
-                    Debug = settings.Default.debug,
-                    AppVersion = flexAppVersion,
-                };
+                var catcher = new BlockSeeker(user);
 
                 // Main loop method is being called here
                 Console.WriteLine("Looking for blocks 3, 2, 1 ...");
