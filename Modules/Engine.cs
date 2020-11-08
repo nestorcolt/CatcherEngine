@@ -21,7 +21,7 @@ namespace Catcher.Modules
         protected int TotalApiCalls;
 
         protected int ThrottlingTimeOut = settings.Default.ExecutionTimeOut * 60000;
-        protected int Speed = (int)(settings.Default.ExecutionSpeed - 0.2f) * 1000;
+        protected int Speed = (int)((settings.Default.ExecutionSpeed - settings.Default.SpeedOffset) * 1000.0f);
 
 
         public const string TokenKeyConstant = "x-amz-access-token";
@@ -40,7 +40,7 @@ namespace Catcher.Modules
 
             // Primary methods resolution to get access to the request headers
             Task.Run(GetAccessDataAsync).Wait();
-            Task.Run(EmulateDeviceAsync).Wait();
+            EmulateDevice();
 
             // Set the client service area to sent as extra data with the request on get blocks method
             SetServiceArea();
@@ -133,28 +133,18 @@ namespace Catcher.Modules
             return true;
         }
 
-        private async Task EmulateDeviceAsync()
+        private void EmulateDevice()
         {
-            var data = new Dictionary<string, string>
-            {
-                { "userId", _userId },
-                { "action", "instance_id" }
-            };
-
-            string jsonData = JsonConvert.SerializeObject(data);
-            HttpResponseMessage response = await ApiHelper.PostDataAsync(ApiHelper.OwnerEndpointUrl, jsonData);
-            JObject requestToken = await ApiHelper.GetRequestJTokenAsync(response);
-
-            string androidVersion = requestToken.GetValue("androidVersion").ToString();
-            string deviceModel = requestToken.GetValue("deviceModel").ToString();
-            string instanceId = requestToken.GetValue("instanceId").ToString();
-            string build = requestToken.GetValue("build").ToString();
+            string instanceId = Guid.NewGuid().ToString().Replace("-", "");
+            string androidVersion = settings.Default.OSVersion;
+            string deviceModel = settings.Default.DeviceModel;
+            string build = settings.Default.BuildVersion;
 
             var offerAcceptHeaders = new Dictionary<string, string>
             {
                 ["x-flex-instance-id"] = $"{instanceId.Substring(0, 8)}-{instanceId.Substring(8, 4)}-" +
                                          $"{instanceId.Substring(12, 4)}-{instanceId.Substring(16, 4)}-{instanceId.Substring(20, 12)}",
-                ["User-Agent"] = $"Dalvik/2.1.0 (Linux; U; Android {androidVersion}; {deviceModel} {build}) RabbitAndroid/{AppVersion}",
+                ["User-Agent"] = $"Dalvik/2.1.0 (Linux; U; Android {androidVersion}; {deviceModel} Build/{build}) RabbitAndroid/{AppVersion}",
                 ["Connection"] = "Keep-Alive",
                 ["Accept-Encoding"] = "gzip"
             };

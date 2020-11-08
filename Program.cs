@@ -1,11 +1,9 @@
 ﻿using System;
-using Catcher.Modules;
 using Catcher.Properties;
 
 
 // The Main program for looking, catching and accepting blocks for the amazon flex service. Automate the process and handle a single user process instance and this needs
 // to be run per user request. (Ideally on a Lambda function over the AWS architecture)
-
 
 namespace Catcher
 {
@@ -29,7 +27,7 @@ namespace Catcher
 
             try
             {
-                var catcher = new BlockSeeker(user);
+                var catcher = new BlockCatcher(user);
 
                 // Main loop method is being called here
                 Console.WriteLine("Looking for blocks 3, 2, 1 ...");
