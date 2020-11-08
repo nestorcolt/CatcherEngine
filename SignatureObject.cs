@@ -6,9 +6,8 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace FlexCatcher
+namespace CatcherTools
 {
-
     public class SignatureObject
     {
         private const string SignaturePrefix = "RABBIT3-HMAC-SHA256";
