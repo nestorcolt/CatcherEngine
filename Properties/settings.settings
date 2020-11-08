@@ -1,9 +1,18 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
-<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="FlexCatcher.Properties" GeneratedClassName="settings">
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="CatcherTools.Properties" GeneratedClassName="settings">
   <Profiles />
   <Settings>
-    <Setting Name="debug" Type="System.Boolean" Scope="User">
+    <Setting Name="Debug" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="FlexAppVersion" Type="System.String" Scope="User">
+      <Value Profile="(Default)">3.39.29.0</Value>
+    </Setting>
+    <Setting Name="ExecutionTimeOut" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">31</Value>
+    </Setting>
+    <Setting Name="ExecutionSpeed" Type="System.Single" Scope="User">
+      <Value Profile="(Default)">1</Value>
     </Setting>
   </Settings>
 </SettingsFile>
