@@ -19,9 +19,14 @@ namespace Catcher
         private readonly Stopwatch _mainTimer = Stopwatch.StartNew();
         private readonly DateTime _startTime = DateTime.Now;
 
+        // for testing on EC2
+        private readonly BlockValidator _validator;
+        private readonly List<string> _acceptedOffersIds = new List<string>();
+
         public BlockCatcher(string user)
         {
             InitializeEngine(userId: user);
+            _validator = new BlockValidator(user);
         }
 
         private async Task<HttpStatusCode> GetOffersAsyncHandle()
@@ -38,7 +43,6 @@ namespace Catcher
             {
                 JObject requestToken = await ApiHelper.GetRequestJTokenAsync(response);
                 JToken offerList = requestToken.GetValue("offerList");
-                //Console.WriteLine(offerList);
 
                 if (offerList != null && offerList.HasValues)
                 {
@@ -63,7 +67,7 @@ namespace Catcher
             _requestDataHeadersDictionary["Authorization"] = signatureHeaders["Authorization"];
         }
 
-        public async Task AcceptSingleOfferAsync(string offerId)
+        public async Task AcceptSingleOfferAsync(string offerId, string offerTime)
         {
             var acceptHeader = new Dictionary<string, string>
             {
@@ -78,6 +82,9 @@ namespace Catcher
             {
                 // send to owner endpoint accept data to log and send to the user the notification
                 TotalAcceptedOffers++;
+                _acceptedOffersIds.Append(offerTime);
+                await _validator.ValidateOffersAsyncHandle(_acceptedOffersIds);
+
             }
 
             if (Debug)
@@ -88,7 +95,9 @@ namespace Catcher
         {
             Parallel.For(0, offerList.Count(), n =>
             {
-                Thread accept = new Thread(async task => await AcceptSingleOfferAsync(offerList[n]["offerId"].ToString()));
+                JToken innerBlock = offerList[n];
+                JToken startTime = innerBlock["startTime"];
+                Thread accept = new Thread(async task => await AcceptSingleOfferAsync(offerList[n]["offerId"].ToString(), startTime.ToString()));
                 accept.Start();
             });
         }
