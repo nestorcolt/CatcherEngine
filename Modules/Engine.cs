@@ -34,6 +34,7 @@ namespace Catcher.Modules
         public void InitializeEngine(string userId)
         {
             _userId = userId;
+            Console.WriteLine("Catcher: Initializing Engine...");
 
             // HttpClients are init here
             ApiHelper.InitializeClient();
