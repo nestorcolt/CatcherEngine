@@ -13,7 +13,6 @@ namespace Catcher
 
         {
             settings.Default.Debug = true;
-            Console.WriteLine(args[0]);
             CatchHandle(args[0]);
         }
 
@@ -25,6 +24,7 @@ namespace Catcher
             };
 
             string user = userId;
+            Console.WriteLine($"Initialize on user: {user}");
 
             try
             {
