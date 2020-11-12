@@ -32,7 +32,7 @@ namespace Catcher
 
                 // Main loop method is being called here
                 Console.WriteLine("Looking for blocks 3, 2, 1 ...");
-                //catcher.LookingForBlocksLegacy();
+                catcher.LookingForBlocksLegacy();
 
             }
             catch (Exception e)

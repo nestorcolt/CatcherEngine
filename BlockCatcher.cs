@@ -26,7 +26,7 @@ namespace Catcher
         public BlockCatcher(string user)
         {
             InitializeEngine(userId: user);
-            //_validator = new BlockValidator(user);
+            _validator = new BlockValidator(user);
         }
 
         private async Task<HttpStatusCode> GetOffersAsyncHandle()
@@ -48,7 +48,7 @@ namespace Catcher
                 {
                     Thread acceptThread = new Thread(task => AcceptOffers(offerList));
                     // TODO NOT ACCEPTING BLOCKS
-                    //acceptThread.Start();
+                    acceptThread.Start();
 
                     TotalOffersCounter += offerList.Count();
                 }
