@@ -16,7 +16,7 @@ namespace Catcher.Modules
             return jsonTemplate;
         }
 
-        public static void SaveJson(string filePath, Dictionary<string, string> data)
+        public static void SaveJson(string filePath, Dictionary<string, object> data)
         {
             using StreamWriter jFiler = new StreamWriter(filePath);
             JsonSerializer serializer = new JsonSerializer();

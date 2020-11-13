@@ -24,7 +24,7 @@ namespace Catcher
         private readonly List<string> _acceptedOffersIds = new List<string>();
 
         private string _rootPath;
-        private Dictionary<string, string> _statsDict = new Dictionary<string, string>();
+        private Dictionary<string, object> _statsDict = new Dictionary<string, object>();
 
         public BlockCatcher(string user)
         {
@@ -165,7 +165,7 @@ namespace Catcher
                 ["stats"] = stats,
             };
 
-            _statsDict[UserId] = JsonConvert.SerializeObject(saveDict);
+            _statsDict[UserId] = saveDict;
             StreamHandle.SaveJson(Path.Combine(_rootPath, "stats.json"), _statsDict);
         }
     }
