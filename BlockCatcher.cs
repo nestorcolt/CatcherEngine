@@ -48,7 +48,7 @@ namespace Catcher
                 {
                     Thread acceptThread = new Thread(task => AcceptOffers(offerList));
                     // TODO NOT ACCEPTING BLOCKS
-                    acceptThread.Start();
+                    //acceptThread.Start();
 
                     TotalOffersCounter += offerList.Count();
                 }
@@ -133,7 +133,7 @@ namespace Catcher
                 if (statusCode is HttpStatusCode.BadRequest || statusCode is HttpStatusCode.TooManyRequests)
                 {
                     Thread.Sleep(ThrottlingTimeOut);
-                    return;
+                    continue;
                 }
 
                 // restart counter to measure performance

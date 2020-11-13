@@ -118,5 +118,29 @@ namespace Catcher.Properties {
                 this["BuildVersion"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public float MinimumPrice {
+            get {
+                return ((float)(this["MinimumPrice"]));
+            }
+            set {
+                this["MinimumPrice"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int PickUpTime {
+            get {
+                return ((int)(this["PickUpTime"]));
+            }
+            set {
+                this["PickUpTime"] = value;
+            }
+        }
     }
 }
