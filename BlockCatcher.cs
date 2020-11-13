@@ -23,10 +23,17 @@ namespace Catcher
         private readonly BlockValidator _validator;
         private readonly List<string> _acceptedOffersIds = new List<string>();
 
+        private string _rootPath;
+        private Dictionary<string, string> _statsDict = new Dictionary<string, string>();
+
         public BlockCatcher(string user)
         {
             InitializeEngine(userId: user);
             _validator = new BlockValidator(user);
+
+            //get the full location of the assembly with DaoTests in it
+            _rootPath = AppDomain.CurrentDomain.BaseDirectory;
+
         }
 
         private async Task<HttpStatusCode> GetOffersAsyncHandle()
@@ -118,9 +125,16 @@ namespace Catcher
                 if (Debug)
                 {
                     // output log to console
-                    Console.WriteLine($"\nRequest Status >> Reason >> {statusCode}\n");
-                    Console.WriteLine($"Start Time: {_startTime}  |  On Air: {_mainTimer.Elapsed}  |  Execution Speed: {watcher.ElapsedMilliseconds / 1000.0}  - | Api Calls: {TotalApiCalls} |" +
-                                      $"  - OFFERS DATA >> Total: {TotalOffersCounter} -- Accepted: {TotalAcceptedOffers} -- Lost: {TotalOffersCounter - TotalAcceptedOffers}");
+                    string responseStatus = $"\nRequest Status >> Reason >> {statusCode}\n";
+                    string stats = $"Start Time: {_startTime}  |  On Air: {_mainTimer.Elapsed}  |  Execution Speed: {watcher.ElapsedMilliseconds / 1000.0}  - | Api Calls: {TotalApiCalls} |" +
+                                      $"  - OFFERS DATA >> Total: {TotalOffersCounter} -- Accepted: {TotalAcceptedOffers} -- Lost: {TotalOffersCounter - TotalAcceptedOffers}";
+
+                    Console.WriteLine(responseStatus);
+                    Console.WriteLine(stats);
+
+                    Thread log = new Thread((() => Log(responseStatus, stats)));
+                    log.Start();
+
                 }
 
                 if (statusCode is HttpStatusCode.Unauthorized || statusCode is HttpStatusCode.Forbidden)
@@ -141,6 +155,18 @@ namespace Catcher
 
             }
 
+        }
+
+        private void Log(string responseStatus, string stats)
+        {
+            var saveDict = new Dictionary<string, string>()
+            {
+                ["response"] = responseStatus,
+                ["stats"] = stats,
+            };
+
+            _statsDict[UserId] = JsonConvert.SerializeObject(saveDict);
+            StreamHandle.SaveJson(Path.Combine(_rootPath, "stats.json"), _statsDict);
         }
     }
 }

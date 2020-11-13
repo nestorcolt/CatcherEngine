@@ -2,7 +2,7 @@
   "profiles": {
     "Debug": {
       "commandName": "Executable",
-      "executablePath": "C:\\Users\\Sudo\\Desktop\\WIPS\\CSharp\\AmazonFlex\\Flexer\\bin\\Debug\\netcoreapp3.1\\FlexCatcher.exe"
+      "executablePath": "C:\\Users\\Sudo\\Desktop\\Development\\OhMyCatch\\Tech\\C#\\FlexCatcher\\bin\\Debug\\netcoreapp3.1\\FlexCatcher.exe"
     },
     "Mock Lambda Test Tool": {
       "commandName": "Executable",
