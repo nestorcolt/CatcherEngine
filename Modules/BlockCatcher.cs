@@ -1,17 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Catcher.Modules;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Catcher
+namespace Catcher.Modules
 {
     class BlockCatcher : Engine
     {
@@ -19,13 +17,12 @@ namespace Catcher
         private readonly Stopwatch _mainTimer = Stopwatch.StartNew();
         private readonly DateTime _startTime = DateTime.Now;
 
-        public BlockCatcher(string user)
+        public async Task<HttpStatusCode> GetOffersAsyncHandle(string user)
         {
-            InitializeEngine(userId: user);
-        }
 
-        private async Task<HttpStatusCode> GetOffersAsyncHandle()
-        {
+            if (UserId is null)
+                InitializeEngine(userId: user);
+
             SignRequestHeaders($"{ApiHelper.ApiBaseUrl}{ApiHelper.OffersUri}");
 
             ApiHelper.AddRequestHeaders(_requestDataHeadersDictionary, ApiHelper.SeekerClient);
@@ -101,7 +98,7 @@ namespace Catcher
 
             {
                 // start logic here main request
-                HttpStatusCode statusCode = GetOffersAsyncHandle().Result;
+                HttpStatusCode statusCode = GetOffersAsyncHandle(UserId).Result;
 
                 // custom delay to save request
                 Thread.Sleep(Speed);

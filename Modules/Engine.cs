@@ -26,14 +26,14 @@ namespace Catcher.Modules
 
         public const string TokenKeyConstant = "x-amz-access-token";
         protected string CurrentUserToken;
-        private string _userId;
+        protected string UserId;
 
         public bool Debug => settings.Default.Debug;
         public string AppVersion => settings.Default.FlexAppVersion;
 
         public void InitializeEngine(string userId)
         {
-            _userId = userId;
+            UserId = userId;
 
             // HttpClients are init here
             ApiHelper.InitializeClient();
@@ -112,7 +112,7 @@ namespace Catcher.Modules
         {
             var data = new Dictionary<string, object>
             {
-                { "userId", _userId },
+                { "userId", UserId },
                 { "action", "access_token" }
             };
 
