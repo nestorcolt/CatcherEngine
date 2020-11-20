@@ -14,11 +14,11 @@ namespace Catcher
     {
         public BlockCatcher Catcher = new BlockCatcher();
 
-        public async Task<string> CatchHandle(string userID, ILambdaContext context)
+        public async Task<string> CatchHandle(string userId, ILambdaContext context)
         {
             try
             {
-                await Catcher.GetOffersAsyncHandle(userID);
+                await Catcher.GetOffersAsyncHandle(userId);
 
             }
             catch (Exception e)
