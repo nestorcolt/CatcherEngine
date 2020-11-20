@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 using Catcher.Modules;
-using Catcher.Properties;
 
 
 // The Main program for looking, catching and accepting blocks for the amazon flex service. Automate the process and handle a single user process instance and this needs
