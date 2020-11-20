@@ -21,7 +21,7 @@ namespace CatcherEngine
         {
 
             string user = userId.ToString();
-            HttpStatusCode responseCode = await Catcher.GetOffersAsyncHandle("4918");
+            string responseCode = await Catcher.GetOffersAsyncHandle("4918");
 
             return $"Response code {responseCode}";
 
