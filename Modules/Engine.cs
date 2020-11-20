@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Catcher.Properties;
+using CatcherEngine.Properties;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Catcher.Modules
+namespace CatcherEngine.Modules
 {
     class Engine
 

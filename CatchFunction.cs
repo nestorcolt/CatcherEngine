@@ -2,12 +2,13 @@
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 using Catcher.Modules;
+using CatcherEngine.Modules;
 
 
 // The Main program for looking, catching and accepting blocks for the amazon flex service. Automate the process and handle a single user process instance and this needs
 // to be run per user request. (Ideally on a Lambda function over the AWS architecture)
 
-namespace Catcher
+namespace CatcherEngine
 {
     class CatchFunction
     {

@@ -4,7 +4,7 @@
 	<OutputType>Library</OutputType>
 	<TargetFramework>netcoreapp3.1</TargetFramework>
 	<AWSProjectType>Lambda</AWSProjectType>
-	<AssemblyName>FlexCatcher</AssemblyName>
+	<AssemblyName>CatcherEngine</AssemblyName>
 	<Company>Oh My Catch</Company>
 	<Authors>Nestor Colt</Authors>
   </PropertyGroup>
