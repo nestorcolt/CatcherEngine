@@ -6,7 +6,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Catcher.Modules;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 

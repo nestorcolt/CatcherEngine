@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
-using Catcher.Modules;
 using CatcherEngine.Modules;
 
 
@@ -14,6 +13,7 @@ namespace CatcherEngine
     {
         public BlockCatcher Catcher = new BlockCatcher();
 
+        [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
         public async Task<string> CatchHandle(string userId, ILambdaContext context)
         {
             try
