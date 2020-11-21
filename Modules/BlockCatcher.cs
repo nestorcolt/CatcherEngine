@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Catcher.Modules;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Catcher
+namespace CatcherEngine.Modules
 {
     class BlockCatcher : Engine
     {
@@ -19,13 +16,12 @@ namespace Catcher
         private readonly Stopwatch _mainTimer = Stopwatch.StartNew();
         private readonly DateTime _startTime = DateTime.Now;
 
-        public BlockCatcher(string user)
+        public async Task<string> GetOffersAsyncHandle(string user)
         {
-            InitializeEngine(userId: user);
-        }
 
-        private async Task<HttpStatusCode> GetOffersAsyncHandle()
-        {
+            if (UserId is null)
+                InitializeEngine(userId: user);
+
             SignRequestHeaders($"{ApiHelper.ApiBaseUrl}{ApiHelper.OffersUri}");
 
             ApiHelper.AddRequestHeaders(_requestDataHeadersDictionary, ApiHelper.SeekerClient);
@@ -38,19 +34,17 @@ namespace Catcher
             {
                 JObject requestToken = await ApiHelper.GetRequestJTokenAsync(response);
                 JToken offerList = requestToken.GetValue("offerList");
-                //Console.WriteLine(offerList);
 
                 if (offerList != null && offerList.HasValues)
                 {
                     Thread acceptThread = new Thread(task => AcceptOffers(offerList));
-                    // TODO NOT ACCEPTING BLOCKS
-                    //acceptThread.Start();
+                    acceptThread.Start();
 
                     TotalOffersCounter += offerList.Count();
                 }
             }
 
-            return response.StatusCode;
+            return GetLogMessage(response.StatusCode.ToString());
         }
 
         private void SignRequestHeaders(string url)
@@ -93,45 +87,52 @@ namespace Catcher
             });
         }
 
-        public void LookingForBlocksLegacy()
+        public string GetLogMessage(string statusCode)
         {
-            Stopwatch watcher = Stopwatch.StartNew();
-
-            while (true)
-
-            {
-                // start logic here main request
-                HttpStatusCode statusCode = GetOffersAsyncHandle().Result;
-
-                // custom delay to save request
-                Thread.Sleep(Speed);
-
-                if (Debug)
-                {
-                    // output log to console
-                    Console.WriteLine($"\nRequest Status >> Reason >> {statusCode}\n");
-                    Console.WriteLine($"Start Time: {_startTime}  |  On Air: {_mainTimer.Elapsed}  |  Execution Speed: {watcher.ElapsedMilliseconds / 1000.0}  - | Api Calls: {TotalApiCalls} |" +
-                                      $"  - OFFERS DATA >> Total: {TotalOffersCounter} -- Accepted: {TotalAcceptedOffers} -- Lost: {TotalOffersCounter - TotalAcceptedOffers}");
-                }
-
-                if (statusCode is HttpStatusCode.Unauthorized || statusCode is HttpStatusCode.Forbidden)
-                {
-                    GetAccessDataAsync().Wait();
-                    Thread.Sleep(100000);
-                    continue;
-                }
-
-                if (statusCode is HttpStatusCode.BadRequest || statusCode is HttpStatusCode.TooManyRequests)
-                {
-                    Thread.Sleep(ThrottlingTimeOut);
-                    return;
-                }
-
-                // restart counter to measure performance
-                watcher.Restart();
-
-            }
-
+            string message = $"Status: {statusCode}  |  Start Time: {_startTime}  |  On Air: {_mainTimer.Elapsed}  | Api Calls: {TotalApiCalls} | " +
+                              $"OFFERS DATA >> Total: {TotalOffersCounter} -- Accepted: {TotalAcceptedOffers} -- Lost: {TotalOffersCounter - TotalAcceptedOffers}";
+            return message;
         }
+
+        //public void LookingForBlocksLegacy()
+        //{
+        //    Stopwatch watcher = Stopwatch.StartNew();
+
+        //    while (true)
+
+        //    {
+        //        // start logic here main request
+        //        HttpStatusCode statusCode = GetOffersAsyncHandle(UserId).Result;
+
+        //        // custom delay to save request
+        //        Thread.Sleep(Speed);
+
+        //        if (Debug)
+        //        {
+        //            // output log to console
+        //            Console.WriteLine($"\nRequest Status >> Reason >> {statusCode}\n");
+        //            Console.WriteLine($"Start Time: {_startTime}  |  On Air: {_mainTimer.Elapsed}  |  Execution Speed: {watcher.ElapsedMilliseconds / 1000.0}  - | Api Calls: {TotalApiCalls} |" +
+        //                              $"  - OFFERS DATA >> Total: {TotalOffersCounter} -- Accepted: {TotalAcceptedOffers} -- Lost: {TotalOffersCounter - TotalAcceptedOffers}");
+        //        }
+
+        //        if (statusCode is HttpStatusCode.Unauthorized || statusCode is HttpStatusCode.Forbidden)
+        //        {
+        //            GetAccessDataAsync().Wait();
+        //            Thread.Sleep(100000);
+        //            continue;
+        //        }
+
+        //        if (statusCode is HttpStatusCode.BadRequest || statusCode is HttpStatusCode.TooManyRequests)
+        //        {
+        //            Thread.Sleep(ThrottlingTimeOut);
+        //            return;
+        //        }
+
+        //        // restart counter to measure performance
+        //        watcher.Restart();
+
+        //    }
+
+        //}
     }
 }

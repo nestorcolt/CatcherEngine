@@ -5,7 +5,7 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Catcher.Modules
+namespace CatcherEngine.Modules
 {
     public class SignatureObject
     {

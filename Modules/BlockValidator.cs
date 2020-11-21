@@ -1,24 +1,28 @@
-﻿using System.Collections.Generic;
-using System.Net;
+﻿using System.Net;
 using System.Threading.Tasks;
-using Catcher.Modules;
 using Newtonsoft.Json.Linq;
 
-namespace Catcher
+namespace CatcherEngine.Modules
 {
     class BlockValidator : Engine
     {
-        public BlockValidator(string user)
-        {
-            InitializeEngine(userId: user);
-        }
-        public async Task<HttpStatusCode> ValidateOffersAsyncHandle(List<string> acceptedOffers)
+
+        public async Task<HttpStatusCode> ValidateOffersAsyncHandle(
+                                                                    string user,
+                                                                    string pickUpTimeThreshold,
+                                                                    string minimumPrice,
+                                                                    string acceptedOffers,
+                                                                    string areas
+                                                                    )
+
         // Get all the schedule blocks that the user has on amazon flex account and if one of this match to the acceptedOffers in our register for the day
         // will validate only these blocks. This is because in case the user catch the blocks by hand don't delete those blocks catch out of our tool
+
         {
-            var areas = new List<string>();
-            int pickUpTimeThreshold = 0;
-            float minimumPrice = 0;
+
+            if (UserId is null)
+                InitializeEngine(userId: user);
+
 
             // if the validation is not success will try to find in the catch blocks the one did not passed the validation and forfeit them
             var response = await GetBlockFromDataBaseAsync(ApiHelper.AssignedBlocks);
@@ -44,7 +48,7 @@ namespace Catcher
                     int pickUpTimespan = (int)startTime - GetTimestamp();
 
 
-                    if ((float)offerPrice < minimumPrice || !areas.Contains((string)serviceAreaId) || pickUpTimespan < pickUpTimeThreshold)
+                    if ((float)offerPrice < float.Parse(minimumPrice) || !areas.Contains((string)serviceAreaId) || pickUpTimespan < int.Parse(pickUpTimeThreshold))
                     {
                         await ApiHelper.DeleteOfferAsync((int)startTime);
                     }

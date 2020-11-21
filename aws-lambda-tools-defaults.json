@@ -4,12 +4,13 @@
     "profile" : "root",
     "configuration" : "Release",
     "framework"     : "netcoreapp3.1",
-    "function-name" : "CatcherLambda_001",
-    "function-handler" : "FlexCatcher::FlexCatcher.Program::CatchHandle",
+    "function-name" : "CatcherLambda",
+    "function-handler" : "CatcherEngine::CatcherEngine.Function::CatchHandle",
     "function-memory-size" : 3008,
-    "function-role"        : "arn:aws:iam::436783151981:role/lambda_exec_CatcherLambda_001-1",
+    "function-role"        : "arn:aws:iam::436783151981:role/Catch-Lambda-Role",
     "function-timeout"     : 10,
     "function-runtime"     : "dotnetcore3.1",
     "tracing-mode"         : "PassThrough",
-    "environment-variables" : ""
+    "environment-variables" : "",
+    "function-description"  : ""
 }
