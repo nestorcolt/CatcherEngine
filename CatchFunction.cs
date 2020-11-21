@@ -16,6 +16,7 @@ namespace CatcherEngine
     class CatchFunction
     {
         public BlockCatcher Catcher = new BlockCatcher();
+        public BlockValidator Validator = new BlockValidator();
 
         [Amazon.Lambda.Core.LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
         public async Task<string> CatchHandle(Dictionary<string, string> userData, ILambdaContext context)
@@ -27,6 +28,21 @@ namespace CatcherEngine
 
             // if the user id comes in the invoke will run the code
             string responseCode = await Catcher.GetOffersAsyncHandle(user);
+
+            return $"{responseCode}";
+
+        }
+
+        [Amazon.Lambda.Core.LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
+        public async Task<string> ValidatorHandle(Dictionary<string, string> userData, ILambdaContext context)
+        {
+            userData.TryGetValue("userId", out string user);
+
+            if (user is null)
+                return ">> BadRequest: User Id not present on request Json.";
+
+            // if the user id comes in the invoke will run the code
+            HttpStatusCode responseCode = await Validator.ValidateOffersAsyncHandle(user, new List<string>() { });
 
             return $"{responseCode}";
 
