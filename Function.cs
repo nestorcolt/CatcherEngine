@@ -34,15 +34,19 @@ namespace CatcherEngine
         }
 
         [Amazon.Lambda.Core.LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
-        public async Task<string> ValidatorHandle(Dictionary<string, string> userData, ILambdaContext context)
+        public async Task<string> ValidatorHandle(Dictionary<string, string> validationData, ILambdaContext context)
         {
-            userData.TryGetValue("userId", out string user);
+            validationData.TryGetValue("userId", out string user);
+            validationData.TryGetValue("pickupTime", out string pickUpTimeThreshold);
+            validationData.TryGetValue("minimumPrice", out string minimumPrice);
+            validationData.TryGetValue("acceptedOffers", out string acceptedOffers);
+            validationData.TryGetValue("areas", out string areas);
 
             if (user is null)
                 return ">> BadRequest: User Id not present on request Json.";
 
             // if the user id comes in the invoke will run the code
-            HttpStatusCode responseCode = await Validator.ValidateOffersAsyncHandle(userData);
+            HttpStatusCode responseCode = await Validator.ValidateOffersAsyncHandle(user, pickUpTimeThreshold, minimumPrice, acceptedOffers, areas);
 
             return $"{responseCode}";
 

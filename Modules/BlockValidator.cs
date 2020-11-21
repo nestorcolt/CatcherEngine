@@ -8,15 +8,18 @@ namespace CatcherEngine.Modules
     class BlockValidator : Engine
     {
 
-        public async Task<HttpStatusCode> ValidateOffersAsyncHandle(Dictionary<string, string> validationData)
+        public async Task<HttpStatusCode> ValidateOffersAsyncHandle(
+                                                                    string user,
+                                                                    string pickUpTimeThreshold,
+                                                                    string minimumPrice,
+                                                                    string acceptedOffers,
+                                                                    string areas
+                                                                    )
+
         // Get all the schedule blocks that the user has on amazon flex account and if one of this match to the acceptedOffers in our register for the day
         // will validate only these blocks. This is because in case the user catch the blocks by hand don't delete those blocks catch out of our tool
+
         {
-            validationData.TryGetValue("userId", out string user);
-            validationData.TryGetValue("pickupTime", out string pickUpTimeThreshold);
-            validationData.TryGetValue("minimumPrice", out string minimumPrice);
-            validationData.TryGetValue("acceptedOffers", out string acceptedOffers);
-            validationData.TryGetValue("areas", out string areas);
 
             if (UserId is null)
                 InitializeEngine(userId: user);
