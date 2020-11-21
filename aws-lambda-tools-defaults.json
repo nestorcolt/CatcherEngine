@@ -11,5 +11,5 @@
     "function-timeout"     : 10,
     "function-runtime"     : "dotnetcore3.1",
     "tracing-mode"         : "PassThrough",
-    "environment-variables" : ""
+    "environment-variables" : "\"userId\"=\"4918\""
 }

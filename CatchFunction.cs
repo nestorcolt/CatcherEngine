@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
@@ -17,13 +18,17 @@ namespace CatcherEngine
         public BlockCatcher Catcher = new BlockCatcher();
 
         [Amazon.Lambda.Core.LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
-        public async Task<string> CatchHandle(JObject userId, ILambdaContext context)
+        public async Task<string> CatchHandle(Dictionary<string, string> userData, ILambdaContext context)
         {
+            userData.TryGetValue("userId", out string user);
 
-            string user = userId.ToString();
-            string responseCode = await Catcher.GetOffersAsyncHandle("4918");
+            if (user is null)
+                return ">> BadRequest: User Id not present on request Json.";
 
-            return $"Response code {responseCode}";
+            // if the user id comes in the invoke will run the code
+            string responseCode = await Catcher.GetOffersAsyncHandle(user);
+
+            return $"{responseCode}";
 
         }
     }
