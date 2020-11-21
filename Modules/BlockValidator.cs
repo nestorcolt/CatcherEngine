@@ -8,17 +8,19 @@ namespace CatcherEngine.Modules
     class BlockValidator : Engine
     {
 
-        public async Task<HttpStatusCode> ValidateOffersAsyncHandle(string user, List<string> acceptedOffers)
+        public async Task<HttpStatusCode> ValidateOffersAsyncHandle(Dictionary<string, string> validationData)
         // Get all the schedule blocks that the user has on amazon flex account and if one of this match to the acceptedOffers in our register for the day
         // will validate only these blocks. This is because in case the user catch the blocks by hand don't delete those blocks catch out of our tool
         {
+            validationData.TryGetValue("userId", out string user);
+            validationData.TryGetValue("pickupTime", out string pickUpTimeThreshold);
+            validationData.TryGetValue("minimumPrice", out string minimumPrice);
+            validationData.TryGetValue("acceptedOffers", out string acceptedOffers);
+            validationData.TryGetValue("areas", out string areas);
 
             if (UserId is null)
                 InitializeEngine(userId: user);
 
-            var areas = new List<string>();
-            int pickUpTimeThreshold = 0;
-            float minimumPrice = 0;
 
             // if the validation is not success will try to find in the catch blocks the one did not passed the validation and forfeit them
             var response = await GetBlockFromDataBaseAsync(ApiHelper.AssignedBlocks);
@@ -44,7 +46,7 @@ namespace CatcherEngine.Modules
                     int pickUpTimespan = (int)startTime - GetTimestamp();
 
 
-                    if ((float)offerPrice < minimumPrice || !areas.Contains((string)serviceAreaId) || pickUpTimespan < pickUpTimeThreshold)
+                    if ((float)offerPrice < float.Parse(minimumPrice) || !areas.Contains((string)serviceAreaId) || pickUpTimespan < int.Parse(pickUpTimeThreshold))
                     {
                         await ApiHelper.DeleteOfferAsync((int)startTime);
                     }

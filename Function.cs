@@ -13,7 +13,7 @@ using Newtonsoft.Json.Linq;
 [assembly: Amazon.Lambda.Core.LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
 namespace CatcherEngine
 {
-    class CatchFunction
+    class Function
     {
         public BlockCatcher Catcher = new BlockCatcher();
         public BlockValidator Validator = new BlockValidator();
@@ -42,7 +42,7 @@ namespace CatcherEngine
                 return ">> BadRequest: User Id not present on request Json.";
 
             // if the user id comes in the invoke will run the code
-            HttpStatusCode responseCode = await Validator.ValidateOffersAsyncHandle(user, new List<string>() { });
+            HttpStatusCode responseCode = await Validator.ValidateOffersAsyncHandle(userData);
 
             return $"{responseCode}";
 
