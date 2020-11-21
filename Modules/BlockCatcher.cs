@@ -38,8 +38,7 @@ namespace CatcherEngine.Modules
                 if (offerList != null && offerList.HasValues)
                 {
                     Thread acceptThread = new Thread(task => AcceptOffers(offerList));
-                    // TODO NOT ACCEPTING BLOCKS
-                    //acceptThread.Start();
+                    acceptThread.Start();
 
                     TotalOffersCounter += offerList.Count();
                 }
