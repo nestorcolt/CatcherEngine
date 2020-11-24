@@ -22,11 +22,10 @@ namespace Catcher
             Areas = new List<string>
             {
                 "f9530032-4659-4a14-b9e1-19496d97f633",
-                "d39e54d6-1a53-46a9-a22d-309342256ef0",
                 "d98c442b-9688-4427-97b9-59a4313c2f66",
-                "5548b40b-1223-4881-87b1-4ae5d4d77f95",
-                "fd440da5-dc81-43bf-9afe-f4910bfd4090",
+                "29571892-da88-4089-83f0-24135852c2e4",
                 "49d080a7-a765-47cf-a29e-0f1842958d4a",
+                "fd440da5-dc81-43bf-9afe-f4910bfd4090",
                 "b90b085e-874f-48da-8150-b0c215efff08",
                 "5540b055-ee3c-4274-9997-de65191d6932",
                 "a446e8f9-28fb-4744-ad3f-0098543227ab",
@@ -36,7 +35,7 @@ namespace Catcher
                 "8ffc6623-5837-42c0-beea-6ac50ef43faa",
                 "7e6dd803-a8a3-4b64-9996-903f88cc5fe7",
                 "1496f58f-ca2d-43c7-817b-ec2c3613390d",
-                "8cf0c633-504b-4f56-91b1-de1c45ecccb0"
+                "8cf0c633-504b-4f56-91b1-de1c45ecccb0",
             };
         }
 
