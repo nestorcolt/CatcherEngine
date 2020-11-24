@@ -50,11 +50,16 @@ namespace Catcher
             var response = await GetBlockFromDataBaseAsync(ApiHelper.AssignedBlocks);
             JObject blocksArray = await ApiHelper.GetRequestJTokenAsync(response);
 
+            Console.WriteLine("blockArray");
+            Console.WriteLine(blocksArray);
+
             if (!blocksArray.HasValues)
                 return response.StatusCode;
 
+            Console.WriteLine("pass first validation");
             foreach (var block in blocksArray.Values())
             {
+                Console.WriteLine(block);
                 if (!block.HasValues)
                     continue;
 

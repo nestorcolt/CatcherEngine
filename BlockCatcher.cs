@@ -88,7 +88,7 @@ namespace Catcher
             {
                 // send to owner endpoint accept data to log and send to the user the notification
                 TotalAcceptedOffers++;
-                _acceptedOffersIds.Append(offerTime);
+                _acceptedOffersIds.Add(offerTime);
                 await _validator.ValidateOffersAsyncHandle(_acceptedOffersIds);
 
             }
