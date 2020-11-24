@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using Catcher.Modules;
@@ -44,6 +45,7 @@ namespace Catcher
         // will validate only these blocks. This is because in case the user catch the blocks by hand don't delete those blocks catch out of our tool
         {
 
+            Console.WriteLine(acceptedOffers.Count);
             // if the validation is not success will try to find in the catch blocks the one did not passed the validation and forfeit them
             var response = await GetBlockFromDataBaseAsync(ApiHelper.AssignedBlocks);
             JObject blocksArray = await ApiHelper.GetRequestJTokenAsync(response);
@@ -59,6 +61,8 @@ namespace Catcher
                 JToken innerBlock = block[0];
                 JToken startTime = innerBlock["startTime"];
 
+                Console.WriteLine(innerBlock);
+
                 if (acceptedOffers.Contains(startTime.ToString()))
                 {
                     JToken serviceAreaId = innerBlock["serviceAreaId"];
@@ -66,6 +70,8 @@ namespace Catcher
 
                     // The time the offer will be available for pick up at the facility
                     int pickUpTimespan = (int)startTime - GetTimestamp();
+
+                    Console.WriteLine(startTime);
 
 
                     if ((float)offerPrice < MinimumPrice || !Areas.Contains((string)serviceAreaId) || pickUpTimespan < PickUpTimeThreshold)
@@ -75,6 +81,7 @@ namespace Catcher
                 }
 
             }
+
             return response.StatusCode;
 
         }
