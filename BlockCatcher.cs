@@ -89,7 +89,9 @@ namespace CatcherEngine
                 // send to owner endpoint accept data to log and send to the user the notification
                 TotalAcceptedOffers++;
                 _acceptedOffersIds.Add(offerTime);
-                await _validator.ValidateOffersAsyncHandle(_acceptedOffersIds);
+
+                EventTrigger executeDelayed = new EventTrigger(10000);
+                executeDelayed.ExecuteOnEventTimeOut((async () => await _validator.ValidateOffersAsyncHandle(_acceptedOffersIds)));
 
             }
 

@@ -116,7 +116,7 @@ namespace CatcherEngine.Modules
         {
             string url = ScheduleBlocks + "/" + blockId;
             await ApiClient.DeleteAsync(url);
-            Console.WriteLine($"Block deleted! {url}");
+            Console.WriteLine($"\nBlock Release: {url}\n");
         }
     }
 }
