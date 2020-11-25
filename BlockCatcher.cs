@@ -23,7 +23,7 @@ namespace CatcherEngine
         // for testing on EC2
         public List<string> Areas;
         public float MinimumPrice;
-        public int PickUpTimeThreshold;
+        public int ArrivalTimeSpan;
 
         private readonly string _rootPath;
         private Dictionary<string, object> _statsDict = new Dictionary<string, object>();
@@ -31,7 +31,7 @@ namespace CatcherEngine
         public BlockCatcher(string user)
         {
             InitializeEngine(userId: user);
-            PickUpTimeThreshold = settings.Default.PickUpTime;
+            ArrivalTimeSpan = settings.Default.PickUpTime;
             MinimumPrice = settings.Default.MinimumPrice;
 
             //get the full location of the assembly with DaoTests in it
@@ -97,17 +97,28 @@ namespace CatcherEngine
 
         public async Task AcceptSingleOfferAsync(JToken block)
         {
-
+            // block list might be empty validator
             if (!block.HasValues)
                 return;
 
-            float offerPrice = float.Parse(block["rateInfo"]["priceAmount"].ToString());
-            int offerTime = int.Parse(block["startTime"].ToString());
-            string serviceAreaId = block["serviceAreaId"].ToString();
-            string offerId = block["offerId"].ToString();
+            // check some data first if not pass this validation is not necessary to execute a new date time call or math operation in next validation 
+            string serviceAreaId = (string)block["serviceAreaId"];
+            float offerPrice = (float)block["rateInfo"]["priceAmount"];
 
-            if (MinimumPrice > offerPrice && PickUpTimeThreshold > offerTime && Areas.Contains(serviceAreaId))
+            if (!Areas.Contains(serviceAreaId) || offerPrice < MinimumPrice)
+                return;
+
+            DateTime timeNow = DateTime.UtcNow;
+            long unixTime = ((DateTimeOffset)timeNow).ToUnixTimeSeconds();
+            int offerTime = (int)block["startTime"];
+
+            // get the time span in minutes which this block will need to be pick up
+            float blockTimeSpan = Math.Abs(offerTime - unixTime) / 60.0f; // 60 seconds per minute
+
+            // ArrivalTimeSpan comes in minutes from user filters
+            if (blockTimeSpan >= ArrivalTimeSpan)
             {
+                string offerId = block["offerId"].ToString();
                 var acceptHeader = new Dictionary<string, string>
                 {
                     {"__type", $"AcceptOfferInput:{ ApiHelper.AcceptInputUrl}"},
@@ -125,8 +136,6 @@ namespace CatcherEngine
 
                 if (Debug)
                     Console.WriteLine($"\nAccept Block Operation Status >> Code >> {response.StatusCode}\n");
-
-                Console.WriteLine(block);
             }
 
         }
