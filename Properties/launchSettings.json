@@ -2,22 +2,17 @@
   "profiles": {
     "Debug": {
       "commandName": "Executable",
-      "executablePath": "C:\\Users\\Sudo\\Desktop\\Development\\OhMyCatch\\Tech\\C#\\FlexCatcher\\bin\\Debug\\netcoreapp3.1\\FlexCatcher.exe"
+      "executablePath": "C:\\Users\\Sudo\\Desktop\\Development\\OhMyCatch\\Tech\\C#\\FlexCatcher\\bin\\Debug\\netcoreapp3.1\\CatcherEngine.exe"
     },
     "Mock Lambda Test Tool": {
       "commandName": "Executable",
       "executablePath": "C:\\Users\\%USERNAME%\\.dotnet\\tools\\dotnet-lambda-test-tool-3.1.exe",
       "commandLineArgs": "--port 5050",
-<<<<<<< Updated upstream
       "workingDirectory": ".\\bin\\$(Configuration)\\netcoreapp3.1"
     },
     "Deploy": {
       "commandName": "Executable",
-      "executablePath": "C:\\Users\\Sudo\\Desktop\\WIPS\\CSharp\\AmazonFlex\\Flexer\\bin\\Release\\netcoreapp3.1\\FlexCatcher.exe"
-=======
-      "workingDirectory": ".\\bin\\$(Configuration)\\netcoreapp3.1",
-      "executablePath": "%USERPROFILE%\\.dotnet\\tools\\dotnet-lambda-test-tool-3.1.exe"
->>>>>>> Stashed changes
+      "executablePath": "C:\\Users\\Sudo\\Desktop\\Development\\OhMyCatch\\Tech\\C#\\FlexCatcher\\bin\\Release\\netcoreapp3.1\\CatcherEngine.exe"
     }
   }
 }
