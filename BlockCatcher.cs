@@ -24,16 +24,40 @@ namespace CatcherEngine
         private readonly BlockValidator _validator;
         private readonly List<string> _acceptedOffersIds = new List<string>();
 
-        private string _rootPath;
+        public List<string> Areas;
+        public float MinimumPrice;
+        public int PickUpTimeThreshold;
+
+        private readonly string _rootPath;
         private Dictionary<string, object> _statsDict = new Dictionary<string, object>();
 
         public BlockCatcher(string user)
         {
             InitializeEngine(userId: user);
-            _validator = new BlockValidator(user);
+            PickUpTimeThreshold = settings.Default.PickUpTime;
+            MinimumPrice = settings.Default.MinimumPrice;
 
             //get the full location of the assembly with DaoTests in it
             _rootPath = AppDomain.CurrentDomain.BaseDirectory;
+
+            Areas = new List<string>
+            {
+                "f9530032-4659-4a14-b9e1-19496d97f633",
+                "d98c442b-9688-4427-97b9-59a4313c2f66",
+                "29571892-da88-4089-83f0-24135852c2e4",
+                "49d080a7-a765-47cf-a29e-0f1842958d4a",
+                "fd440da5-dc81-43bf-9afe-f4910bfd4090",
+                "b90b085e-874f-48da-8150-b0c215efff08",
+                "5540b055-ee3c-4274-9997-de65191d6932",
+                "a446e8f9-28fb-4744-ad3f-0098543227ab",
+                "033311b9-a6dd-4cfb-b0b7-1b5ee998638b",
+                "5eb3af65-0e4e-48d3-99ce-7eff7923c3da",
+                "61153cd4-58b5-43bc-83db-bdecf569dcda",
+                "8ffc6623-5837-42c0-beea-6ac50ef43faa",
+                "7e6dd803-a8a3-4b64-9996-903f88cc5fe7",
+                "1496f58f-ca2d-43c7-817b-ec2c3613390d",
+                "8cf0c633-504b-4f56-91b1-de1c45ecccb0",
+            };
 
         }
 
@@ -74,30 +98,38 @@ namespace CatcherEngine
             _requestDataHeadersDictionary["Authorization"] = signatureHeaders["Authorization"];
         }
 
-        public async Task AcceptSingleOfferAsync(string offerId, string offerTime)
+        public async Task AcceptSingleOfferAsync(JToken block)
         {
-            var acceptHeader = new Dictionary<string, string>
+
+            float offerPrice = float.Parse(block["bookedPrice"]["amount"].ToString());
+            int offerTime = int.Parse(block["startTime"].ToString());
+            string serviceAreaId = block["serviceAreaId"].ToString();
+            string offerId = block["offerId"].ToString();
+
+            if (MinimumPrice > offerPrice && PickUpTimeThreshold > offerTime && Areas.Contains(serviceAreaId))
             {
-                {"__type", $"AcceptOfferInput:{ ApiHelper.AcceptInputUrl}"},
-                {"offerId", offerId}
-            };
+                var acceptHeader = new Dictionary<string, string>
+                {
+                    {"__type", $"AcceptOfferInput:{ ApiHelper.AcceptInputUrl}"},
+                    {"offerId", offerId}
+                };
 
-            string jsonData = JsonConvert.SerializeObject(acceptHeader);
-            HttpResponseMessage response = await ApiHelper.PostDataAsync(ApiHelper.AcceptUri, jsonData, ApiHelper.CatcherClient);
+                string jsonData = JsonConvert.SerializeObject(acceptHeader);
+                HttpResponseMessage response = await ApiHelper.PostDataAsync(ApiHelper.AcceptUri, jsonData, ApiHelper.CatcherClient);
 
-            if (response.IsSuccessStatusCode)
-            {
-                // send to owner endpoint accept data to log and send to the user the notification
-                TotalAcceptedOffers++;
-                _acceptedOffersIds.Add(offerTime);
+                if (response.IsSuccessStatusCode)
+                {
+                    // send to owner endpoint accept data to log and send to the user the notification
+                    TotalAcceptedOffers++;
 
-                EventTrigger executeDelayed = new EventTrigger(3000);
-                executeDelayed.ExecuteOnEventTimeOut((async () => await _validator.ValidateOffersAsyncHandle(_acceptedOffersIds)));
+                }
 
+                if (Debug)
+                    Console.WriteLine($"\nAccept Block Operation Status >> Code >> {response.StatusCode}\n");
+
+                Console.WriteLine(block);
             }
 
-            if (Debug)
-                Console.WriteLine($"\nAccept Block Operation Status >> Code >> {response.StatusCode}\n");
         }
 
         public void AcceptOffers(JToken offerList)
@@ -105,8 +137,7 @@ namespace CatcherEngine
             Parallel.For(0, offerList.Count(), n =>
             {
                 JToken innerBlock = offerList[n];
-                JToken startTime = innerBlock["startTime"];
-                Thread accept = new Thread(async task => await AcceptSingleOfferAsync(offerList[n]["offerId"].ToString(), startTime.ToString()));
+                Thread accept = new Thread(async task => await AcceptSingleOfferAsync(innerBlock));
                 accept.Start();
             });
         }
