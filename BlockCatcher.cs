@@ -21,9 +21,6 @@ namespace CatcherEngine
         private readonly DateTime _startTime = DateTime.Now;
 
         // for testing on EC2
-        private readonly BlockValidator _validator;
-        private readonly List<string> _acceptedOffersIds = new List<string>();
-
         public List<string> Areas;
         public float MinimumPrice;
         public int PickUpTimeThreshold;
@@ -101,7 +98,10 @@ namespace CatcherEngine
         public async Task AcceptSingleOfferAsync(JToken block)
         {
 
-            float offerPrice = float.Parse(block["bookedPrice"]["amount"].ToString());
+            if (!block.HasValues)
+                return;
+
+            float offerPrice = float.Parse(block["rateInfo"]["priceAmount"].ToString());
             int offerTime = int.Parse(block["startTime"].ToString());
             string serviceAreaId = block["serviceAreaId"].ToString();
             string offerId = block["offerId"].ToString();
@@ -121,7 +121,6 @@ namespace CatcherEngine
                 {
                     // send to owner endpoint accept data to log and send to the user the notification
                     TotalAcceptedOffers++;
-
                 }
 
                 if (Debug)
