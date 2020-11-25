@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using CatcherEngine.Modules;
+using CatcherEngine.Properties;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -128,7 +129,7 @@ namespace CatcherEngine
                     // output log to console
                     string responseStatus = $"\nRequest Status >> Reason >> {statusCode}\n";
                     string stats = $"Start Time: {_startTime}  |  On Air: {_mainTimer.Elapsed}  |  Execution Speed: {watcher.ElapsedMilliseconds / 1000.0}  - | Api Calls: {TotalApiCalls} |" +
-                                      $"  - OFFERS DATA >> Total: {TotalOffersCounter} -- Accepted: {TotalAcceptedOffers} -- Lost: {TotalOffersCounter - TotalAcceptedOffers}";
+                                      $"  - OFFERS DATA >> Total: {TotalOffersCounter} -- Accepted: {TotalAcceptedOffers} -- Rejected: {settings.Default.RejectedBlocks}";
 
                     Console.WriteLine(responseStatus);
                     Console.WriteLine(stats);

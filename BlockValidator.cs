@@ -80,6 +80,7 @@ namespace CatcherEngine
                     if ((float)offerPrice < MinimumPrice || pickUpTimespan < PickUpTimeThreshold || !Areas.Contains((string)serviceAreaId))
                     {
                         await ApiHelper.DeleteOfferAsync(startTime.ToString());
+                        settings.Default.RejectedBlocks++;
                     }
 
                 }
