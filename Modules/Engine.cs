@@ -6,7 +6,7 @@ using Catcher.Properties;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Catcher.Modules
+namespace CatcherEngine.Modules
 {
     class Engine
 

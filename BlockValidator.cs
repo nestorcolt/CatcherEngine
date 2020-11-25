@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using Catcher.Modules;
 using Catcher.Properties;
+using CatcherEngine.Modules;
 using Newtonsoft.Json.Linq;
 
-namespace Catcher
+namespace CatcherEngine
 {
     class BlockValidator : Engine
     {
@@ -44,52 +44,47 @@ namespace Catcher
         // Get all the schedule blocks that the user has on amazon flex account and if one of this match to the acceptedOffers in our register for the day
         // will validate only these blocks. This is because in case the user catch the blocks by hand don't delete those blocks catch out of our tool
         {
-
-            Console.WriteLine(acceptedOffers.Count);
             // if the validation is not success will try to find in the catch blocks the one did not passed the validation and forfeit them
             var response = await GetBlockFromDataBaseAsync(ApiHelper.AssignedBlocks);
             JObject blocksArray = await ApiHelper.GetRequestJTokenAsync(response);
 
-            Console.WriteLine("blockArray");
-            Console.WriteLine(blocksArray);
-
             if (!blocksArray.HasValues)
                 return response.StatusCode;
 
-            Console.WriteLine("pass first validation");
             foreach (var block in blocksArray.Values())
             {
-                Console.WriteLine(block);
                 if (!block.HasValues)
                     continue;
 
                 JToken innerBlock = block[0];
                 JToken startTime = innerBlock["startTime"];
 
-                Console.WriteLine(innerBlock);
-
                 if (acceptedOffers.Contains(startTime.ToString()))
                 {
+                    Console.WriteLine("if accepted offers contains start time validation");
+
+
                     JToken serviceAreaId = innerBlock["serviceAreaId"];
                     JToken offerPrice = innerBlock["bookedPrice"]["amount"];
 
                     // The time the offer will be available for pick up at the facility
                     int pickUpTimespan = (int)startTime - GetTimestamp();
 
-                    Console.WriteLine(startTime);
+                    Console.WriteLine(serviceAreaId);
+                    Console.WriteLine(offerPrice);
+                    Console.WriteLine(!Areas.Contains((string)serviceAreaId));
 
 
-                    if ((float)offerPrice < MinimumPrice || !Areas.Contains((string)serviceAreaId) || pickUpTimespan < PickUpTimeThreshold)
+                    if ((float)offerPrice < MinimumPrice || !Areas.Contains((string)serviceAreaId) ||
+                        pickUpTimespan < PickUpTimeThreshold)
                     {
-                        await ApiHelper.DeleteOfferAsync((int)startTime);
+                        //todo check filters I thing the problems comes in server area ID check
+                        await ApiHelper.DeleteOfferAsync(startTime.ToString());
                     }
                 }
-
             }
 
             return response.StatusCode;
-
         }
-
     }
 }

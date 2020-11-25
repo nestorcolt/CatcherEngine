@@ -6,7 +6,7 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
-namespace Catcher.Modules
+namespace CatcherEngine.Modules
 {
     public class ApiHelper
     {
@@ -112,10 +112,11 @@ namespace Catcher.Modules
                 client.DefaultRequestHeaders.Add(data.Key, data.Value);
             }
         }
-        public static async Task DeleteOfferAsync(int blockId)
+        public static async Task DeleteOfferAsync(string blockId)
         {
-            string url = ScheduleBlocks + "/" + blockId.ToString();
+            string url = ScheduleBlocks + "/" + blockId;
             await ApiClient.DeleteAsync(url);
+            Console.WriteLine($"Block deleted! {url}");
         }
     }
 }
