@@ -1,5 +1,5 @@
 ﻿using System;
-using Catcher.Properties;
+using CatcherEngine.Properties;
 
 
 // The Main program for looking, catching and accepting blocks for the amazon flex service. Automate the process and handle a single user process instance and this needs
@@ -14,6 +14,7 @@ namespace CatcherEngine
         {
 
             /* args[]:
+             * *
              * 0 - user ID
              * 1 - price
              * 2 - pick up time

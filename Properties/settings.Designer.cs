@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Catcher.Properties {
+namespace CatcherEngine.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
@@ -140,6 +140,18 @@ namespace Catcher.Properties {
             }
             set {
                 this["PickUpTime"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int RejectedBlocks {
+            get {
+                return ((int)(this["RejectedBlocks"]));
+            }
+            set {
+                this["RejectedBlocks"] = value;
             }
         }
     }
