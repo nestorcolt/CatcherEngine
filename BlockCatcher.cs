@@ -91,7 +91,7 @@ namespace CatcherEngine
                 TotalAcceptedOffers++;
                 _acceptedOffersIds.Add(offerTime);
 
-                EventTrigger executeDelayed = new EventTrigger(10000);
+                EventTrigger executeDelayed = new EventTrigger(3000);
                 executeDelayed.ExecuteOnEventTimeOut((async () => await _validator.ValidateOffersAsyncHandle(_acceptedOffersIds)));
 
             }
