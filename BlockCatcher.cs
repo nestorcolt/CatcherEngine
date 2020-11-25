@@ -110,10 +110,10 @@ namespace CatcherEngine
 
             DateTime timeNow = DateTime.UtcNow;
             long unixTime = ((DateTimeOffset)timeNow).ToUnixTimeSeconds();
-            int offerTime = (int)block["startTime"];
+            long offerTime = (long)block["startTime"];
 
             // get the time span in minutes which this block will need to be pick up
-            float blockTimeSpan = Math.Abs(offerTime - unixTime) / 60.0f; // 60 seconds per minute
+            double blockTimeSpan = Math.Abs(offerTime - unixTime) / 60.0f; // 60 seconds per minute
 
             // ArrivalTimeSpan comes in minutes from user filters
             if (blockTimeSpan >= ArrivalTimeSpan)
