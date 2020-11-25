@@ -60,6 +60,7 @@ namespace CatcherEngine
 
                 JToken innerBlock = block[0];
                 JToken startTime = innerBlock["startTime"];
+                Console.WriteLine(block);
 
                 if (acceptedOffers.Contains(startTime.ToString()))
                 {
