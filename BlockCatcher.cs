@@ -103,22 +103,22 @@ namespace CatcherEngine
             long offerTime = (long)block["startTime"];
 
             // get the time span in minutes which this block will need to be pick up
-            double blockTimeSpan = Math.Abs(offerTime - unixTime) / 60.0f; // 60 seconds per minute
+            long blockTimeSpan = (offerTime - unixTime) / 60; // 60 seconds per minute
 
             // check some data first if not pass this validation is not necessary to execute a new date time call or math operation in next validation 
             string serviceAreaId = (string)block["serviceAreaId"];
             float offerPrice = (float)block["rateInfo"]["priceAmount"];
 
-            Console.WriteLine(offerPrice < MinimumPrice);
-            Console.WriteLine(!Areas.Contains(serviceAreaId));
-            Console.WriteLine(blockTimeSpan >= ArrivalTimeSpan);
-
-            Console.WriteLine($"{offerPrice} {MinimumPrice}");
-            Console.WriteLine($"{blockTimeSpan} {ArrivalTimeSpan}");
-            Console.WriteLine($"{serviceAreaId}");
+            // TODO WILL REMOVE LATER, THIS WAS FOR DOUBLE CHECKING AND DEBUG THE VALIDATION DATA
+            //Console.WriteLine(offerPrice >= MinimumPrice);
+            //Console.WriteLine(blockTimeSpan >= ArrivalTimeSpan);
+            //Console.WriteLine(Areas.Contains(serviceAreaId));
+            //Console.WriteLine($"{offerPrice} {MinimumPrice}");
+            //Console.WriteLine($"{blockTimeSpan} {ArrivalTimeSpan}");
+            //Console.WriteLine($"{serviceAreaId}");
 
             // ArrivalTimeSpan comes in minutes from user filters
-            if (blockTimeSpan >= ArrivalTimeSpan && MinimumPrice >= offerPrice && Areas.Contains(serviceAreaId))
+            if (blockTimeSpan >= ArrivalTimeSpan && offerPrice >= MinimumPrice && Areas.Contains(serviceAreaId))
             {
                 string offerId = block["offerId"].ToString();
                 var acceptHeader = new Dictionary<string, string>
