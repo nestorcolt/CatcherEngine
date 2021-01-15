@@ -12,7 +12,6 @@ namespace SearchEngine.Modules
     {
         // main URLS
         public const string AcceptInputUrl = "http://internal.amazon.com/coral/com.amazon.omwbuseyservice.offers/";
-        public static string OwnerEndpointUrl = "https://www.thunderflex.us/admin/script_functions.php";
         public const string ApiBaseUrl = "https://flex-capacity-na.amazon.com/";
 
         // directories

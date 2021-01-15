@@ -2,7 +2,7 @@
   "profiles": {
     "Debug": {
       "commandName": "Executable",
-      "executablePath": "C:\\Users\\Sudo\\Desktop\\Development\\OhMyCatch\\Tech\\C#\\FlexCatcher\\bin\\Debug\\netcoreapp3.1\\CatcherEngine.exe"
+      "executablePath": "C:\\Users\\Sudo\\Desktop\\Development\\BlockInService\\Tech\\SearchEngines\\SearchEngine\\bin\\Debug\\netcoreapp3.1\\SearchEngine.exe"
     },
     "Mock Lambda Test Tool": {
       "commandName": "Executable",
@@ -12,7 +12,7 @@
     },
     "Deploy": {
       "commandName": "Executable",
-      "executablePath": "C:\\Users\\Sudo\\Desktop\\Development\\OhMyCatch\\Tech\\C#\\FlexCatcher\\bin\\Release\\netcoreapp3.1\\CatcherEngine.exe"
+      "executablePath": "C:\\Users\\Sudo\\Desktop\\Development\\BlockInService\\Tech\\SearchEngines\\SearchEngine\\bin\\Release\\netcoreapp3.1\\SearchEngine.exe"
     }
   }
 }
