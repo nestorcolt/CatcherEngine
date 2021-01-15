@@ -1,52 +1,47 @@
 ﻿using System;
-using CatcherEngine.Properties;
+using System.Collections.Generic;
+using SearchEngine.Properties;
 
 
 // The Main program for looking, catching and accepting blocks for the amazon flex service. Automate the process and handle a single user process instance and this needs
 // to be run per user request. (Ideally on a Lambda function over the AWS architecture)
 
-namespace CatcherEngine
+namespace SearchEngine
 {
     class Program
     {
         static void Main(string[] args)
 
         {
-
-            /* args[]:
-             * *
-             * 0 - user ID
-             * 1 - price
-             * 2 - pick up time
-             *
-             */
-
             settings.Default.Debug = true;
-            settings.Default.PickUpTime = int.Parse(args[2]);
-            settings.Default.MinimumPrice = float.Parse(args[1]);
-            CatchHandle(args[0]);
-        }
 
-        public static void CatchHandle(string userId)
-        {
 
-            string user = userId;
-            Console.WriteLine($"Initialize on user: {user}");
+            var areas = new List<string>
+            {
+                "f9530032-4659-4a14-b9e1-19496d97f633",
+                "d98c442b-9688-4427-97b9-59a4313c2f66",
+            };
+
+            string user = "1111";
+            string accessToken = "";
+            float minimumPrice = 22.5f;
+            float speed = 1.0f;
+            int arrivalTime = 30;
+
 
             try
             {
-                var catcher = new BlockCatcher(user);
+                var catcher = new BlockCatcher(user, accessToken, speed, areas, minimumPrice, arrivalTime);
+                Console.WriteLine($"Initialize on user: {user}");
 
                 // Main loop method is being called here
                 Console.WriteLine("Looking for blocks 3, 2, 1 ...");
-                catcher.LookingForBlocksLegacy();
-
+                //catcher.LookingForBlocksLegacy();
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
             }
-
         }
     }
 }

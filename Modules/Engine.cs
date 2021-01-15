@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-using CatcherEngine.Properties;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SearchEngine.Properties;
 
-namespace CatcherEngine.Modules
+namespace SearchEngine.Modules
 {
     class Engine
 
@@ -21,7 +21,7 @@ namespace CatcherEngine.Modules
         protected int TotalApiCalls;
 
         protected int ThrottlingTimeOut = settings.Default.ExecutionTimeOut * 60000;
-        protected int Speed = (int)((settings.Default.ExecutionSpeed - settings.Default.SpeedOffset) * 1000.0f);
+        protected int Speed;
 
 
         public const string TokenKeyConstant = "x-amz-access-token";
@@ -31,16 +31,16 @@ namespace CatcherEngine.Modules
         public bool Debug => settings.Default.Debug;
         public string AppVersion => settings.Default.FlexAppVersion;
 
-        public void InitializeEngine(string userId)
+        public void InitializeEngine(string userId, string userToken)
         {
             UserId = userId;
+            CurrentUserToken = userToken;
             Console.WriteLine("Catcher: Initializing Engine...");
 
             // HttpClients are init here
             ApiHelper.InitializeClient();
 
             // Primary methods resolution to get access to the request headers
-            Task.Run(GetAccessDataAsync).Wait();
             EmulateDevice();
 
             // Set the client service area to sent as extra data with the request on get blocks method
@@ -52,6 +52,12 @@ namespace CatcherEngine.Modules
 
         }
 
+
+        public void SetSpeed(float speed)
+        {
+            Speed = (int)((speed - settings.Default.SpeedOffset) * 1000.0f);
+        }
+
         protected async Task<HttpResponseMessage> GetBlockFromDataBaseAsync(string uri)
         {
 
@@ -61,6 +67,7 @@ namespace CatcherEngine.Modules
             return content;
 
         }
+
 
         public int GetTimestamp()
         {
@@ -107,31 +114,6 @@ namespace CatcherEngine.Modules
 
             // MERGE THE HEADERS OFFERS AND SERVICE DATA IN ONE MAIN HEADER DICTIONARY
             ServiceAreaFilterData = JsonConvert.SerializeObject(serviceDataDictionary).Replace("\\", "");
-        }
-
-        public async Task<bool> GetAccessDataAsync()
-        {
-            var data = new Dictionary<string, object>
-            {
-                { "userId", UserId },
-                { "action", "access_token" }
-            };
-
-            string jsonData = JsonConvert.SerializeObject(data);
-            HttpResponseMessage response = await ApiHelper.PostDataAsync(ApiHelper.OwnerEndpointUrl, jsonData);
-            JObject requestToken = await ApiHelper.GetRequestJTokenAsync(response);
-            string responseValue = requestToken.GetValue("access_token").ToString();
-
-            if (responseValue == "failed")
-            {
-                Console.WriteLine("\nSession token request failed. Operation aborted.\n");
-                return false;
-            }
-
-            _requestDataHeadersDictionary[TokenKeyConstant] = responseValue;
-            CurrentUserToken = responseValue;
-            Console.WriteLine("\nAccess to the service granted!\n");
-            return true;
         }
 
         private void EmulateDevice()

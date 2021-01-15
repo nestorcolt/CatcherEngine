@@ -6,7 +6,7 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
-namespace CatcherEngine.Modules
+namespace SearchEngine.Modules
 {
     public class ApiHelper
     {
@@ -18,11 +18,8 @@ namespace CatcherEngine.Modules
         // directories
         public static string AcceptUri = "AcceptOffer";
         public static string OffersUri = "GetOffersForProviderPost";
-        public static string AssignedBlocks = "scheduledAssignments";
-        public static string ScheduleBlocks = "schedule/blocks";
         public static string ServiceAreaUri = "eligibleServiceAreas";
-        public static string Areas = "pooledServiceAreasForProvider";
-        public static string Regions = "regions";
+
 
         public static HttpClient ApiClient { get; set; }
         public static HttpClient CatcherClient { get; set; }
@@ -112,11 +109,6 @@ namespace CatcherEngine.Modules
                 client.DefaultRequestHeaders.Add(data.Key, data.Value);
             }
         }
-        public static async Task DeleteOfferAsync(string blockId)
-        {
-            string url = ScheduleBlocks + "/" + blockId;
-            await ApiClient.DeleteAsync(url);
-            Console.WriteLine($"\nBlock Release: {url}\n");
-        }
+
     }
 }

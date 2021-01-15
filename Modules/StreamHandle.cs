@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace CatcherEngine.Modules
+namespace SearchEngine.Modules
 {
     public static class StreamHandle
     {
