@@ -1,9 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Threading.Tasks;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.EC2;
 using Amazon.EC2.Model;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using SearchEngine.Modules;
 using SearchEngine.Properties;
 
 
@@ -11,6 +18,8 @@ namespace SearchEngine
 {
     class Authenticator
     {
+        public const string AuthTokenUrl = "https://api.amazon.com/auth/token";
+
         private dynamic GetUserData(string userId)
 
         {
@@ -32,7 +41,7 @@ namespace SearchEngine
                 docList.Result.ForEach(document =>
 
                 {
-                    dynamic attribute = Newtonsoft.Json.JsonConvert.DeserializeObject(document.ToJson());
+                    dynamic attribute = JsonConvert.DeserializeObject(document.ToJson());
                     results.Add(attribute);
                 });
             } while (!search.IsDone);
@@ -49,7 +58,7 @@ namespace SearchEngine
             return privateIp;
         }
 
-        public string GetAmazonAccessToken(string refreshToken)
+        public async Task<JObject> GetAmazonAccessToken(string refreshToken)
         {
             var authenticationHeader = new Dictionary<string, string>
             {
@@ -60,7 +69,15 @@ namespace SearchEngine
                 {"requested_token_type", "access_token"}
             };
 
-            return "";
+            HttpRequestMessage httpRequest = new HttpRequestMessage(HttpMethod.Post, AuthTokenUrl)
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(authenticationHeader), Encoding.UTF8, "application/json")
+            };
+
+            HttpClient client = new HttpClient();
+            HttpResponseMessage response = await client.SendAsync(httpRequest);
+            JObject requestToken = await ApiHelper.GetRequestJTokenAsync(response);
+            return requestToken;
         }
 
         private string GetUserInstance()
@@ -96,10 +113,11 @@ namespace SearchEngine
             dynamic userData = GetUserData(userId);
 
             // TODO - continue here. The data is being fetch successfully
-            Console.WriteLine(userData);
+            string refreshToken = userData["refresh_token"];
+            JObject newTokens = Task.Run(() => GetAmazonAccessToken(refreshToken)).Result;
+            Console.WriteLine(newTokens);
 
             var areas = new List<string>();
-            string refreshToken = "";
             float minimumPrice = 22.5f;
             float speed = 1.0f;
             int arrivalTime = 30;
