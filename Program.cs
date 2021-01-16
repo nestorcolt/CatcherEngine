@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using SearchEngine.Properties;
 
 
@@ -13,10 +13,19 @@ namespace SearchEngine
         static void Main(string[] args)
 
         {
-            settings.Default.Debug = true;
+            bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+            if (isWindows)
+            {
+                // means that probably im running this from my computer
+                settings.Default.Debug = true;
+                string myPrivateTestIp = "172.31.9.92";
+                Environment.SetEnvironmentVariable(settings.Default.IpEnvVar, myPrivateTestIp, EnvironmentVariableTarget.User);
+            }
+
+            // Initialize the search engine
             var authenticator = new Authenticator();
             authenticator.Authenticate();
-
         }
     }
 }

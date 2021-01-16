@@ -49,6 +49,20 @@ namespace SearchEngine
             return privateIp;
         }
 
+        public string GetAmazonAccessToken(string refreshToken)
+        {
+            var authenticationHeader = new Dictionary<string, string>
+            {
+                {"app_name", "com.amazon.rabbit"},
+                {"app_version", "130050002"},
+                {"source_token_type", "refresh_token"},
+                {"source_token", refreshToken},
+                {"requested_token_type", "access_token"}
+            };
+
+            return "";
+        }
+
         private string GetUserInstance()
         {
             /*
@@ -63,6 +77,7 @@ namespace SearchEngine
             foreach (var instance in response.Result.Reservations)
             {
                 string privateIp = instance.Instances[0].PrivateIpAddress;
+
                 if (myPrivateIp == privateIp)
                 {
                     instanceName = instance.Instances[0].Tags.Find(x => x.Key == "Name").Value;
@@ -83,31 +98,18 @@ namespace SearchEngine
             // TODO - continue here. The data is being fetch successfully
             Console.WriteLine(userData);
 
-            var areas = new List<string>
-            {
-                "f9530032-4659-4a14-b9e1-19496d97f633",
-                "d98c442b-9688-4427-97b9-59a4313c2f66",
-            };
-
-            string accessToken = "";
+            var areas = new List<string>();
+            string refreshToken = "";
             float minimumPrice = 22.5f;
             float speed = 1.0f;
             int arrivalTime = 30;
 
+            //var catcher = new BlockCatcher(userId, refreshToken, speed, areas, minimumPrice, arrivalTime);
+            Console.WriteLine($"Initialize on user: {userId}");
 
-            try
-            {
-                //var catcher = new BlockCatcher(userId, accessToken, speed, areas, minimumPrice, arrivalTime);
-                Console.WriteLine($"Initialize on user: {userId}");
+            // Main loop method is being called here
+            //catcher.LookingForBlocksLegacy();
 
-                // Main loop method is being called here
-                Console.WriteLine("Looking for blocks 3, 2, 1 ...");
-                //catcher.LookingForBlocksLegacy();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-            }
         }
     }
 }

@@ -26,9 +26,6 @@
   </ItemGroup>
 
   <ItemGroup>
-	<None Update="Json\authTemplate.json">
-	  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	</None>
 	<None Update="Properties\settings.settings">
 	  <Generator>PublicSettingsSingleFileGenerator</Generator>
 	  <LastGenOutput>settings.Designer.cs</LastGenOutput>
