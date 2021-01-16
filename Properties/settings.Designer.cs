@@ -61,18 +61,6 @@ namespace SearchEngine.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1")]
-        public float ExecutionSpeed {
-            get {
-                return ((float)(this["ExecutionSpeed"]));
-            }
-            set {
-                this["ExecutionSpeed"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0.158")]
         public float SpeedOffset {
             get {
@@ -121,37 +109,37 @@ namespace SearchEngine.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1")]
-        public float MinimumPrice {
+        [global::System.Configuration.DefaultSettingValueAttribute("Users")]
+        public string UsersTable {
             get {
-                return ((float)(this["MinimumPrice"]));
+                return ((string)(this["UsersTable"]));
             }
             set {
-                this["MinimumPrice"] = value;
+                this["UsersTable"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public int PickUpTime {
+        [global::System.Configuration.DefaultSettingValueAttribute("user_id")]
+        public string UserPk {
             get {
-                return ((int)(this["PickUpTime"]));
+                return ((string)(this["UserPk"]));
             }
             set {
-                this["PickUpTime"] = value;
+                this["UserPk"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public int RejectedBlocks {
+        [global::System.Configuration.DefaultSettingValueAttribute("MY_ADDRESS")]
+        public string IpEnvVar {
             get {
-                return ((int)(this["RejectedBlocks"]));
+                return ((string)(this["IpEnvVar"]));
             }
             set {
-                this["RejectedBlocks"] = value;
+                this["IpEnvVar"] = value;
             }
         }
     }

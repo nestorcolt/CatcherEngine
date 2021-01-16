@@ -4,12 +4,6 @@
       "commandName": "Executable",
       "executablePath": "C:\\Users\\Sudo\\Desktop\\Development\\BlockInService\\Tech\\SearchEngines\\SearchEngine\\bin\\Debug\\netcoreapp3.1\\SearchEngine.exe"
     },
-    "Mock Lambda Test Tool": {
-      "commandName": "Executable",
-      "executablePath": "%USERPROFILE%\\.dotnet\\tools\\dotnet-lambda-test-tool-3.1.exe",
-      "commandLineArgs": "--port 5050",
-      "workingDirectory": ".\\bin\\$(Configuration)\\netcoreapp3.1"
-    },
     "Deploy": {
       "commandName": "Executable",
       "executablePath": "C:\\Users\\Sudo\\Desktop\\Development\\BlockInService\\Tech\\SearchEngines\\SearchEngine\\bin\\Release\\netcoreapp3.1\\SearchEngine.exe"

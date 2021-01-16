@@ -14,34 +14,9 @@ namespace SearchEngine
 
         {
             settings.Default.Debug = true;
+            var authenticator = new Authenticator();
+            authenticator.Authenticate();
 
-
-            var areas = new List<string>
-            {
-                "f9530032-4659-4a14-b9e1-19496d97f633",
-                "d98c442b-9688-4427-97b9-59a4313c2f66",
-            };
-
-            string user = "1111";
-            string accessToken = "";
-            float minimumPrice = 22.5f;
-            float speed = 1.0f;
-            int arrivalTime = 30;
-
-
-            try
-            {
-                var catcher = new BlockCatcher(user, accessToken, speed, areas, minimumPrice, arrivalTime);
-                Console.WriteLine($"Initialize on user: {user}");
-
-                // Main loop method is being called here
-                Console.WriteLine("Looking for blocks 3, 2, 1 ...");
-                //catcher.LookingForBlocksLegacy();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-            }
         }
     }
 }

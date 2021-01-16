@@ -1,5 +1,5 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
-<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="CatcherEngine.Properties" GeneratedClassName="settings">
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="SearchEngine.Properties" GeneratedClassName="settings">
   <Profiles />
   <Settings>
     <Setting Name="Debug" Type="System.Boolean" Scope="User">
@@ -10,9 +10,6 @@
     </Setting>
     <Setting Name="ExecutionTimeOut" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">31</Value>
-    </Setting>
-    <Setting Name="ExecutionSpeed" Type="System.Single" Scope="User">
-      <Value Profile="(Default)">1</Value>
     </Setting>
     <Setting Name="SpeedOffset" Type="System.Single" Scope="User">
       <Value Profile="(Default)">0.158</Value>
@@ -26,14 +23,14 @@
     <Setting Name="BuildVersion" Type="System.String" Scope="User">
       <Value Profile="(Default)">N2G48C</Value>
     </Setting>
-    <Setting Name="MinimumPrice" Type="System.Single" Scope="User">
-      <Value Profile="(Default)">1</Value>
+    <Setting Name="UsersTable" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Users</Value>
     </Setting>
-    <Setting Name="PickUpTime" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">0</Value>
+    <Setting Name="UserPk" Type="System.String" Scope="User">
+      <Value Profile="(Default)">user_id</Value>
     </Setting>
-    <Setting Name="RejectedBlocks" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">0</Value>
+    <Setting Name="IpEnvVar" Type="System.String" Scope="User">
+      <Value Profile="(Default)">MY_ADDRESS</Value>
     </Setting>
   </Settings>
 </SettingsFile>
