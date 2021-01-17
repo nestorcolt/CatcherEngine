@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SearchEngine.Properties;
@@ -39,6 +37,7 @@ namespace SearchEngine.Modules
 
         public void InitializeEngine()
         {
+            // Get user data from dynamo DB through and Ec2 instance private IP matching with user ID
             Authenticator.Authenticate();
 
             UserId = Authenticator.UserId;
