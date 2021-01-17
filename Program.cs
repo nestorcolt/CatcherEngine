@@ -24,8 +24,20 @@ namespace SearchEngine
             }
 
             // Initialize the search engine
-            var authenticator = new Authenticator();
-            authenticator.Authenticate();
+            var auth = new Authenticator();
+            bool authState = auth.Authenticate();
+
+            if (authState)
+            {
+                var catcher = new BlockCatcher(auth.UserId, auth.AccessToken, auth.Speed, auth.Areas, auth.MinimumPrice, auth.ArrivalTime);
+                //Console.WriteLine($"Initialize on user: {userId}");
+
+                // Main loop method is being called here
+                //catcher.LookingForBlocksLegacy();
+            }
+
+
+
         }
     }
 }

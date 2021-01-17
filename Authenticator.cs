@@ -18,7 +18,14 @@ namespace SearchEngine
 {
     class Authenticator
     {
-        public const string AuthTokenUrl = "https://api.amazon.com/auth/token";
+        private const string AuthTokenUrl = "https://api.amazon.com/auth/token";
+        public string UserId;
+        public string RefreshToken;
+        public string AccessToken;
+        public float MinimumPrice;
+        public float Speed;
+        public int ArrivalTime;
+        public List<string> Areas;
 
         private dynamic GetUserData(string userId)
 
@@ -27,11 +34,11 @@ namespace SearchEngine
              * Get the user data making a query to dynamo db table Users parsing the user_id 
              */
             AmazonDynamoDBClient Client = new AmazonDynamoDBClient();
-            Table ThreadTable = Table.LoadTable(Client, settings.Default.UsersTable);
             ScanFilter scanFilter = new ScanFilter();
+            Table usersTable = Table.LoadTable(Client, settings.Default.UsersTable);
             scanFilter.AddCondition(settings.Default.UserPk, ScanOperator.Equal, userId);
 
-            Search search = ThreadTable.Scan(scanFilter);
+            Search search = usersTable.Scan(scanFilter);
             List<dynamic> results = new List<dynamic>();
 
             do
@@ -76,8 +83,20 @@ namespace SearchEngine
 
             HttpClient client = new HttpClient();
             HttpResponseMessage response = await client.SendAsync(httpRequest);
-            JObject requestToken = await ApiHelper.GetRequestJTokenAsync(response);
-            return requestToken;
+
+            if (response.IsSuccessStatusCode)
+            {
+                JObject requestToken = await ApiHelper.GetRequestJTokenAsync(response);
+                return requestToken;
+            }
+
+            throw UnauthorizedAccessException(response);
+        }
+
+        private Exception UnauthorizedAccessException(HttpResponseMessage response)
+        {
+            // TODO probably adding code to handle the error. HINT: Send SNS message to topic to track this.
+            throw new UnauthorizedAccessException($"There is a problem with the authentication.\nReason: {response.Content}");
         }
 
         private string GetUserInstance()
@@ -106,27 +125,32 @@ namespace SearchEngine
         }
 
 
-        public void Authenticate()
+        public bool Authenticate()
         {
+            // Get the user instance name through the private IP matching these in the available ec2 on account
             string userInstanceName = GetUserInstance();
-            string userId = userInstanceName.Split("-")[1];
-            dynamic userData = GetUserData(userId);
+            UserId = userInstanceName.Split("-")[1];
 
-            // TODO - continue here. The data is being fetch successfully
-            string refreshToken = userData["refresh_token"];
-            JObject newTokens = Task.Run(() => GetAmazonAccessToken(refreshToken)).Result;
-            Console.WriteLine(newTokens);
+            // User data collected from dynamo DB 
+            dynamic userData = GetUserData(UserId);
 
-            var areas = new List<string>();
-            float minimumPrice = 22.5f;
-            float speed = 1.0f;
-            int arrivalTime = 30;
+            RefreshToken = userData["refresh_token"];
+            //ArrivalTime = userData["search_schedule"].ToObject<List<string>>(); TODO uncomment this when I start to get input from web
+            ArrivalTime = 0;
+            MinimumPrice = userData["minimum_price"];
+            Areas = userData["areas"].ToObject<List<string>>();
+            Speed = userData["speed"];
 
-            //var catcher = new BlockCatcher(userId, refreshToken, speed, areas, minimumPrice, arrivalTime);
-            Console.WriteLine($"Initialize on user: {userId}");
+            // authenticate for new access token
+            JObject newTokens = Task.Run(() => GetAmazonAccessToken(RefreshToken)).Result;
 
-            // Main loop method is being called here
-            //catcher.LookingForBlocksLegacy();
+            if (newTokens != null)
+            {
+                AccessToken = newTokens["access_token"].ToString();
+                return true;
+            }
+
+            return false;
 
         }
     }
