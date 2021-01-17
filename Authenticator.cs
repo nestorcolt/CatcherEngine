@@ -33,9 +33,9 @@ namespace SearchEngine
             /*
              * Get the user data making a query to dynamo db table Users parsing the user_id 
              */
-            AmazonDynamoDBClient Client = new AmazonDynamoDBClient();
+            AmazonDynamoDBClient client = new AmazonDynamoDBClient();
             ScanFilter scanFilter = new ScanFilter();
-            Table usersTable = Table.LoadTable(Client, settings.Default.UsersTable);
+            Table usersTable = Table.LoadTable(client, settings.Default.UsersTable);
             scanFilter.AddCondition(settings.Default.UserPk, ScanOperator.Equal, userId);
 
             Search search = usersTable.Scan(scanFilter);
@@ -65,7 +65,7 @@ namespace SearchEngine
             return privateIp;
         }
 
-        public async Task<JObject> GetAmazonAccessToken(string refreshToken)
+        public static async Task<string> GetAmazonAccessToken(string refreshToken)
         {
             var authenticationHeader = new Dictionary<string, string>
             {
@@ -87,13 +87,13 @@ namespace SearchEngine
             if (response.IsSuccessStatusCode)
             {
                 JObject requestToken = await ApiHelper.GetRequestJTokenAsync(response);
-                return requestToken;
+                return requestToken["access_token"].ToString();
             }
 
             throw UnauthorizedAccessException(response);
         }
 
-        private Exception UnauthorizedAccessException(HttpResponseMessage response)
+        private static Exception UnauthorizedAccessException(HttpResponseMessage response)
         {
             // TODO probably adding code to handle the error. HINT: Send SNS message to topic to track this.
             throw new UnauthorizedAccessException($"There is a problem with the authentication.\nReason: {response.Content}");
@@ -125,7 +125,7 @@ namespace SearchEngine
         }
 
 
-        public bool Authenticate()
+        public void Authenticate()
         {
             // Get the user instance name through the private IP matching these in the available ec2 on account
             string userInstanceName = GetUserInstance();
@@ -141,16 +141,9 @@ namespace SearchEngine
             Areas = userData["areas"].ToObject<List<string>>();
             Speed = userData["speed"];
 
-            // authenticate for new access token
-            JObject newTokens = Task.Run(() => GetAmazonAccessToken(RefreshToken)).Result;
-
-            if (newTokens != null)
-            {
-                AccessToken = newTokens["access_token"].ToString();
-                return true;
-            }
-
-            return false;
+            // authenticated for new access token
+            AccessToken = Task.Run(() => GetAmazonAccessToken(RefreshToken)).Result;
+            Console.WriteLine($"Access Token: {AccessToken}");
 
         }
     }

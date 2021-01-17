@@ -19,23 +19,13 @@ namespace SearchEngine
         private readonly Stopwatch _mainTimer = Stopwatch.StartNew();
         private readonly DateTime _startTime = DateTime.Now;
 
-        // for testing on EC2
-        public List<string> Areas;
-        public float MinimumPrice;
-        public int ArrivalTimeSpan;
-
         private readonly string _rootPath;
         private Dictionary<string, object> _statsDict = new Dictionary<string, object>();
 
-        public BlockCatcher(string user, string accessToken, float speed, List<string> areas, float minimumPrice, int arrivalTime)
+        public BlockCatcher()
         {
             // setup engine details
-            InitializeEngine(userId: user, userToken: accessToken);
-            SetSpeed(speed);
-
-            ArrivalTimeSpan = arrivalTime;
-            MinimumPrice = minimumPrice;
-            Areas = areas;
+            InitializeEngine();
 
             //get the full location of the assembly with DaoTests in it
             _rootPath = AppDomain.CurrentDomain.BaseDirectory;
@@ -46,8 +36,8 @@ namespace SearchEngine
         {
             SignRequestHeaders($"{ApiHelper.ApiBaseUrl}{ApiHelper.OffersUri}");
 
-            ApiHelper.AddRequestHeaders(_requestDataHeadersDictionary, ApiHelper.SeekerClient);
-            ApiHelper.AddRequestHeaders(_requestDataHeadersDictionary, ApiHelper.CatcherClient);
+            ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary, ApiHelper.SeekerClient);
+            ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary, ApiHelper.CatcherClient);
 
             var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, ServiceAreaFilterData, ApiHelper.SeekerClient);
             TotalApiCalls++;
@@ -71,12 +61,12 @@ namespace SearchEngine
 
         private void SignRequestHeaders(string url)
         {
-            SortedDictionary<string, string> signatureHeaders = _signature.CreateSignature(url, CurrentUserToken);
+            SortedDictionary<string, string> signatureHeaders = _signature.CreateSignature(url, AccessToken);
 
-            _requestDataHeadersDictionary["X-Amz-Date"] = signatureHeaders["X-Amz-Date"];
-            _requestDataHeadersDictionary["X-Flex-Client-Time"] = GetTimestamp().ToString();
-            _requestDataHeadersDictionary["X-Amzn-RequestId"] = signatureHeaders["X-Amzn-RequestId"];
-            _requestDataHeadersDictionary["Authorization"] = signatureHeaders["Authorization"];
+            RequestDataHeadersDictionary["X-Amz-Date"] = signatureHeaders["X-Amz-Date"];
+            RequestDataHeadersDictionary["X-Flex-Client-Time"] = GetTimestamp().ToString();
+            RequestDataHeadersDictionary["X-Amzn-RequestId"] = signatureHeaders["X-Amzn-RequestId"];
+            RequestDataHeadersDictionary["Authorization"] = signatureHeaders["Authorization"];
         }
 
         public async Task AcceptSingleOfferAsync(JToken block)
@@ -147,7 +137,7 @@ namespace SearchEngine
                 HttpStatusCode statusCode = GetOffersAsyncHandle().Result;
 
                 // custom delay to save request
-                Thread.Sleep(Speed);
+                Thread.Sleep((int)Speed);
 
                 if (Debug)
                 {
@@ -166,8 +156,8 @@ namespace SearchEngine
 
                 if (statusCode is HttpStatusCode.Unauthorized || statusCode is HttpStatusCode.Forbidden)
                 {
-                    //GetAccessDataAsync().Wait();
-                    Thread.Sleep(100000);
+                    AccessToken = Authenticator.GetAmazonAccessToken(RefreshToken).Result;
+                    Thread.Sleep(10000); // 10 seconds
                     continue;
                 }
 

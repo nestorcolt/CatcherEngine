@@ -14,28 +14,45 @@ namespace SearchEngine.Modules
     // Will used asynchronous programming and multi-threading to speed up the process and the API request.
 
     {
-        protected Dictionary<string, string> _requestDataHeadersDictionary = new Dictionary<string, string>();
+        protected Dictionary<string, string> RequestDataHeadersDictionary = new Dictionary<string, string>();
         protected string ServiceAreaFilterData;
         protected int TotalOffersCounter;
         protected int TotalAcceptedOffers;
         protected int TotalApiCalls;
 
         protected int ThrottlingTimeOut = settings.Default.ExecutionTimeOut * 60000;
-        protected int Speed;
+        protected readonly Authenticator Authenticator = new Authenticator();
+
 
 
         public const string TokenKeyConstant = "x-amz-access-token";
-        protected string CurrentUserToken;
         public string UserId;
+        protected string AccessToken;
+        protected string RefreshToken;
+        public List<string> Areas;
+        public float MinimumPrice;
+        public int ArrivalTimeSpan;
+        protected float Speed;
 
         public bool Debug => settings.Default.Debug;
         public string AppVersion => settings.Default.FlexAppVersion;
 
-        public void InitializeEngine(string userId, string userToken)
+        public void InitializeEngine()
         {
-            UserId = userId;
-            CurrentUserToken = userToken;
-            Console.WriteLine("Catcher: Initializing Engine...");
+            Authenticator.Authenticate();
+
+            UserId = Authenticator.UserId;
+            AccessToken = Authenticator.AccessToken;
+            RefreshToken = Authenticator.RefreshToken;
+            MinimumPrice = Authenticator.MinimumPrice;
+            ArrivalTimeSpan = Authenticator.ArrivalTime;
+            Areas = Authenticator.Areas;
+
+            // set bot speed delay
+            SetSpeed(Authenticator.Speed);
+
+
+            Console.WriteLine($"Catcher: Initializing Engine on user {UserId} ...");
 
             // HttpClients are init here
             ApiHelper.InitializeClient();
@@ -47,8 +64,8 @@ namespace SearchEngine.Modules
             SetServiceArea();
 
             // set headers to clients
-            ApiHelper.AddRequestHeaders(_requestDataHeadersDictionary, ApiHelper.SeekerClient);
-            ApiHelper.AddRequestHeaders(_requestDataHeadersDictionary, ApiHelper.CatcherClient);
+            ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary, ApiHelper.SeekerClient);
+            ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary, ApiHelper.CatcherClient);
 
         }
 
@@ -57,17 +74,6 @@ namespace SearchEngine.Modules
         {
             Speed = (int)((speed - settings.Default.SpeedOffset) * 1000.0f);
         }
-
-        protected async Task<HttpResponseMessage> GetBlockFromDataBaseAsync(string uri)
-        {
-
-            ApiHelper.ApiClient.DefaultRequestHeaders.Clear();
-            ApiHelper.ApiClient.DefaultRequestHeaders.Add(TokenKeyConstant, CurrentUserToken);
-            HttpResponseMessage content = await ApiHelper.ApiClient.GetAsync(uri);
-            return content;
-
-        }
-
 
         public int GetTimestamp()
         {
@@ -80,7 +86,7 @@ namespace SearchEngine.Modules
         private string GetServiceAreaId()
         {
 
-            ApiHelper.ApiClient.DefaultRequestHeaders.Add(TokenKeyConstant, CurrentUserToken);
+            ApiHelper.ApiClient.DefaultRequestHeaders.Add(TokenKeyConstant, AccessToken);
             var content = ApiHelper.GetDataAsync(ApiHelper.ServiceAreaUri).Result;
             JObject requestToken = ApiHelper.GetRequestJTokenAsync(content).Result;
             JToken result = requestToken.GetValue("serviceAreaIds");
@@ -135,7 +141,7 @@ namespace SearchEngine.Modules
             // Set the class field with the new offer headers
             foreach (var header in offerAcceptHeaders)
             {
-                _requestDataHeadersDictionary[header.Key] = header.Value;
+                RequestDataHeadersDictionary[header.Key] = header.Value;
             }
         }
     }
