@@ -185,7 +185,7 @@ namespace SearchEngine
             };
 
             _statsDict[UserId] = saveDict;
-            StreamHandle.SaveJson(Path.Combine(_rootPath, "..//stats.json"), _statsDict);
+            StreamHandle.SaveJson(Path.Combine(_rootPath, "..//CatcherStats.json"), _statsDict);
         }
     }
 }
