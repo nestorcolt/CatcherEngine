@@ -13,6 +13,9 @@ namespace SearchEngine
         static void Main(string[] args)
 
         {
+            string timeNow = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            Console.WriteLine($"Running Version: {timeNow}");
+
             bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
             if (isWindows)
