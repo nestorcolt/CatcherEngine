@@ -149,11 +149,6 @@ namespace SearchEngine.Modules
                 }
             }
 
-            Console.WriteLine("--------------------------------------------- TEST");
-            Console.WriteLine("IP");
-            Console.WriteLine(myPrivateIp);
-            Console.WriteLine(instanceName);
-
             return instanceName;
         }
 
@@ -162,8 +157,6 @@ namespace SearchEngine.Modules
         {
             // Get the user instance name through the private IP matching these in the available ec2 on account
             string userInstanceName = GetUserInstance();
-            Console.WriteLine("-------------- EXIT");
-            Environment.Exit(0);
             UserId = userInstanceName.Split("-")[1];
 
             // User data collected from dynamo DB 
