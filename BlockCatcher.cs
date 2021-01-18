@@ -30,7 +30,6 @@ namespace SearchEngine
 
             //get the full location of the assembly with DaoTests in it
             _rootPath = AppDomain.CurrentDomain.BaseDirectory;
-
         }
 
         private async Task<HttpStatusCode> GetOffersAsyncHandle()
@@ -40,7 +39,8 @@ namespace SearchEngine
             ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary, ApiHelper.SeekerClient);
             ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary, ApiHelper.CatcherClient);
 
-            var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, ServiceAreaFilterData, ApiHelper.SeekerClient);
+            var response =
+                await ApiHelper.PostDataAsync(ApiHelper.OffersUri, ServiceAreaFilterData, ApiHelper.SeekerClient);
             TotalApiCalls++;
 
             if (response.IsSuccessStatusCode)
@@ -72,7 +72,6 @@ namespace SearchEngine
 
         public async Task AcceptSingleOfferAsync(JToken block)
         {
-
             DateTime timeNow = DateTime.UtcNow;
             long unixTime = ((DateTimeOffset)timeNow).ToUnixTimeSeconds();
             long offerTime = (long)block["startTime"];
@@ -98,12 +97,13 @@ namespace SearchEngine
                 string offerId = block["offerId"].ToString();
                 var acceptHeader = new Dictionary<string, string>
                 {
-                    {"__type", $"AcceptOfferInput:{ ApiHelper.AcceptInputUrl}"},
+                    {"__type", $"AcceptOfferInput:{ApiHelper.AcceptInputUrl}"},
                     {"offerId", offerId}
                 };
 
                 string jsonData = JsonConvert.SerializeObject(acceptHeader);
-                HttpResponseMessage response = await ApiHelper.PostDataAsync(ApiHelper.AcceptUri, jsonData, ApiHelper.CatcherClient);
+                HttpResponseMessage response =
+                    await ApiHelper.PostDataAsync(ApiHelper.AcceptUri, jsonData, ApiHelper.CatcherClient);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -111,10 +111,8 @@ namespace SearchEngine
                     TotalAcceptedOffers++;
                 }
 
-                if (Debug)
-                    Console.WriteLine($"\nAccept Block Operation Status >> Code >> {response.StatusCode}\n");
+                Console.WriteLine($"\nAccept Block Operation Status >> Code >> {response.StatusCode}\n");
             }
-
         }
 
         public void AcceptOffers(JToken offerList)
@@ -130,30 +128,29 @@ namespace SearchEngine
         public void LookingForBlocksLegacy()
         {
             Stopwatch watcher = Stopwatch.StartNew();
+            Console.WriteLine("Search Loop Status: ON");
 
             while (true)
 
             {
                 // start logic here main request
                 HttpStatusCode statusCode = GetOffersAsyncHandle().Result;
+                Console.WriteLine(statusCode.ToString());
 
                 // custom delay to save request
                 Thread.Sleep((int)Speed);
 
-                if (Debug)
-                {
-                    // output log to console
-                    string responseStatus = $"\nRequest Status >> Reason >> {statusCode}\n";
-                    string stats = $"Start Time: {_startTime}  |  On Air: {_mainTimer.Elapsed}  |  Execution Speed: {watcher.ElapsedMilliseconds / 1000.0}  - | Api Calls: {TotalApiCalls} |" +
-                                      $"  - OFFERS DATA >> Total: {TotalOffersCounter} -- Accepted: {TotalAcceptedOffers}";
+                // output log to console
+                string responseStatus = $"\nRequest Status >> Reason >> {statusCode}\n";
+                string stats =
+                    $"Start Time: {_startTime}  |  On Air: {_mainTimer.Elapsed}  |  Execution Speed: {watcher.ElapsedMilliseconds / 1000.0}  - | Api Calls: {TotalApiCalls} |" +
+                    $"  - OFFERS DATA >> Total: {TotalOffersCounter} -- Accepted: {TotalAcceptedOffers}";
 
-                    Console.WriteLine(responseStatus);
-                    Console.WriteLine(stats);
+                Console.WriteLine(responseStatus);
+                Console.WriteLine(stats);
 
-                    Thread log = new Thread((() => Log(responseStatus, stats)));
-                    log.Start();
-
-                }
+                Thread log = new Thread((() => Log(responseStatus, stats)));
+                log.Start();
 
                 if (statusCode is HttpStatusCode.Unauthorized || statusCode is HttpStatusCode.Forbidden)
                 {
@@ -172,9 +169,7 @@ namespace SearchEngine
 
                 // restart counter to measure performance
                 watcher.Restart();
-
             }
-
         }
 
         private void Log(string responseStatus, string stats)

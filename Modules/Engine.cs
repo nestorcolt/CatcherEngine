@@ -31,7 +31,6 @@ namespace SearchEngine.Modules
         public int ArrivalTimeSpan;
         protected float Speed;
 
-        public bool Debug => settings.Default.Debug;
         public string AppVersion => settings.Default.FlexAppVersion;
 
         public void InitializeEngine()
@@ -52,8 +51,6 @@ namespace SearchEngine.Modules
             // set bot speed delay
             SetSpeed(Authenticator.Speed);
 
-            Console.WriteLine($"Catcher: Initializing Engine on user {UserId} ...");
-
             // HttpClients are init here
             ApiHelper.InitializeClient();
 
@@ -66,6 +63,8 @@ namespace SearchEngine.Modules
             // set headers to clients
             ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary, ApiHelper.SeekerClient);
             ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary, ApiHelper.CatcherClient);
+
+            Console.WriteLine($"Catcher: Initializing Engine on user {UserId} ...");
 
         }
 

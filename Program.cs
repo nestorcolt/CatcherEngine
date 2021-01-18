@@ -13,16 +13,14 @@ namespace SearchEngine
         static void Main(string[] args)
 
         {
-            string timeNow = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-            Console.WriteLine($"Running Version: {timeNow}");
-
+            Console.WriteLine($"Running Version: 18-01-2021 17:25");
             bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            settings.Default.Debug = true;
 
             if (isWindows)
             {
                 // means that probably im running this from my computer
-                settings.Default.Debug = true;
-                string myPrivateTestIp = "172.31.4.146";
+                string myPrivateTestIp = "172.31.6.148";
                 Environment.SetEnvironmentVariable(settings.Default.IpEnvVar, myPrivateTestIp, EnvironmentVariableTarget.User);
             }
 
