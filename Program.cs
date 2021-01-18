@@ -19,7 +19,7 @@ namespace SearchEngine
             {
                 // means that probably im running this from my computer
                 settings.Default.Debug = true;
-                string myPrivateTestIp = "172.31.0.65";
+                string myPrivateTestIp = "172.31.3.13";
                 Environment.SetEnvironmentVariable(settings.Default.IpEnvVar, myPrivateTestIp, EnvironmentVariableTarget.User);
             }
 

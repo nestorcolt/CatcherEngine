@@ -49,8 +49,8 @@ namespace SearchEngine
 
                 if (offerList != null && offerList.HasValues)
                 {
-                    //Thread acceptThread = new Thread(task => AcceptOffers(offerList));
-                    //acceptThread.Start();
+                    Thread acceptThread = new Thread(task => AcceptOffers(offerList));
+                    acceptThread.Start();
 
                     TotalOffersCounter += offerList.Count();
                 }
