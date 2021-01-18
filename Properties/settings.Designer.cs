@@ -142,5 +142,17 @@ namespace SearchEngine.Properties {
                 this["IpEnvVar"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("..//CatcherStats.json")]
+        public string StatsPath {
+            get {
+                return ((string)(this["StatsPath"]));
+            }
+            set {
+                this["StatsPath"] = value;
+            }
+        }
     }
 }

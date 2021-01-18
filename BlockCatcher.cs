@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SearchEngine.Modules;
+using SearchEngine.Properties;
 
 namespace SearchEngine
 {
@@ -185,7 +186,7 @@ namespace SearchEngine
             };
 
             _statsDict[UserId] = saveDict;
-            StreamHandle.SaveJson(Path.Combine(_rootPath, "..//CatcherStats.json"), _statsDict);
+            StreamHandle.SaveJson(Path.Combine(_rootPath, settings.Default.StatsPath), _statsDict);
         }
     }
 }

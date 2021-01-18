@@ -32,5 +32,8 @@
     <Setting Name="IpEnvVar" Type="System.String" Scope="User">
       <Value Profile="(Default)">MY_ADDRESS</Value>
     </Setting>
+    <Setting Name="StatsPath" Type="System.String" Scope="User">
+      <Value Profile="(Default)">..//CatcherStats.json</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
