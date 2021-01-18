@@ -30,7 +30,7 @@
       <Value Profile="(Default)">user_id</Value>
     </Setting>
     <Setting Name="IpEnvVar" Type="System.String" Scope="User">
-      <Value Profile="(Default)">MY_ADDRESS</Value>
+      <Value Profile="(Default)">MY_IP</Value>
     </Setting>
     <Setting Name="StatsPath" Type="System.String" Scope="User">
       <Value Profile="(Default)">..//CatcherStats.json</Value>

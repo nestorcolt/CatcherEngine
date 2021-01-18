@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
+using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Amazon.DynamoDBv2;
@@ -60,13 +63,6 @@ namespace SearchEngine.Modules
             return results[0];
         }
 
-        private string GetEnvironmentVariable()
-
-        {
-            string privateIp =
-                Environment.GetEnvironmentVariable(settings.Default.IpEnvVar, EnvironmentVariableTarget.User);
-            return privateIp;
-        }
 
         public static async Task<string> GetAmazonAccessToken(string refreshToken)
         {
@@ -102,6 +98,35 @@ namespace SearchEngine.Modules
             throw new UnauthorizedAccessException($"There is a problem with the authentication.\nReason: {response.Content}");
         }
 
+        private string GetEnvironmentVariable()
+
+        {
+            string privateIp = Environment.GetEnvironmentVariable(settings.Default.IpEnvVar, EnvironmentVariableTarget.User);
+            return privateIp;
+        }
+
+        public string GetLocalIpAddress()
+        {
+            var host = Dns.GetHostEntry(Dns.GetHostName());
+            bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+            foreach (var ip in host.AddressList)
+            {
+                if (ip.AddressFamily == AddressFamily.InterNetwork)
+                {
+
+                    if (isWindows)
+                    {
+                        return GetEnvironmentVariable();
+                    }
+
+                    return ip.ToString();
+                }
+            }
+
+            throw new Exception("No network adapters with an IPv4 address in the system!");
+        }
+
         private string GetUserInstance()
         {
             /*
@@ -110,7 +135,7 @@ namespace SearchEngine.Modules
              */
             AmazonEC2Client amazonEc2Client = new AmazonEC2Client();
             var response = amazonEc2Client.DescribeInstancesAsync(new DescribeInstancesRequest { });
-            string myPrivateIp = GetEnvironmentVariable();
+            string myPrivateIp = GetLocalIpAddress();
             string instanceName = null;
 
             foreach (var instance in response.Result.Reservations)
@@ -124,6 +149,11 @@ namespace SearchEngine.Modules
                 }
             }
 
+            Console.WriteLine("--------------------------------------------- TEST");
+            Console.WriteLine("IP");
+            Console.WriteLine(myPrivateIp);
+            Console.WriteLine(instanceName);
+
             return instanceName;
         }
 
@@ -132,6 +162,8 @@ namespace SearchEngine.Modules
         {
             // Get the user instance name through the private IP matching these in the available ec2 on account
             string userInstanceName = GetUserInstance();
+            Console.WriteLine("-------------- EXIT");
+            Environment.Exit(0);
             UserId = userInstanceName.Split("-")[1];
 
             // User data collected from dynamo DB 

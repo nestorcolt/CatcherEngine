@@ -26,7 +26,7 @@ namespace SearchEngine
             BlockCatcher catcher = new BlockCatcher();
 
             // Main loop method is being called here
-            catcher.LookingForBlocksLegacy();
+            //catcher.LookingForBlocksLegacy();
         }
 
     }
