@@ -50,6 +50,12 @@ namespace SearchEngine.Modules
                 });
             } while (!search.IsDone);
 
+            if (results.Count == 0)
+            {
+                var exception = new AmazonDynamoDBException($"ERROR: Not user found in 'Users Table' with index {userId}.\nAborting ...\n");
+                Console.WriteLine(exception.Message);
+                Environment.Exit(0);
+            }
 
             return results[0];
         }
