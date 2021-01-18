@@ -142,7 +142,6 @@ namespace SearchEngine
 
             // authenticated for new access token
             AccessToken = Task.Run(() => GetAmazonAccessToken(RefreshToken)).Result;
-            Console.WriteLine($"Access Token: {AccessToken}");
 
         }
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SearchEngine.Properties;
@@ -20,8 +21,6 @@ namespace SearchEngine.Modules
 
         protected int ThrottlingTimeOut = settings.Default.ExecutionTimeOut * 60000;
         protected readonly Authenticator Authenticator = new Authenticator();
-
-
 
         public const string TokenKeyConstant = "x-amz-access-token";
         public string UserId;
@@ -47,9 +46,11 @@ namespace SearchEngine.Modules
             ArrivalTimeSpan = Authenticator.ArrivalTime;
             Areas = Authenticator.Areas;
 
+            // Set token in request dictionary
+            RequestDataHeadersDictionary[TokenKeyConstant] = AccessToken;
+
             // set bot speed delay
             SetSpeed(Authenticator.Speed);
-
 
             Console.WriteLine($"Catcher: Initializing Engine on user {UserId} ...");
 
@@ -66,6 +67,14 @@ namespace SearchEngine.Modules
             ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary, ApiHelper.SeekerClient);
             ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary, ApiHelper.CatcherClient);
 
+        }
+
+
+        public void GetAccessToken()
+        {
+            AccessToken = Authenticator.GetAmazonAccessToken(RefreshToken).Result;
+            RequestDataHeadersDictionary[TokenKeyConstant] = AccessToken;
+            Console.WriteLine("\nAccess to the service granted!\n");
         }
 
 
@@ -86,7 +95,7 @@ namespace SearchEngine.Modules
         {
 
             ApiHelper.ApiClient.DefaultRequestHeaders.Add(TokenKeyConstant, AccessToken);
-            var content = ApiHelper.GetDataAsync(ApiHelper.ServiceAreaUri).Result;
+            HttpResponseMessage content = ApiHelper.GetDataAsync(ApiHelper.ServiceAreaUri).Result;
             JObject requestToken = ApiHelper.GetRequestJTokenAsync(content).Result;
             JToken result = requestToken.GetValue("serviceAreaIds");
 

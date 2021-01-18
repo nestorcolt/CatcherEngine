@@ -156,13 +156,15 @@ namespace SearchEngine
 
                 if (statusCode is HttpStatusCode.Unauthorized || statusCode is HttpStatusCode.Forbidden)
                 {
-                    AccessToken = Authenticator.GetAmazonAccessToken(RefreshToken).Result;
+                    // Re-authenticate after the access token has expired
+                    GetAccessToken();
                     Thread.Sleep(10000); // 10 seconds
                     continue;
                 }
 
                 if (statusCode is HttpStatusCode.BadRequest || statusCode is HttpStatusCode.TooManyRequests)
                 {
+                    // Request exceed. Send to SNS topic to terminate the instance. Put to sleep for 31 minutes
                     Thread.Sleep(ThrottlingTimeOut);
                     continue;
                 }
@@ -183,7 +185,7 @@ namespace SearchEngine
             };
 
             _statsDict[UserId] = saveDict;
-            StreamHandle.SaveJson(Path.Combine(_rootPath, "stats.json"), _statsDict);
+            StreamHandle.SaveJson(Path.Combine(_rootPath, "..//stats.json"), _statsDict);
         }
     }
 }
