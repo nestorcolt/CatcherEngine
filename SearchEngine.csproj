@@ -26,6 +26,9 @@
   </ItemGroup>
 
   <ItemGroup>
+	<None Update="Modules\schedule.json">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	</None>
 	<None Update="Properties\settings.settings">
 	  <Generator>PublicSettingsSingleFileGenerator</Generator>
 	  <LastGenOutput>settings.Designer.cs</LastGenOutput>

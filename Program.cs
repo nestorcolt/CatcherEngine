@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using Newtonsoft.Json.Linq;
 using SearchEngine.Properties;
+using SearchEngine.Modules;
 
 
 // The Main program for looking, catching and accepting blocks for the amazon flex service. Automate the process and handle a single user process instance and this needs
@@ -24,7 +27,10 @@ namespace SearchEngine
                 Environment.SetEnvironmentVariable(settings.Default.IpEnvVar, myPrivateTestIp, EnvironmentVariableTarget.User);
             }
 
-            BlockCatcher catcher = new BlockCatcher();
+            JToken weekSchedule = StreamHandle.LoadJsonAsync("./Modules/schedule.json").Result;
+            var scheduleValidator = new ScheduleValidator(weekSchedule["search_schedule"]);
+
+            //BlockCatcher catcher = new BlockCatcher();
 
             // Main loop method is being called here
             //catcher.LookingForBlocksLegacy();

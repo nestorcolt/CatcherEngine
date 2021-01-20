@@ -75,6 +75,17 @@ namespace SearchEngine
             return false;
         }
 
+        private bool ValidateArea(string serviceAreaId)
+        {
+            if (Areas.Count == 0)
+                return true;
+
+            if (Areas.Contains(serviceAreaId))
+                return true;
+
+            return false;
+        }
+
         public async Task AcceptSingleOfferAsync(JToken block)
         {
             DateTime timeNow = DateTime.UtcNow;
@@ -99,8 +110,11 @@ namespace SearchEngine
             Console.WriteLine($"Schedule validated: {scheduleValidation}");
 
 
+            bool areaValidation = ValidateArea(serviceAreaId);
+            Console.WriteLine($"Area validated: {areaValidation}");
+
             // SearchSchedule comes in minutes from user filters
-            if (scheduleValidation && offerPrice >= MinimumPrice && Areas.Contains(serviceAreaId))
+            if (scheduleValidation && offerPrice >= MinimumPrice && areaValidation)
             {
                 string offerId = block["offerId"].ToString();
                 var acceptHeader = new Dictionary<string, string>
