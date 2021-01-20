@@ -1,0 +1,68 @@
+﻿{
+  "search_schedule": [
+    {
+      "dayOfWeek": 0,
+      "enable": true,
+      "times": [
+        {
+          "blockTime": 0,
+          "start": "13:52:00",
+          "end": "13:52:00"
+        },
+        {
+          "blockTime": 1,
+          "start": "13:52:00",
+          "end": "13:52:00"
+        }
+      ]
+    },
+    {
+      "dayOfWeek": 2,
+      "enable": true,
+      "times": [
+        {
+          "blockTime": 0,
+          "start": "13:52:00",
+          "end": "13:52:00"
+        },
+        {
+          "blockTime": 1,
+          "start": "13:52:00",
+          "end": "13:52:00"
+        }
+      ]
+    },
+    {
+      "dayOfWeek": 4,
+      "enable": true,
+      "times": [
+        {
+          "blockTime": 0,
+          "start": "13:52:00",
+          "end": "13:52:00"
+        },
+        {
+          "blockTime": 1,
+          "start": "13:52:00",
+          "end": "13:52:00"
+        }
+      ]
+    },
+    {
+      "dayOfWeek": 6,
+      "enable": true,
+      "times": [
+        {
+          "blockTime": 0,
+          "start": "13:52:00",
+          "end": "13:52:00"
+        },
+        {
+          "blockTime": 1,
+          "start": "13:52:00",
+          "end": "13:52:00"
+        }
+      ]
+    }
+  ]
+}
