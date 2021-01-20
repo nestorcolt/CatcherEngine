@@ -23,13 +23,13 @@ namespace SearchEngine.Modules
         protected readonly Authenticator Authenticator = new Authenticator();
 
         public const string TokenKeyConstant = "x-amz-access-token";
-        public string UserId;
-        protected string AccessToken;
+        public List<JToken> SearchSchedule;
         protected string RefreshToken;
+        protected string AccessToken;
         public List<string> Areas;
         public float MinimumPrice;
-        public int ArrivalTimeSpan;
         protected float Speed;
+        public string UserId;
 
         public string AppVersion => settings.Default.FlexAppVersion;
 
@@ -42,7 +42,7 @@ namespace SearchEngine.Modules
             AccessToken = Authenticator.AccessToken;
             RefreshToken = Authenticator.RefreshToken;
             MinimumPrice = Authenticator.MinimumPrice;
-            ArrivalTimeSpan = Authenticator.ArrivalTime;
+            SearchSchedule = Authenticator.SearchSchedule;
             Areas = Authenticator.Areas;
 
             // Set token in request dictionary

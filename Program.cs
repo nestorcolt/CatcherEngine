@@ -20,14 +20,14 @@ namespace SearchEngine
             if (isWindows)
             {
                 // means that probably im running this from my computer
-                string myPrivateTestIp = "172.31.6.37";
+                string myPrivateTestIp = "172.31.7.5";
                 Environment.SetEnvironmentVariable(settings.Default.IpEnvVar, myPrivateTestIp, EnvironmentVariableTarget.User);
             }
 
             BlockCatcher catcher = new BlockCatcher();
 
             // Main loop method is being called here
-            catcher.LookingForBlocksLegacy();
+            //catcher.LookingForBlocksLegacy();
         }
 
     }

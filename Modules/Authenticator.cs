@@ -24,8 +24,8 @@ namespace SearchEngine.Modules
         public string AccessToken;
         public float MinimumPrice;
         public float Speed;
-        public int ArrivalTime;
         public List<string> Areas;
+        public List<JToken> SearchSchedule;
 
         private dynamic GetUserData(string userId)
 
@@ -162,11 +162,10 @@ namespace SearchEngine.Modules
             // User data collected from dynamo DB 
             dynamic userData = GetUserData(UserId);
 
-            RefreshToken = userData["refresh_token"];
-            //ArrivalTime = userData["search_schedule"].ToObject<List<string>>(); TODO uncomment this when I start to get input from web
-            ArrivalTime = 0;
-            MinimumPrice = userData["minimum_price"];
+            SearchSchedule = userData["search_schedule"].ToObject<List<JToken>>();
             Areas = userData["areas"].ToObject<List<string>>();
+            RefreshToken = userData["refresh_token"];
+            MinimumPrice = userData["minimum_price"];
             Speed = userData["speed"];
 
             // authenticated for new access token

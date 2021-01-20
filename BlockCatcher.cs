@@ -99,7 +99,7 @@ namespace SearchEngine
             Console.WriteLine($"Schedule validated: {scheduleValidation}");
 
 
-            // ArrivalTimeSpan comes in minutes from user filters
+            // SearchSchedule comes in minutes from user filters
             if (scheduleValidation && offerPrice >= MinimumPrice && Areas.Contains(serviceAreaId))
             {
                 string offerId = block["offerId"].ToString();
