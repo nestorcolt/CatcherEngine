@@ -68,6 +68,7 @@ namespace SearchEngine.Modules
             ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary, ApiHelper.SeekerClient);
             ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary, ApiHelper.CatcherClient);
 
+            // output to console
             Console.WriteLine($"Catcher: Initializing Engine on user {UserId} ...");
 
         }

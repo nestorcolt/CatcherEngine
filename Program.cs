@@ -28,8 +28,6 @@ namespace SearchEngine
             }
 
             JToken weekSchedule = StreamHandle.LoadJsonAsync("./Modules/schedule.json").Result;
-            //var scheduleValidator = new ScheduleValidator(weekSchedule["search_schedule"]);
-            //bool result = scheduleValidator.ValidateSchedule(16565616516);
 
             BlockCatcher catcher = new BlockCatcher();
 
