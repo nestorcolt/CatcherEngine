@@ -39,8 +39,7 @@ namespace SearchEngine
             ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary, ApiHelper.SeekerClient);
             ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary, ApiHelper.CatcherClient);
 
-            var response =
-                await ApiHelper.PostDataAsync(ApiHelper.OffersUri, ServiceAreaFilterData, ApiHelper.SeekerClient);
+            var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, ServiceAreaFilterData, ApiHelper.SeekerClient);
             TotalApiCalls++;
 
             if (response.IsSuccessStatusCode)
@@ -70,6 +69,12 @@ namespace SearchEngine
             RequestDataHeadersDictionary["Authorization"] = signatureHeaders["Authorization"];
         }
 
+
+        private bool ValidateSchedule(long blockTime)
+        {
+            return false;
+        }
+
         public async Task AcceptSingleOfferAsync(JToken block)
         {
             DateTime timeNow = DateTime.UtcNow;
@@ -84,15 +89,18 @@ namespace SearchEngine
             float offerPrice = (float)block["rateInfo"]["priceAmount"];
 
             // TODO WILL REMOVE LATER, THIS WAS FOR DOUBLE CHECKING AND DEBUG THE VALIDATION DATA
-            //Console.WriteLine(offerPrice >= MinimumPrice);
-            //Console.WriteLine(blockTimeSpan >= ArrivalTimeSpan);
-            //Console.WriteLine(Areas.Contains(serviceAreaId));
-            //Console.WriteLine($"{offerPrice} {MinimumPrice}");
-            //Console.WriteLine($"{blockTimeSpan} {ArrivalTimeSpan}");
-            //Console.WriteLine($"{serviceAreaId}");
+            Console.WriteLine(offerPrice >= MinimumPrice);
+            Console.WriteLine(Areas.Contains(serviceAreaId));
+            Console.WriteLine($"{offerPrice} {MinimumPrice}");
+            Console.WriteLine($"{serviceAreaId}");
+
+            // Validates the calendar schedule for this user
+            bool scheduleValidation = ValidateSchedule(offerTime);
+            Console.WriteLine($"Schedule validated: {scheduleValidation}");
+
 
             // ArrivalTimeSpan comes in minutes from user filters
-            if (blockTimeSpan >= ArrivalTimeSpan && offerPrice >= MinimumPrice && Areas.Contains(serviceAreaId))
+            if (scheduleValidation && offerPrice >= MinimumPrice && Areas.Contains(serviceAreaId))
             {
                 string offerId = block["offerId"].ToString();
                 var acceptHeader = new Dictionary<string, string>
@@ -102,8 +110,9 @@ namespace SearchEngine
                 };
 
                 string jsonData = JsonConvert.SerializeObject(acceptHeader);
-                HttpResponseMessage response =
-                    await ApiHelper.PostDataAsync(ApiHelper.AcceptUri, jsonData, ApiHelper.CatcherClient);
+                //HttpResponseMessage response = await ApiHelper.PostDataAsync(ApiHelper.AcceptUri, jsonData, ApiHelper.CatcherClient);
+                HttpResponseMessage response = new HttpResponseMessage();
+                Console.WriteLine("All validations passed!!!");
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -120,8 +129,8 @@ namespace SearchEngine
             Parallel.For(0, offerList.Count(), n =>
             {
                 JToken innerBlock = offerList[n];
-                ////Thread accept = new Thread(async task => await AcceptSingleOfferAsync(innerBlock));
-                //accept.Start();
+                Thread accept = new Thread(async task => await AcceptSingleOfferAsync(innerBlock));
+                accept.Start();
             });
         }
 
@@ -135,7 +144,6 @@ namespace SearchEngine
             {
                 // start logic here main request
                 HttpStatusCode statusCode = GetOffersAsyncHandle().Result;
-                Console.WriteLine(statusCode.ToString());
 
                 // custom delay to save request
                 Thread.Sleep((int)Speed);
@@ -181,7 +189,7 @@ namespace SearchEngine
             };
 
             _statsDict[UserId] = saveDict;
-            StreamHandle.SaveJson(Path.Combine(_rootPath, settings.Default.StatsPath), _statsDict);
+            StreamHandle.SaveJson(Path.Combine(_rootPath, settings.Default.StatsPath, $"User-{UserId}.json"), _statsDict);
         }
     }
 }

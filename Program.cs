@@ -20,7 +20,7 @@ namespace SearchEngine
             if (isWindows)
             {
                 // means that probably im running this from my computer
-                string myPrivateTestIp = "172.31.6.148";
+                string myPrivateTestIp = "172.31.6.37";
                 Environment.SetEnvironmentVariable(settings.Default.IpEnvVar, myPrivateTestIp, EnvironmentVariableTarget.User);
             }
 
