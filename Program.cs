@@ -23,11 +23,11 @@ namespace SearchEngine
             if (isWindows)
             {
                 // means that probably im running this from my computer
-                string myPrivateTestIp = "172.31.7.5";
+                string myPrivateTestIp = "172.31.9.240";
                 Environment.SetEnvironmentVariable(settings.Default.IpEnvVar, myPrivateTestIp, EnvironmentVariableTarget.User);
             }
 
-            JToken weekSchedule = StreamHandle.LoadJsonAsync("./Modules/schedule.json").Result;
+            //JToken weekSchedule = StreamHandle.LoadJsonAsync("./Modules/schedule.json").Result;
 
             BlockCatcher catcher = new BlockCatcher();
 

@@ -152,7 +152,6 @@ namespace SearchEngine.Modules
             return instanceName;
         }
 
-
         public void Authenticate()
         {
             // Get the user instance name through the private IP matching these in the available ec2 on account
