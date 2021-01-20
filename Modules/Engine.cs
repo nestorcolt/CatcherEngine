@@ -21,9 +21,10 @@ namespace SearchEngine.Modules
 
         protected int ThrottlingTimeOut = settings.Default.ExecutionTimeOut * 60000;
         protected readonly Authenticator Authenticator = new Authenticator();
+        protected ScheduleValidator ScheduleValidator;
 
         public const string TokenKeyConstant = "x-amz-access-token";
-        public List<JToken> SearchSchedule;
+        public JToken SearchSchedule;
         protected string RefreshToken;
         protected string AccessToken;
         public List<string> Areas;
@@ -50,6 +51,9 @@ namespace SearchEngine.Modules
 
             // set bot speed delay
             SetSpeed(Authenticator.Speed);
+
+            // refactor user schedule to unix format slot list
+            ScheduleValidator = new ScheduleValidator(SearchSchedule);
 
             // HttpClients are init here
             ApiHelper.InitializeClient();

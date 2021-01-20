@@ -25,7 +25,7 @@ namespace SearchEngine.Modules
         public float MinimumPrice;
         public float Speed;
         public List<string> Areas;
-        public List<JToken> SearchSchedule;
+        public JToken SearchSchedule;
 
         private dynamic GetUserData(string userId)
 
@@ -162,7 +162,7 @@ namespace SearchEngine.Modules
             // User data collected from dynamo DB 
             dynamic userData = GetUserData(UserId);
 
-            SearchSchedule = userData["search_schedule"].ToObject<List<JToken>>();
+            SearchSchedule = userData["search_schedule"].ToObject<JToken>();
             Areas = userData["areas"].ToObject<List<string>>();
             RefreshToken = userData["refresh_token"];
             MinimumPrice = userData["minimum_price"];

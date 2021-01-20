@@ -69,12 +69,6 @@ namespace SearchEngine
             RequestDataHeadersDictionary["Authorization"] = signatureHeaders["Authorization"];
         }
 
-
-        private bool ValidateSchedule(long blockTime)
-        {
-            return false;
-        }
-
         private bool ValidateArea(string serviceAreaId)
         {
             if (Areas.Count == 0)
@@ -88,35 +82,22 @@ namespace SearchEngine
 
         public async Task AcceptSingleOfferAsync(JToken block)
         {
-            DateTime timeNow = DateTime.UtcNow;
-            long unixTime = ((DateTimeOffset)timeNow).ToUnixTimeSeconds();
             long offerTime = (long)block["startTime"];
-
-            // get the time span in minutes which this block will need to be pick up
-            long blockTimeSpan = (offerTime - unixTime) / 60; // 60 seconds per minute
-
-            // check some data first if not pass this validation is not necessary to execute a new date time call or math operation in next validation 
             string serviceAreaId = (string)block["serviceAreaId"];
             float offerPrice = (float)block["rateInfo"]["priceAmount"];
 
-            // TODO WILL REMOVE LATER, THIS WAS FOR DOUBLE CHECKING AND DEBUG THE VALIDATION DATA
-            Console.WriteLine(offerPrice >= MinimumPrice);
-            Console.WriteLine(Areas.Contains(serviceAreaId));
-            Console.WriteLine($"{offerPrice} {MinimumPrice}");
-            Console.WriteLine($"{serviceAreaId}");
-
             // Validates the calendar schedule for this user
-            bool scheduleValidation = ValidateSchedule(offerTime);
+            bool scheduleValidation = ScheduleValidator.ValidateSchedule(offerTime);
             Console.WriteLine($"Schedule validated: {scheduleValidation}");
-
 
             bool areaValidation = ValidateArea(serviceAreaId);
             Console.WriteLine($"Area validated: {areaValidation}");
 
-            // SearchSchedule comes in minutes from user filters
             if (scheduleValidation && offerPrice >= MinimumPrice && areaValidation)
             {
                 string offerId = block["offerId"].ToString();
+                Console.WriteLine("All validations passed!!!");
+
                 var acceptHeader = new Dictionary<string, string>
                 {
                     {"__type", $"AcceptOfferInput:{ApiHelper.AcceptInputUrl}"},
@@ -126,7 +107,7 @@ namespace SearchEngine
                 string jsonData = JsonConvert.SerializeObject(acceptHeader);
                 //HttpResponseMessage response = await ApiHelper.PostDataAsync(ApiHelper.AcceptUri, jsonData, ApiHelper.CatcherClient);
                 HttpResponseMessage response = new HttpResponseMessage();
-                Console.WriteLine("All validations passed!!!");
+
 
                 if (response.IsSuccessStatusCode)
                 {
