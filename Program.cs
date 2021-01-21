@@ -16,14 +16,14 @@ namespace SearchEngine
         static void Main(string[] args)
 
         {
-            Console.WriteLine($"Running Version: 18-01-2021 17:25");
+            Console.WriteLine($"Running Version: 21-01-2021 15:48");
             bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             settings.Default.Debug = true;
 
             if (isWindows)
             {
-                // means that probably im running this from my computer
-                string myPrivateTestIp = "172.31.9.240";
+                // means that probably im running this from my computer. This is the Ec2 private IP
+                string myPrivateTestIp = "172.31.7.36";
                 Environment.SetEnvironmentVariable(settings.Default.IpEnvVar, myPrivateTestIp, EnvironmentVariableTarget.User);
             }
 

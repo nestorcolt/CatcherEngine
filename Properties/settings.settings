@@ -36,7 +36,7 @@
       <Value Profile="(Default)">../.</Value>
     </Setting>
     <Setting Name="StateFile" Type="System.String" Scope="User">
-      <Value Profile="(Default)">../StateFle.json</Value>
+      <Value Profile="(Default)">../StateFile.json</Value>
     </Setting>
   </Settings>
 </SettingsFile>

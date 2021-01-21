@@ -157,7 +157,7 @@ namespace SearchEngine.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("../StateFle.json")]
+        [global::System.Configuration.DefaultSettingValueAttribute("../StateFile.json")]
         public string StateFile {
             get {
                 return ((string)(this["StateFile"]));

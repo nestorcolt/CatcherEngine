@@ -16,11 +16,10 @@ namespace SearchEngine
 {
     class BlockCatcher : Engine
     {
+        private readonly Dictionary<string, object> _statsDict = new Dictionary<string, object>();
         private readonly SignatureObject _signature = new SignatureObject();
         private readonly Stopwatch _mainTimer = Stopwatch.StartNew();
         private readonly DateTime _startTime = DateTime.Now;
-
-        private Dictionary<string, object> _statsDict = new Dictionary<string, object>();
 
         public BlockCatcher()
         {
