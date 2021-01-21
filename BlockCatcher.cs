@@ -20,7 +20,6 @@ namespace SearchEngine
         private readonly Stopwatch _mainTimer = Stopwatch.StartNew();
         private readonly DateTime _startTime = DateTime.Now;
 
-        private readonly string _rootPath;
         private Dictionary<string, object> _statsDict = new Dictionary<string, object>();
 
         public BlockCatcher()
@@ -28,8 +27,6 @@ namespace SearchEngine
             // setup engine details
             InitializeEngine();
 
-            //get the full location of the assembly with DaoTests in it
-            _rootPath = AppDomain.CurrentDomain.BaseDirectory;
         }
 
         private async Task<HttpStatusCode> GetOffersAsyncHandle()
@@ -184,7 +181,8 @@ namespace SearchEngine
             };
 
             _statsDict[UserId] = saveDict;
-            StreamHandle.SaveJson(Path.Combine(_rootPath, settings.Default.StatsPath, $"User-{UserId}.json"), _statsDict);
+            StreamHandle.SaveJson(Path.Combine(RootPath, settings.Default.StatsPath, $"User-{UserId}.json"), _statsDict);
+            StreamHandle.SaveStateFile(Path.Combine(RootPath, settings.Default.StateFile));
         }
     }
 }

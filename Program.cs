@@ -27,8 +27,6 @@ namespace SearchEngine
                 Environment.SetEnvironmentVariable(settings.Default.IpEnvVar, myPrivateTestIp, EnvironmentVariableTarget.User);
             }
 
-            //JToken weekSchedule = StreamHandle.LoadJsonAsync("./Modules/schedule.json").Result;
-
             BlockCatcher catcher = new BlockCatcher();
 
             // Main loop method is being called here

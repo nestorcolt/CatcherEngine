@@ -33,7 +33,10 @@
       <Value Profile="(Default)">MY_IP</Value>
     </Setting>
     <Setting Name="StatsPath" Type="System.String" Scope="User">
-      <Value Profile="(Default)">..//CatcherStats.json</Value>
+      <Value Profile="(Default)">../.</Value>
+    </Setting>
+    <Setting Name="StateFile" Type="System.String" Scope="User">
+      <Value Profile="(Default)">../StateFle.json</Value>
     </Setting>
   </Settings>
 </SettingsFile>

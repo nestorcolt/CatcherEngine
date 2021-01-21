@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -33,9 +34,13 @@ namespace SearchEngine.Modules
         public string UserId;
 
         public string AppVersion => settings.Default.FlexAppVersion;
+        public readonly string RootPath = AppDomain.CurrentDomain.BaseDirectory;
 
         public void InitializeEngine()
         {
+            // Create a file to make touch on the modification date and see if the process is still working
+            StreamHandle.SaveStateFile(Path.Combine(RootPath, settings.Default.StateFile));
+
             // Get user data from dynamo DB through and Ec2 instance private IP matching with user ID
             Authenticator.Authenticate();
 

@@ -8,187 +8,162 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace SearchEngine.Properties
-{
-
-
+namespace SearchEngine.Properties {
+    
+    
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.7.0.0")]
-    public sealed partial class settings : global::System.Configuration.ApplicationSettingsBase
-    {
-
+    public sealed partial class settings : global::System.Configuration.ApplicationSettingsBase {
+        
         private static settings defaultInstance = ((settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new settings())));
-
-        public static settings Default
-        {
-            get
-            {
+        
+        public static settings Default {
+            get {
                 return defaultInstance;
             }
         }
-
+        
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool Debug
-        {
-            get
-            {
+        public bool Debug {
+            get {
                 return ((bool)(this["Debug"]));
             }
-            set
-            {
+            set {
                 this["Debug"] = value;
             }
         }
-
+        
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("3.39.29.0")]
-        public string FlexAppVersion
-        {
-            get
-            {
+        public string FlexAppVersion {
+            get {
                 return ((string)(this["FlexAppVersion"]));
             }
-            set
-            {
+            set {
                 this["FlexAppVersion"] = value;
             }
         }
-
+        
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("31")]
-        public int ExecutionTimeOut
-        {
-            get
-            {
+        public int ExecutionTimeOut {
+            get {
                 return ((int)(this["ExecutionTimeOut"]));
             }
-            set
-            {
+            set {
                 this["ExecutionTimeOut"] = value;
             }
         }
-
+        
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0.158")]
-        public float SpeedOffset
-        {
-            get
-            {
+        public float SpeedOffset {
+            get {
                 return ((float)(this["SpeedOffset"]));
             }
-            set
-            {
+            set {
                 this["SpeedOffset"] = value;
             }
         }
-
+        
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("SM-G977N")]
-        public string DeviceModel
-        {
-            get
-            {
+        public string DeviceModel {
+            get {
                 return ((string)(this["DeviceModel"]));
             }
-            set
-            {
+            set {
                 this["DeviceModel"] = value;
             }
         }
-
+        
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("7.1.2")]
-        public string OSVersion
-        {
-            get
-            {
+        public string OSVersion {
+            get {
                 return ((string)(this["OSVersion"]));
             }
-            set
-            {
+            set {
                 this["OSVersion"] = value;
             }
         }
-
+        
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("N2G48C")]
-        public string BuildVersion
-        {
-            get
-            {
+        public string BuildVersion {
+            get {
                 return ((string)(this["BuildVersion"]));
             }
-            set
-            {
+            set {
                 this["BuildVersion"] = value;
             }
         }
-
+        
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("Users")]
-        public string UsersTable
-        {
-            get
-            {
+        public string UsersTable {
+            get {
                 return ((string)(this["UsersTable"]));
             }
-            set
-            {
+            set {
                 this["UsersTable"] = value;
             }
         }
-
+        
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("user_id")]
-        public string UserPk
-        {
-            get
-            {
+        public string UserPk {
+            get {
                 return ((string)(this["UserPk"]));
             }
-            set
-            {
+            set {
                 this["UserPk"] = value;
             }
         }
-
+        
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("MY_IP")]
-        public string IpEnvVar
-        {
-            get
-            {
+        public string IpEnvVar {
+            get {
                 return ((string)(this["IpEnvVar"]));
             }
-            set
-            {
+            set {
                 this["IpEnvVar"] = value;
             }
         }
-
+        
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("../.")]
-        public string StatsPath
-        {
-            get
-            {
+        public string StatsPath {
+            get {
                 return ((string)(this["StatsPath"]));
             }
-            set
-            {
+            set {
                 this["StatsPath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("../StateFle.json")]
+        public string StateFile {
+            get {
+                return ((string)(this["StateFile"]));
+            }
+            set {
+                this["StateFile"] = value;
             }
         }
     }

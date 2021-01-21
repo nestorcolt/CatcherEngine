@@ -24,5 +24,12 @@ namespace SearchEngine.Modules
             serializer.Serialize(jFiler, data);
         }
 
+        public static void SaveStateFile(string filePath)
+        {
+            using StreamWriter jFiler = new StreamWriter(filePath);
+            JsonSerializer serializer = new JsonSerializer();
+            serializer.Serialize(jFiler, new JObject());
+        }
+
     }
 }
