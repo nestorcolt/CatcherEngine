@@ -143,7 +143,7 @@ namespace SearchEngine
         public void LookingForBlocksLegacy()
         {
             Stopwatch watcher = Stopwatch.StartNew();
-            Console.WriteLine("Search Loop Status: ON");
+            Console.WriteLine("\t- Search Loop Status: ON");
 
             while (true)
 
@@ -164,8 +164,8 @@ namespace SearchEngine
                 Console.WriteLine(responseStatus);
                 Console.WriteLine(stats);
 
-                Thread log = new Thread((() => Log(responseStatus, stats)));
-                log.Start();
+                Thread stateFile = new Thread((() => StreamHandle.SaveStateFile(Path.Combine(RootPath, settings.Default.StateFile))));
+                stateFile.Start();
 
                 if (statusCode is HttpStatusCode.Unauthorized || statusCode is HttpStatusCode.Forbidden)
                 {
@@ -188,17 +188,5 @@ namespace SearchEngine
             }
         }
 
-        private void Log(string responseStatus, string stats)
-        {
-            var saveDict = new Dictionary<string, string>()
-            {
-                ["response"] = responseStatus,
-                ["stats"] = stats,
-            };
-
-            _statsDict[UserId] = saveDict;
-            StreamHandle.SaveJson(Path.Combine(RootPath, settings.Default.StatsPath, $"User-{UserId}.json"), _statsDict);
-            StreamHandle.SaveStateFile(Path.Combine(RootPath, settings.Default.StateFile));
-        }
     }
 }

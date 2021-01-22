@@ -73,10 +73,9 @@ namespace SearchEngine.Modules
             ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary, ApiHelper.CatcherClient);
 
             // output to console
-            Console.WriteLine($"Catcher: Initializing Engine on user {UserId} ...");
+            Console.WriteLine($"\nCatcher: Initializing engine en user {UserId} ...");
 
         }
-
 
         public void GetAccessToken()
         {
@@ -84,7 +83,6 @@ namespace SearchEngine.Modules
             RequestDataHeadersDictionary[TokenKeyConstant] = AccessToken;
             Console.WriteLine("\nAccess to the service granted!\n");
         }
-
 
         public void SetSpeed(float speed)
         {
