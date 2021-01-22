@@ -79,7 +79,6 @@ namespace SearchEngine
             return false;
         }
 
-
         static async Task SendSnsMessage(string topicArn, string message)
         {
             IAmazonSimpleNotificationService client = new AmazonSimpleNotificationServiceClient();
@@ -92,7 +91,6 @@ namespace SearchEngine
             await client.PublishAsync(request);
         }
 
-
         public async Task AcceptSingleOfferAsync(JToken block)
         {
             long offerTime = (long)block["startTime"];
@@ -101,10 +99,10 @@ namespace SearchEngine
 
             // Validates the calendar schedule for this user
             bool scheduleValidation = ScheduleValidator.ValidateSchedule(offerTime);
-            Console.WriteLine($"Schedule validated: {scheduleValidation}");
+            //Console.WriteLine($"Schedule validated: {scheduleValidation}");
 
             bool areaValidation = ValidateArea(serviceAreaId);
-            Console.WriteLine($"Area validated: {areaValidation}");
+            //Console.WriteLine($"Area validated: {areaValidation}");
 
             if (scheduleValidation && offerPrice >= MinimumPrice && areaValidation)
             {

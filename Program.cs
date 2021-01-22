@@ -23,7 +23,7 @@ namespace SearchEngine
             if (isWindows)
             {
                 // means that probably im running this from my computer. This is the Ec2 private IP
-                string myPrivateTestIp = "172.31.6.114";
+                string myPrivateTestIp = "172.31.12.241";
                 Environment.SetEnvironmentVariable(settings.Default.IpEnvVar, myPrivateTestIp, EnvironmentVariableTarget.User);
             }
 
