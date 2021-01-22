@@ -28,7 +28,6 @@ namespace SearchEngine
         {
             // setup engine details
             InitializeEngine();
-
         }
 
         private async Task<HttpStatusCode> GetOffersAsyncHandle()
@@ -89,6 +88,7 @@ namespace SearchEngine
             };
 
             await client.PublishAsync(request);
+            Console.WriteLine($"Message Send: {message}");
         }
 
         public async Task AcceptSingleOfferAsync(JToken block)
@@ -171,7 +171,7 @@ namespace SearchEngine
                 {
                     // Re-authenticate after the access token has expired
                     GetAccessToken();
-                    Thread.Sleep(20000); // 20 seconds
+                    Thread.Sleep(100000); // 1.66 minutes
                     continue;
                 }
 
@@ -179,6 +179,7 @@ namespace SearchEngine
                 {
                     // Request exceed. Send to SNS topic to terminate the instance. Put to sleep for 31 minutes
                     SendSnsMessage(SleepSnsTopic, UserId).Wait();
+                    Thread.Sleep(1800000); // 30 minutes
                     continue;
                 }
 

@@ -98,28 +98,14 @@ namespace SearchEngine.Modules
             throw new UnauthorizedAccessException($"There is a problem with the authentication.\nReason: {response.Content}");
         }
 
-        private string GetEnvironmentVariable()
-
-        {
-            string privateIp = Environment.GetEnvironmentVariable(settings.Default.IpEnvVar, EnvironmentVariableTarget.User);
-            return privateIp;
-        }
-
         public string GetLocalIpAddress()
         {
             var host = Dns.GetHostEntry(Dns.GetHostName());
-            bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
             foreach (var ip in host.AddressList)
             {
                 if (ip.AddressFamily == AddressFamily.InterNetwork)
                 {
-
-                    if (isWindows)
-                    {
-                        return GetEnvironmentVariable();
-                    }
-
                     return ip.ToString();
                 }
             }
@@ -154,9 +140,18 @@ namespace SearchEngine.Modules
 
         public void Authenticate()
         {
-            // Get the user instance name through the private IP matching these in the available ec2 on account
-            string userInstanceName = GetUserInstance();
-            UserId = userInstanceName.Split("-")[1];
+            bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+            if (isWindows)
+            {
+                UserId = settings.Default.UserId;
+            }
+            else
+            {
+                // Get the user instance name through the private IP matching these in the available ec2 on account
+                string userInstanceName = GetUserInstance();
+                UserId = userInstanceName.Split("-")[1];
+            }
 
             // User data collected from dynamo DB 
             dynamic userData = GetUserData(UserId);
@@ -169,7 +164,6 @@ namespace SearchEngine.Modules
 
             // authenticated for new access token
             AccessToken = Task.Run(() => GetAmazonAccessToken(RefreshToken)).Result;
-
         }
     }
 }
