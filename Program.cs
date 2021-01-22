@@ -11,7 +11,7 @@ namespace SearchEngine
         static void Main(string[] args)
 
         {
-            settings.Default.Version = "Running Version: 22-01-2021 14:26";
+            settings.Default.Version = "Running Version: 22-01-2021 6:24";
             settings.Default.UserId = "12";
 
             // Instance the search engine class
