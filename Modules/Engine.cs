@@ -20,7 +20,6 @@ namespace SearchEngine.Modules
         protected int TotalAcceptedOffers;
         protected int TotalApiCalls;
 
-        protected int ThrottlingTimeOut = settings.Default.ExecutionTimeOut * 60000;
         protected readonly Authenticator Authenticator = new Authenticator();
         protected ScheduleValidator ScheduleValidator;
 

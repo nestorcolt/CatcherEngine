@@ -11,11 +11,14 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SearchEngine.Modules;
 using SearchEngine.Properties;
+using Amazon.SimpleNotificationService;
+using Amazon.SimpleNotificationService.Model;
 
 namespace SearchEngine
 {
     class BlockCatcher : Engine
     {
+        private const string SleepSnsTopic = "arn:aws:sns:us-east-1:320132171574:SE-SLEEP-INSTANCE-SERVICE";
         private readonly Dictionary<string, object> _statsDict = new Dictionary<string, object>();
         private readonly SignatureObject _signature = new SignatureObject();
         private readonly Stopwatch _mainTimer = Stopwatch.StartNew();
@@ -75,6 +78,20 @@ namespace SearchEngine
 
             return false;
         }
+
+
+        static async Task SendSnsMessage(string topicArn, string message)
+        {
+            IAmazonSimpleNotificationService client = new AmazonSimpleNotificationServiceClient();
+            var request = new PublishRequest
+            {
+                TopicArn = topicArn,
+                Message = message
+            };
+
+            await client.PublishAsync(request);
+        }
+
 
         public async Task AcceptSingleOfferAsync(JToken block)
         {
@@ -155,14 +172,14 @@ namespace SearchEngine
                 {
                     // Re-authenticate after the access token has expired
                     GetAccessToken();
-                    Thread.Sleep(10000); // 10 seconds
+                    Thread.Sleep(20000); // 20 seconds
                     continue;
                 }
 
                 if (statusCode is HttpStatusCode.BadRequest || statusCode is HttpStatusCode.TooManyRequests)
                 {
                     // Request exceed. Send to SNS topic to terminate the instance. Put to sleep for 31 minutes
-                    Thread.Sleep(ThrottlingTimeOut);
+                    SendSnsMessage(SleepSnsTopic, UserId).Wait();
                     continue;
                 }
 
