@@ -16,9 +16,9 @@ namespace SearchEngine
         static void Main(string[] args)
 
         {
-            Console.WriteLine($"Running Version: 21-01-2021 15:48");
             bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-            settings.Default.Debug = true;
+            settings.Default.Version = "Running Version: 22-01-2021 12:50";
+            Console.WriteLine(settings.Default.Version);
 
             if (isWindows)
             {

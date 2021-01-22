@@ -159,7 +159,8 @@ namespace SearchEngine
                 // output log to console
                 string responseStatus = $"\nRequest Status >> Reason >> {statusCode}\n";
                 string stats =
-                    $"Start Time: {_startTime}  |  On Air: {_mainTimer.Elapsed}  |  Execution Speed: {watcher.ElapsedMilliseconds / 1000.0}  - | Api Calls: {TotalApiCalls} |" +
+                    $"{settings.Default.Version} | Start Time: {_startTime}  |  On Air: {_mainTimer.Elapsed}  |" +
+                    $" Execution Speed: {watcher.ElapsedMilliseconds / 1000.0}  - | Api Calls: {TotalApiCalls} |" +
                     $"  - OFFERS DATA >> Total: {TotalOffersCounter} -- Accepted: {TotalAcceptedOffers}";
 
                 Console.WriteLine(responseStatus);
