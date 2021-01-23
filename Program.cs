@@ -22,7 +22,7 @@ namespace SearchEngine
             BlockCatcher catcher = new BlockCatcher(authenticator);
 
             // Main loop method is being called here
-            //catcher.LookingForBlocksLegacy();
+            catcher.LookingForBlocksLegacy();
         }
     }
 }

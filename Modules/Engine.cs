@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SearchEngine.Properties;
@@ -15,6 +17,7 @@ namespace SearchEngine.Modules
 
     {
         protected Dictionary<string, string> RequestDataHeadersDictionary = new Dictionary<string, string>();
+        protected static readonly bool IsWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
         protected string ServiceAreaFilterData;
         protected int TotalOffersCounter;
         protected int TotalAcceptedOffers;
@@ -71,15 +74,23 @@ namespace SearchEngine.Modules
             ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary, ApiHelper.CatcherClient);
 
             // output to console
-            Console.WriteLine($"\nCatcher: Initializing engine en user {UserId} ...");
+            Log($"\nCatcher: Initializing engine en user {UserId} ...");
+        }
 
+        public void Log(string message)
+        {
+            if (IsWindows)
+                Console.WriteLine(message);
+
+
+            CloudLogger.LogToSnsAsync(message, $"User-{UserId}").Wait();
         }
 
         public void GetAccessToken()
         {
             AccessToken = Authenticator.GetAmazonAccessToken(RefreshToken).Result;
             RequestDataHeadersDictionary[TokenKeyConstant] = AccessToken;
-            Console.WriteLine("\nAccess to the service granted!\n");
+            Log("\nAccess to the service granted!\n");
         }
 
         public void SetSpeed(float speed)
@@ -89,7 +100,6 @@ namespace SearchEngine.Modules
 
         public int GetTimestamp()
         {
-
             TimeSpan time = (DateTime.UtcNow - new DateTime(1970, 1, 1));
             int timestamp = (int)time.TotalSeconds;
             return timestamp;
@@ -97,7 +107,6 @@ namespace SearchEngine.Modules
 
         private string GetServiceAreaId()
         {
-
             ApiHelper.ApiClient.DefaultRequestHeaders.Add(TokenKeyConstant, AccessToken);
             HttpResponseMessage content = ApiHelper.GetDataAsync(ApiHelper.ServiceAreaUri).Result;
             JObject requestToken = ApiHelper.GetRequestJTokenAsync(content).Result;

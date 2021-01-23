@@ -91,7 +91,6 @@ namespace SearchEngine
             };
 
             await client.PublishAsync(request);
-            Console.WriteLine($"Message Send: {message}");
         }
 
         public async Task AcceptSingleOfferAsync(JToken block)
@@ -143,13 +142,45 @@ namespace SearchEngine
             });
         }
 
+        private void CreateStreams(string statusCode, long elapsed)
+        {
+            // output log to console
+            string responseStatus = $"\nRequest Status >> Reason >> {statusCode}\n";
+            string stats =
+                $"{settings.Default.Version} | Start Time: {_startTime}  |  On Air: {_mainTimer.Elapsed}  |" +
+                $" Execution Speed: {elapsed / 1000.0}  - | Api Calls: {TotalApiCalls} |" +
+                $"  - OFFERS DATA >> Total: {TotalOffersCounter} -- Accepted: {TotalAcceptedOffers}";
+
+            // windows streams
+            if (IsWindows)
+            {
+                Console.WriteLine(responseStatus);
+                Console.WriteLine(stats);
+            }
+
+            // Logs to cloud watch
+            if (CloudLogger.SecondsCounter >= CloudLogger.SendMessageInSecondsThreshold)
+            {
+                // restore counter
+                CloudLogger.SecondsCounter = 0;
+
+                // send the message
+                Log(responseStatus);
+                Log(stats);
+            }
+
+            CloudLogger.SecondsCounter++;
+
+            // state file on disk
+            StreamHandle.SaveStateFile(Path.Combine(RootPath, settings.Default.StateFile));
+        }
+
         public void LookingForBlocksLegacy()
         {
             Stopwatch watcher = Stopwatch.StartNew();
-            Console.WriteLine("\t- Search Loop Status: ON");
+            Log("\t- Search Loop Status: ON");
 
             while (true)
-
             {
                 // start logic here main request
                 HttpStatusCode statusCode = GetOffersAsyncHandle().Result;
@@ -157,19 +188,12 @@ namespace SearchEngine
                 // custom delay to save request
                 Thread.Sleep((int)Speed);
 
-                // output log to console
-                string responseStatus = $"\nRequest Status >> Reason >> {statusCode}\n";
-                string stats =
-                    $"{settings.Default.Version} | Start Time: {_startTime}  |  On Air: {_mainTimer.Elapsed}  |" +
-                    $" Execution Speed: {watcher.ElapsedMilliseconds / 1000.0}  - | Api Calls: {TotalApiCalls} |" +
-                    $"  - OFFERS DATA >> Total: {TotalOffersCounter} -- Accepted: {TotalAcceptedOffers}";
+                // Stream Logs
+                long elapsed = watcher.ElapsedMilliseconds;
+                Thread streamLogs = new Thread((() => CreateStreams(statusCode.ToString(), elapsed)));
+                streamLogs.Start();
 
-                Console.WriteLine(responseStatus);
-                Console.WriteLine(stats);
-
-                Thread stateFile = new Thread((() => StreamHandle.SaveStateFile(Path.Combine(RootPath, settings.Default.StateFile))));
-                stateFile.Start();
-
+                // validations on errors
                 if (statusCode is HttpStatusCode.Unauthorized || statusCode is HttpStatusCode.Forbidden)
                 {
                     // Re-authenticate after the access token has expired
@@ -181,6 +205,7 @@ namespace SearchEngine
                 if (statusCode is HttpStatusCode.BadRequest || statusCode is HttpStatusCode.TooManyRequests)
                 {
                     // Request exceed. Send to SNS topic to terminate the instance. Put to sleep for 31 minutes
+                    Log($"\nRequest Status >> Reason >> {statusCode}\n");
                     SendSnsMessage(SleepSnsTopic, UserId).Wait();
                     Thread.Sleep(1800000); // 30 minutes
                     continue;
@@ -190,6 +215,5 @@ namespace SearchEngine
                 watcher.Restart();
             }
         }
-
     }
 }
