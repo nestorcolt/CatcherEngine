@@ -20,8 +20,8 @@ namespace SearchEngine.Modules
         protected int TotalAcceptedOffers;
         protected int TotalApiCalls;
 
-        protected readonly Authenticator Authenticator = new Authenticator();
         protected ScheduleValidator ScheduleValidator;
+        protected Authenticator Authenticator;
 
         public const string TokenKeyConstant = "x-amz-access-token";
         public JToken SearchSchedule;
@@ -41,8 +41,6 @@ namespace SearchEngine.Modules
             StreamHandle.SaveStateFile(Path.Combine(RootPath, settings.Default.StateFile));
 
             // Get user data from dynamo DB through and Ec2 instance private IP matching with user ID
-            Authenticator.Authenticate();
-
             UserId = Authenticator.UserId;
             AccessToken = Authenticator.AccessToken;
             RefreshToken = Authenticator.RefreshToken;

@@ -24,8 +24,11 @@ namespace SearchEngine
         private readonly Stopwatch _mainTimer = Stopwatch.StartNew();
         private readonly DateTime _startTime = DateTime.Now;
 
-        public BlockCatcher()
+        public BlockCatcher(Authenticator authenticator)
         {
+            // This can be changed to SNSEvents for serverless
+            Authenticator = authenticator;
+
             // setup engine details
             InitializeEngine();
         }

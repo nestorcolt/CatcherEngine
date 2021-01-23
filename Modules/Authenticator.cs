@@ -19,6 +19,7 @@ namespace SearchEngine.Modules
     class Authenticator
     {
         private const string AuthTokenUrl = "https://api.amazon.com/auth/token";
+
         public string UserId;
         public string RefreshToken;
         public string AccessToken;
@@ -26,6 +27,7 @@ namespace SearchEngine.Modules
         public float Speed;
         public List<string> Areas;
         public JToken SearchSchedule;
+
 
         private dynamic GetUserData(string userId)
 
