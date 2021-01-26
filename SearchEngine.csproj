@@ -1,15 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	<OutputType>Exe</OutputType>
+	<OutputType>Library</OutputType>
 	<TargetFramework>netcoreapp3.1</TargetFramework>
+	<GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
 	<AssemblyName>SearchEngine</AssemblyName>
 	<Company>Block In Service</Company>
 	<Authors>Nestor Colt</Authors>
+	<AWSProjectType>Lambda</AWSProjectType>
 	<StartupObject></StartupObject>
+	<!-- This property makes the build directory similar to a publish directory and helps the AWS .NET Lambda Mock Test Tool find project dependencies. -->
+	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
+	  <PackageReference Include="Amazon.Lambda.Core" Version="1.2.0" />
+	  <PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson" Version="2.1.0" />
+	  <PackageReference Include="Amazon.Lambda.APIGatewayEvents" Version="2.4.0" />
 	  <PackageReference Include="Amazon.Lambda.SNSEvents" Version="1.2.0" />
 	  <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.5.4.18" />
 	  <PackageReference Include="AWSSDK.EC2" Version="3.5.28.6" />
