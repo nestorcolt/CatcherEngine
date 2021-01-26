@@ -18,22 +18,22 @@ namespace SearchEngine.Serverless
         [LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
         public async Task<string> FunctionHandler(SNSEvent userData, ILambdaContext context)
         {
-            settings.Default.Version = "Running Version: 26-01-2021 21:40";
+            settings.Default.Version = "Running Version: 26-01-2021 23:49";
             UserDto userDto = JsonConvert.DeserializeObject<UserDto>(userData.Records[0].Sns.Message);
+            string logUserId = $"User-{userDto.UserId}";
 
             try
             {
                 BlockCatcher catcher = new BlockCatcher(userDto);
+                await catcher.LookingForBlocksLegacy();
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                throw;
+                await CloudLogger.LogToSnsAsync(message: e.ToString(), subject: logUserId);
             }
 
             HttpStatusCode responseCode = HttpStatusCode.Accepted;
             return responseCode.ToString();
-
         }
     }
 }

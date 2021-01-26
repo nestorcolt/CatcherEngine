@@ -18,17 +18,23 @@ namespace SearchEngine.Serverless
         [LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
         public async Task<string> FunctionHandler(SNSEvent userData, ILambdaContext context)
         {
-
             JObject message = JObject.Parse(userData.Records[0].Sns.Message);
             string userId = message["user_id"].ToString();
             string refreshToken = message["refresh_token"].ToString();
+            string logUserId = $"User-{userId}";
 
-            Authenticator authenticate = new Authenticator();
-            await authenticate.Authenticate(refreshToken, userId);
+            try
+            {
+                Authenticator authenticate = new Authenticator();
+                await authenticate.Authenticate(refreshToken, userId);
+            }
+            catch (Exception e)
+            {
+                await CloudLogger.LogToSnsAsync(message: e.ToString(), subject: logUserId);
+            }
 
             HttpStatusCode responseCode = HttpStatusCode.Accepted;
             return responseCode.ToString();
-
         }
     }
 }
