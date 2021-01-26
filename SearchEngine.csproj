@@ -34,7 +34,10 @@
   </ItemGroup>
 
   <ItemGroup>
-	<None Update="Modules\schedule.json">
+	<None Update="Data\BlockModel.json">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	</None>
+	<None Update="Data\ScheduleModel.json">
 	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	</None>
 	<None Update="Properties\settings.settings">
