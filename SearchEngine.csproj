@@ -4,7 +4,7 @@
 	<OutputType>Exe</OutputType>
 	<TargetFramework>netcoreapp3.1</TargetFramework>
 	<AssemblyName>SearchEngine</AssemblyName>
-	<Company>Oh My Catch</Company>
+	<Company>Block In Service</Company>
 	<Authors>Nestor Colt</Authors>
 	<StartupObject></StartupObject>
   </PropertyGroup>
