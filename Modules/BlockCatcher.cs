@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -10,20 +9,16 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SearchEngine.Properties;
-using Amazon.SimpleNotificationService;
-using Amazon.SimpleNotificationService.Model;
 
 namespace SearchEngine.Modules
 {
     class BlockCatcher : Engine
     {
-        private const string SleepSnsTopic = "arn:aws:sns:us-east-1:320132171574:SE-SLEEP-INSTANCE-SERVICE";
-        private readonly Dictionary<string, object> _statsDict = new Dictionary<string, object>();
         private readonly SignatureObject _signature = new SignatureObject();
         private readonly Stopwatch _mainTimer = Stopwatch.StartNew();
         private readonly DateTime _startTime = DateTime.Now;
 
-        public BlockCatcher(Authenticator authenticator)
+        public BlockCatcher(UserDto authenticator)
         {
             // This can be changed to SNSEvents for serverless
             Authenticator = authenticator;
@@ -78,18 +73,6 @@ namespace SearchEngine.Modules
                 return true;
 
             return false;
-        }
-
-        static async Task SendSnsMessage(string topicArn, string message)
-        {
-            IAmazonSimpleNotificationService client = new AmazonSimpleNotificationServiceClient();
-            var request = new PublishRequest
-            {
-                TopicArn = topicArn,
-                Message = message
-            };
-
-            await client.PublishAsync(request);
         }
 
         public async Task AcceptSingleOfferAsync(JToken block)
@@ -148,14 +131,7 @@ namespace SearchEngine.Modules
             string stats =
                 $"{settings.Default.Version} | Start Time: {_startTime}  |  On Air: {_mainTimer.Elapsed}  |" +
                 $" Execution Speed: {elapsed / 1000.0}  - | Api Calls: {TotalApiCalls} |" +
-                $"  - OFFERS DATA >> Total: {TotalOffersCounter} -- Accepted: {TotalAcceptedOffers}";
-
-            // windows streams
-            if (IsWindows)
-            {
-                Console.WriteLine(responseStatus);
-                Console.WriteLine(stats);
-            }
+                $" - OFFERS DATA >> Total: {TotalOffersCounter} -- Accepted: {TotalAcceptedOffers}";
 
             // Logs to cloud watch
             if (CloudLogger.SecondsCounter >= CloudLogger.SendMessageInSecondsThreshold)
@@ -169,49 +145,27 @@ namespace SearchEngine.Modules
             }
 
             CloudLogger.SecondsCounter++;
-
-            // state file on disk
-            StreamHandle.SaveStateFile(Path.Combine(RootPath, settings.Default.StateFile));
         }
 
-        public void LookingForBlocksLegacy()
+        public async Task LookingForBlocksLegacy()
         {
             Stopwatch watcher = Stopwatch.StartNew();
-            Log("\t- Search Loop Status: ON");
+            Log($"\t- User {UserId} looking for blocks...");
 
-            while (true)
+            // start logic here main request
+            HttpStatusCode statusCode = await GetOffersAsyncHandle();
+
+            // custom delay to save request
+            Thread.Sleep((int)Speed);
+
+            // Stream Logs
+            CreateStreams(statusCode.ToString(), watcher.ElapsedMilliseconds);
+
+            if (statusCode is HttpStatusCode.BadRequest || statusCode is HttpStatusCode.TooManyRequests)
             {
-                // start logic here main request
-                HttpStatusCode statusCode = GetOffersAsyncHandle().Result;
-
-                // custom delay to save request
-                Thread.Sleep((int)Speed);
-
-                // Stream Logs
-                long elapsed = watcher.ElapsedMilliseconds;
-                Thread streamLogs = new Thread((() => CreateStreams(statusCode.ToString(), elapsed)));
-                streamLogs.Start();
-
-                // validations on errors
-                if (statusCode is HttpStatusCode.Unauthorized || statusCode is HttpStatusCode.Forbidden)
-                {
-                    // Re-authenticate after the access token has expired
-                    GetAccessToken();
-                    Thread.Sleep(100000); // 1.66 minutes
-                    continue;
-                }
-
-                if (statusCode is HttpStatusCode.BadRequest || statusCode is HttpStatusCode.TooManyRequests)
-                {
-                    // Request exceed. Send to SNS topic to terminate the instance. Put to sleep for 31 minutes
-                    Log($"\nRequest Status >> Reason >> {statusCode}\n");
-                    SendSnsMessage(SleepSnsTopic, UserId).Wait();
-                    Thread.Sleep(1800000); // 30 minutes
-                    continue;
-                }
-
-                // restart counter to measure performance
-                watcher.Restart();
+                // Request exceed. Send to SNS topic to terminate the instance. Put to sleep for 31 minutes
+                Log($"\nRequest Status >> Reason >> {statusCode}\n");
+                SendSnsMessage(SleepSnsTopic, UserId).Wait();
             }
         }
     }

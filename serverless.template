@@ -22,7 +22,8 @@
         "Policies": [
           "AWSLambdaBasicExecutionRole",
           "AmazonSNSFullAccess",
-          "AmazonDynamoDBFullAccess"
+          "AmazonDynamoDBFullAccess",
+          "CloudWatchLogsFullAccess"
         ],
         "Events":{
             "SnsEvent": {
@@ -47,7 +48,8 @@
         "Policies": [
           "AWSLambdaBasicExecutionRole",
           "AmazonSNSFullAccess",
-          "AmazonDynamoDBFullAccess"
+          "AmazonDynamoDBFullAccess",
+          "CloudWatchLogsFullAccess"
         ],
         "Events":{
             "SnsEvent": {

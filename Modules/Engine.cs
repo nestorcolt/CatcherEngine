@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Net;
 using System.Net.Http;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Amazon.SimpleNotificationService;
+using Amazon.SimpleNotificationService.Model;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SearchEngine.Properties;
@@ -16,15 +17,17 @@ namespace SearchEngine.Modules
     // Will used asynchronous programming and multi-threading to speed up the process and the API request.
 
     {
+        protected string AuthenticationSnsTopic = $"arn:aws:sns:us-east-1:{settings.Default.AWSAccountId}:SE-AUTHENTICATE-SERVICE";
+        protected string SleepSnsTopic = $"arn:aws:sns:us-east-1:{settings.Default.AWSAccountId}:SE-SLEEP-INSTANCE-SERVICE";
         protected Dictionary<string, string> RequestDataHeadersDictionary = new Dictionary<string, string>();
-        protected static readonly bool IsWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
         protected string ServiceAreaFilterData;
         protected int TotalOffersCounter;
         protected int TotalAcceptedOffers;
         protected int TotalApiCalls;
 
         protected ScheduleValidator ScheduleValidator;
-        protected Authenticator Authenticator;
+        protected UserDto Authenticator;
 
         public const string TokenKeyConstant = "x-amz-access-token";
         public JToken SearchSchedule;
@@ -36,26 +39,22 @@ namespace SearchEngine.Modules
         public string UserId;
 
         public string AppVersion => settings.Default.FlexAppVersion;
-        public readonly string RootPath = AppDomain.CurrentDomain.BaseDirectory;
 
         public void InitializeEngine()
         {
-            // Create a file to make touch on the modification date and see if the process is still working
-            StreamHandle.SaveStateFile(Path.Combine(RootPath, settings.Default.StateFile));
-
             // Get user data from dynamo DB through and Ec2 instance private IP matching with user ID
-            //UserId = Authenticator.UserId;
-            //AccessToken = Authenticator.AccessToken;
-            //RefreshToken = Authenticator.RefreshToken;
-            //MinimumPrice = Authenticator.MinimumPrice;
-            //SearchSchedule = Authenticator.SearchSchedule;
-            //Areas = Authenticator.Areas;
+            UserId = Authenticator.UserId;
+            AccessToken = Authenticator.AccessToken;
+            RefreshToken = Authenticator.RefreshToken;
+            MinimumPrice = Authenticator.MinimumPrice;
+            SearchSchedule = Authenticator.SearchSchedule;
+            Areas = Authenticator.Areas;
 
-            //// Set token in request dictionary
-            //RequestDataHeadersDictionary[TokenKeyConstant] = AccessToken;
+            // Set token in request dictionary
+            RequestDataHeadersDictionary[TokenKeyConstant] = AccessToken;
 
-            //// set bot speed delay
-            //SetSpeed(Authenticator.Speed);
+            // set bot speed delay
+            SetSpeed(Authenticator.Speed);
 
             // refactor user schedule to unix format slot list
             ScheduleValidator = new ScheduleValidator(SearchSchedule);
@@ -74,41 +73,23 @@ namespace SearchEngine.Modules
             ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary, ApiHelper.CatcherClient);
 
             // output to console
-            Log($"\nCatcher: Initializing engine en user {UserId} ...");
-        }
-
-        public void Log(string message)
-        {
-            if (IsWindows)
-                Console.WriteLine(message);
-
-
-            CloudLogger.LogToSnsAsync(message, $"User-{UserId}").Wait();
-        }
-
-        public void GetAccessToken()
-        {
-            //AccessToken = Authenticator.GetAmazonAccessToken(RefreshToken).Result;
-            RequestDataHeadersDictionary[TokenKeyConstant] = AccessToken;
-            Log("\nAccess to the service granted!\n");
-        }
-
-        public void SetSpeed(float speed)
-        {
-            Speed = (int)((speed - settings.Default.SpeedOffset) * 1000.0f);
-        }
-
-        public int GetTimestamp()
-        {
-            TimeSpan time = (DateTime.UtcNow - new DateTime(1970, 1, 1));
-            int timestamp = (int)time.TotalSeconds;
-            return timestamp;
+            Log($"\nInitializing engine on user {UserId} ...");
         }
 
         private string GetServiceAreaId()
         {
             ApiHelper.ApiClient.DefaultRequestHeaders.Add(TokenKeyConstant, AccessToken);
             HttpResponseMessage content = ApiHelper.GetDataAsync(ApiHelper.ServiceAreaUri).Result;
+
+            // validations on errors
+            if (content.StatusCode is HttpStatusCode.Unauthorized || content.StatusCode is HttpStatusCode.Forbidden)
+            {
+                // Re-authenticate after the access token has expired
+                RequestNewAccessToken();
+                Environment.Exit(0);
+            }
+
+            // continue if the validation succeed
             JObject requestToken = ApiHelper.GetRequestJTokenAsync(content).Result;
             JToken result = requestToken.GetValue("serviceAreaIds");
 
@@ -116,6 +97,40 @@ namespace SearchEngine.Modules
                 return (string)result[0];
 
             return null;
+        }
+
+        public void Log(string message)
+        {
+            CloudLogger.LogToSnsAsync(message, $"User-{UserId}").Wait();
+        }
+
+        public void RequestNewAccessToken()
+        {
+            SendSnsMessage(AuthenticationSnsTopic, JsonConvert.SerializeObject(Authenticator)).Wait();
+        }
+
+        public async Task SendSnsMessage(string topicArn, string message)
+        {
+            IAmazonSimpleNotificationService client = new AmazonSimpleNotificationServiceClient();
+            var request = new PublishRequest
+            {
+                TopicArn = topicArn,
+                Message = message
+            };
+
+            await client.PublishAsync(request);
+        }
+
+        public void SetSpeed(float speed)
+        {
+            Speed = (int)(speed * 1000.0f);
+        }
+
+        public int GetTimestamp()
+        {
+            TimeSpan time = (DateTime.UtcNow - new DateTime(1970, 1, 1));
+            int timestamp = (int)time.TotalSeconds;
+            return timestamp;
         }
 
         private void SetServiceArea()

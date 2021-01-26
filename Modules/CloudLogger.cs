@@ -2,12 +2,13 @@
 using System.Threading.Tasks;
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
+using SearchEngine.Properties;
 
 namespace SearchEngine.Modules
 {
     static class CloudLogger
     {
-        private const string LogToCloudTopic = "arn:aws:sns:us-east-1:320132171574:SE-LOGS-SERVICE";
+        public static string LogToCloudTopic = $"arn:aws:sns:us-east-1:{settings.Default.AWSAccountId}:SE-LOGS-SERVICE";
         public static int SendMessageInSecondsThreshold = 60;
         public static int SecondsCounter;
 

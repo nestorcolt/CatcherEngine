@@ -20,7 +20,10 @@ namespace SearchEngine.Modules
         public long LastActive { get; set; }
 
         [DataMember(Name = "minimum_price")]
-        public long MinimumPrice { get; set; }
+        public float MinimumPrice { get; set; }
+
+        [DataMember(Name = "speed")]
+        public float Speed { get; set; }
 
         [DataMember(Name = "search_schedule")]
         public JToken SearchSchedule { get; set; }

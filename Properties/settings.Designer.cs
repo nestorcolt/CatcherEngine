@@ -25,18 +25,6 @@ namespace SearchEngine.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool Debug {
-            get {
-                return ((bool)(this["Debug"]));
-            }
-            set {
-                this["Debug"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("3.39.29.0")]
         public string FlexAppVersion {
             get {
@@ -44,30 +32,6 @@ namespace SearchEngine.Properties {
             }
             set {
                 this["FlexAppVersion"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("31")]
-        public int ExecutionTimeOut {
-            get {
-                return ((int)(this["ExecutionTimeOut"]));
-            }
-            set {
-                this["ExecutionTimeOut"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0.158")]
-        public float SpeedOffset {
-            get {
-                return ((float)(this["SpeedOffset"]));
-            }
-            set {
-                this["SpeedOffset"] = value;
             }
         }
         
@@ -133,30 +97,6 @@ namespace SearchEngine.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("../.")]
-        public string StatsPath {
-            get {
-                return ((string)(this["StatsPath"]));
-            }
-            set {
-                this["StatsPath"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("../StateFile.json")]
-        public string StateFile {
-            get {
-                return ((string)(this["StateFile"]));
-            }
-            set {
-                this["StateFile"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("\"\"")]
         public string Version {
             get {
@@ -169,13 +109,13 @@ namespace SearchEngine.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public string UserId {
+        [global::System.Configuration.DefaultSettingValueAttribute("436783151981")]
+        public string AWSAccountId {
             get {
-                return ((string)(this["UserId"]));
+                return ((string)(this["AWSAccountId"]));
             }
             set {
-                this["UserId"] = value;
+                this["AWSAccountId"] = value;
             }
         }
     }

@@ -19,7 +19,6 @@ namespace SearchEngine.Modules
         public static string OffersUri = "GetOffersForProviderPost";
         public static string ServiceAreaUri = "eligibleServiceAreas";
 
-
         public static HttpClient ApiClient { get; set; }
         public static HttpClient CatcherClient { get; set; }
         public static HttpClientHandler CatcherClientHandler { get; set; }
@@ -54,7 +53,6 @@ namespace SearchEngine.Modules
         {
             ServicePointManager.FindServicePoint(new Uri(url)).ConnectionLimit = maxConcurrentRequests;
         }
-
 
         public static async Task<HttpResponseMessage> GetDataAsync(string uri, HttpClient customClient = null)
         {

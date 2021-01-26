@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.SNSEvents;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using SearchEngine.Properties;
 using SearchEngine.Modules;
 
@@ -20,10 +19,17 @@ namespace SearchEngine.Serverless
         public async Task<string> FunctionHandler(SNSEvent userData, ILambdaContext context)
         {
             settings.Default.Version = "Running Version: 26-01-2021 21:40";
-            settings.Default.UserId = "11";
+            UserDto userDto = JsonConvert.DeserializeObject<UserDto>(userData.Records[0].Sns.Message);
 
-            UserDto user = JsonConvert.DeserializeObject<UserDto>(userData.Records[0].Sns.Message);
-            Console.WriteLine(user.UserId);
+            try
+            {
+                BlockCatcher catcher = new BlockCatcher(userDto);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
 
             HttpStatusCode responseCode = HttpStatusCode.Accepted;
             return responseCode.ToString();

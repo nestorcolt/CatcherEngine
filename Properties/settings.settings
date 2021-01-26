@@ -2,17 +2,8 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="SearchEngine.Properties" GeneratedClassName="settings">
   <Profiles />
   <Settings>
-    <Setting Name="Debug" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
-    </Setting>
     <Setting Name="FlexAppVersion" Type="System.String" Scope="User">
       <Value Profile="(Default)">3.39.29.0</Value>
-    </Setting>
-    <Setting Name="ExecutionTimeOut" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">31</Value>
-    </Setting>
-    <Setting Name="SpeedOffset" Type="System.Single" Scope="User">
-      <Value Profile="(Default)">0.158</Value>
     </Setting>
     <Setting Name="DeviceModel" Type="System.String" Scope="User">
       <Value Profile="(Default)">SM-G977N</Value>
@@ -29,17 +20,11 @@
     <Setting Name="UserPk" Type="System.String" Scope="User">
       <Value Profile="(Default)">user_id</Value>
     </Setting>
-    <Setting Name="StatsPath" Type="System.String" Scope="User">
-      <Value Profile="(Default)">../.</Value>
-    </Setting>
-    <Setting Name="StateFile" Type="System.String" Scope="User">
-      <Value Profile="(Default)">../StateFile.json</Value>
-    </Setting>
     <Setting Name="Version" Type="System.String" Scope="User">
       <Value Profile="(Default)">""</Value>
     </Setting>
-    <Setting Name="UserId" Type="System.String" Scope="User">
-      <Value Profile="(Default)">0</Value>
+    <Setting Name="AWSAccountId" Type="System.String" Scope="User">
+      <Value Profile="(Default)">436783151981</Value>
     </Setting>
   </Settings>
 </SettingsFile>
