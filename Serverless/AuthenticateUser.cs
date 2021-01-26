@@ -3,7 +3,8 @@ using System.Net;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.SNSEvents;
-using SearchEngine.Properties;
+using Newtonsoft.Json.Linq;
+using SearchEngine.Modules;
 
 
 // The Main program for looking, catching and accepting blocks for the amazon flex service. Automate the process and handle a single user process instance and this needs
@@ -18,11 +19,13 @@ namespace SearchEngine.Serverless
         public async Task<string> FunctionHandler(SNSEvent userData, ILambdaContext context)
         {
 
-            foreach (var record in userData.Records)
-            {
-                var snsRecord = record.Sns;
-                Console.WriteLine($"[{record.EventSource} {snsRecord.Timestamp}] Message = {snsRecord.Message}");
-            }
+            JObject message = JObject.Parse(userData.Records[0].Sns.Message);
+            string userId = message["user_id"].ToString();
+            string refreshToken = message["refresh_token"].ToString();
+
+            Authenticator authenticate = new Authenticator();
+            await authenticate.Authenticate(refreshToken, userId);
+
             HttpStatusCode responseCode = HttpStatusCode.Accepted;
             return responseCode.ToString();
 

@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DocumentModel;
+using Amazon.DynamoDBv2.Model;
 using Amazon.EC2;
 using Amazon.EC2.Model;
 using Newtonsoft.Json;
@@ -19,54 +20,25 @@ namespace SearchEngine.Modules
     class Authenticator
     {
         private const string AuthTokenUrl = "https://api.amazon.com/auth/token";
+        private const string UserPk = "user_id";
 
-        public string UserId;
-        public string RefreshToken;
-        public string AccessToken;
-        public float MinimumPrice;
-        public float Speed;
-        public List<string> Areas;
-        public JToken SearchSchedule;
-
-
-        private dynamic GetUserData(string userId)
-
+        private async Task SetUserData(string userId, string data)
         {
             /*
              * Get the user data making a query to dynamo db table Users parsing the user_id 
              */
             AmazonDynamoDBClient client = new AmazonDynamoDBClient();
-            ScanFilter scanFilter = new ScanFilter();
-            Table usersTable = Table.LoadTable(client, settings.Default.UsersTable);
-            scanFilter.AddCondition(settings.Default.UserPk, ScanOperator.Equal, userId);
-
-            Search search = usersTable.Scan(scanFilter);
-            List<dynamic> results = new List<dynamic>();
-
-            do
+            var item = new Dictionary<string, AttributeValue>()
             {
-                var docList = search.GetNextSetAsync();
+                {UserPk,  new AttributeValue { S = userId }},
+                {"access_token",  new AttributeValue { S = data }}
 
-                docList.Result.ForEach(document =>
+            };
 
-                {
-                    dynamic attribute = JsonConvert.DeserializeObject(document.ToJson());
-                    results.Add(attribute);
-                });
-            } while (!search.IsDone);
-
-            if (results.Count == 0)
-            {
-                var exception = new AmazonDynamoDBException($"ERROR: Not user found in 'Users Table' with index {userId}.\nAborting ...\n");
-                Console.WriteLine(exception.Message);
-                Environment.Exit(0);
-            }
-
-            return results[0];
+            await client.PutItemAsync("Users", item);
         }
 
-
-        public static async Task<string> GetAmazonAccessToken(string refreshToken)
+        private static async Task<string> GetAmazonAccessToken(string refreshToken)
         {
             var authenticationHeader = new Dictionary<string, string>
             {
@@ -100,72 +72,11 @@ namespace SearchEngine.Modules
             throw new UnauthorizedAccessException($"There is a problem with the authentication.\nReason: {response.Content}");
         }
 
-        public string GetLocalIpAddress()
+        public async Task Authenticate(string refreshToken, string userId)
         {
-            var host = Dns.GetHostEntry(Dns.GetHostName());
-
-            foreach (var ip in host.AddressList)
-            {
-                if (ip.AddressFamily == AddressFamily.InterNetwork)
-                {
-                    return ip.ToString();
-                }
-            }
-
-            throw new Exception("No network adapters with an IPv4 address in the system!");
-        }
-
-        private string GetUserInstance()
-        {
-            /*
-             * Gets the user instance iterating over all available and if finds one that match with my private IP
-             * will get the name tag from it and return this string value which will be something like User-1010 like
-             */
-            AmazonEC2Client amazonEc2Client = new AmazonEC2Client();
-            var response = amazonEc2Client.DescribeInstancesAsync(new DescribeInstancesRequest { });
-            string myPrivateIp = GetLocalIpAddress();
-            string instanceName = null;
-
-            foreach (var instance in response.Result.Reservations)
-            {
-                string privateIp = instance.Instances[0].PrivateIpAddress;
-
-                if (myPrivateIp == privateIp)
-                {
-                    instanceName = instance.Instances[0].Tags.Find(x => x.Key == "Name").Value;
-                    break;
-                }
-            }
-
-            return instanceName;
-        }
-
-        public void Authenticate()
-        {
-            bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-
-            if (isWindows)
-            {
-                UserId = settings.Default.UserId;
-            }
-            else
-            {
-                // Get the user instance name through the private IP matching these in the available ec2 on account
-                string userInstanceName = GetUserInstance();
-                UserId = userInstanceName.Split("-")[1];
-            }
-
-            // User data collected from dynamo DB 
-            dynamic userData = GetUserData(UserId);
-
-            SearchSchedule = userData["search_schedule"].ToObject<JToken>();
-            Areas = userData["areas"].ToObject<List<string>>();
-            RefreshToken = userData["refresh_token"];
-            MinimumPrice = userData["minimum_price"];
-            Speed = userData["speed"];
-
             // authenticated for new access token
-            AccessToken = Task.Run(() => GetAmazonAccessToken(RefreshToken)).Result;
+            string accessToken = Task.Run(() => GetAmazonAccessToken(refreshToken)).Result;
+            await SetUserData(userId, accessToken);
         }
     }
 }

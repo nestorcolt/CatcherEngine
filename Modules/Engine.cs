@@ -44,18 +44,18 @@ namespace SearchEngine.Modules
             StreamHandle.SaveStateFile(Path.Combine(RootPath, settings.Default.StateFile));
 
             // Get user data from dynamo DB through and Ec2 instance private IP matching with user ID
-            UserId = Authenticator.UserId;
-            AccessToken = Authenticator.AccessToken;
-            RefreshToken = Authenticator.RefreshToken;
-            MinimumPrice = Authenticator.MinimumPrice;
-            SearchSchedule = Authenticator.SearchSchedule;
-            Areas = Authenticator.Areas;
+            //UserId = Authenticator.UserId;
+            //AccessToken = Authenticator.AccessToken;
+            //RefreshToken = Authenticator.RefreshToken;
+            //MinimumPrice = Authenticator.MinimumPrice;
+            //SearchSchedule = Authenticator.SearchSchedule;
+            //Areas = Authenticator.Areas;
 
-            // Set token in request dictionary
-            RequestDataHeadersDictionary[TokenKeyConstant] = AccessToken;
+            //// Set token in request dictionary
+            //RequestDataHeadersDictionary[TokenKeyConstant] = AccessToken;
 
-            // set bot speed delay
-            SetSpeed(Authenticator.Speed);
+            //// set bot speed delay
+            //SetSpeed(Authenticator.Speed);
 
             // refactor user schedule to unix format slot list
             ScheduleValidator = new ScheduleValidator(SearchSchedule);
@@ -88,7 +88,7 @@ namespace SearchEngine.Modules
 
         public void GetAccessToken()
         {
-            AccessToken = Authenticator.GetAmazonAccessToken(RefreshToken).Result;
+            //AccessToken = Authenticator.GetAmazonAccessToken(RefreshToken).Result;
             RequestDataHeadersDictionary[TokenKeyConstant] = AccessToken;
             Log("\nAccess to the service granted!\n");
         }

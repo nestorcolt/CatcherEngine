@@ -21,7 +21,8 @@
         "Timeout": 30,
         "Policies": [
           "AWSLambdaBasicExecutionRole",
-          "AmazonSNSFullAccess"
+          "AmazonSNSFullAccess",
+          "AmazonDynamoDBFullAccess"
         ],
         "Events":{
             "SnsEvent": {
@@ -45,7 +46,8 @@
         "Timeout": 30,
         "Policies": [
           "AWSLambdaBasicExecutionRole",
-          "AmazonSNSFullAccess"
+          "AmazonSNSFullAccess",
+          "AmazonDynamoDBFullAccess"
         ],
         "Events":{
             "SnsEvent": {
