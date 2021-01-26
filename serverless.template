@@ -3,36 +3,23 @@
   "Transform": "AWS::Serverless-2016-10-31",
   "Description": "An AWS Serverless Application.",
   "Resources": {
-    "Get": {
+    "SearchEngineGetUserBlocks": {
       "Type": "AWS::Serverless::Function",
       "Properties": {
-        "Handler": "SearchEngine::SearchEngine.Functions::Get",
+        "FunctionName": "SearchEngineGetUserBlocks",
+        "Handler": "SearchEngine::GetUserBlocks::FunctionHandler",
         "Runtime": "dotnetcore3.1",
         "CodeUri": "",
-        "MemorySize": 256,
+        "MemorySize": 512,
         "Timeout": 30,
-        "Role": null,
         "Policies": [
-          "AWSLambdaBasicExecutionRole"
-        ],
-        "Events": {
-          "RootGet": {
-            "Type": "Api",
-            "Properties": {
-              "Path": "/",
-              "Method": "GET"
-            }
-          }
-        }
+          "AWSLambdaBasicExecutionRole",
+          "AmazonSNSFullAccess"
+        ]
       }
     }
   },
   "Outputs": {
-    "ApiURL": {
-      "Description": "API endpoint URL for Prod environment",
-      "Value": {
-        "Fn::Sub": "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
-      }
-    }
+
   }
 }
