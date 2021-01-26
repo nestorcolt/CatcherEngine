@@ -1,19 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Net.Http;
-using System.Net.Sockets;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Amazon.DynamoDBv2;
-using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2.Model;
-using Amazon.EC2;
-using Amazon.EC2.Model;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SearchEngine.Properties;
 
 namespace SearchEngine.Modules
 {
@@ -28,14 +21,23 @@ namespace SearchEngine.Modules
              * Get the user data making a query to dynamo db table Users parsing the user_id 
              */
             AmazonDynamoDBClient client = new AmazonDynamoDBClient();
-            var item = new Dictionary<string, AttributeValue>()
-            {
-                {UserPk,  new AttributeValue { S = userId }},
-                {"access_token",  new AttributeValue { S = data }}
 
+            var request = new UpdateItemRequest
+            {
+                Key = new Dictionary<string, AttributeValue>() { { UserPk, new AttributeValue { S = userId } } },
+                ExpressionAttributeNames = new Dictionary<string, string>()
+                {
+                    {"#Q", "access_token"}
+                },
+                ExpressionAttributeValues = new Dictionary<string, AttributeValue>()
+                {
+                    {":data",new AttributeValue {S = data}}
+                },
+                UpdateExpression = "SET #Q = :data",
+                TableName = "Users"
             };
 
-            await client.PutItemAsync("Users", item);
+            var response = await client.UpdateItemAsync(request);
         }
 
         private static async Task<string> GetAmazonAccessToken(string refreshToken)
