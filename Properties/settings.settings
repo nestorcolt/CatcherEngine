@@ -20,9 +20,6 @@
     <Setting Name="UserPk" Type="System.String" Scope="User">
       <Value Profile="(Default)">user_id</Value>
     </Setting>
-    <Setting Name="Version" Type="System.String" Scope="User">
-      <Value Profile="(Default)">""</Value>
-    </Setting>
     <Setting Name="AWSAccountId" Type="System.String" Scope="User">
       <Value Profile="(Default)">436783151981</Value>
     </Setting>

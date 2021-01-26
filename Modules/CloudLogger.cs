@@ -9,8 +9,6 @@ namespace SearchEngine.Modules
     static class CloudLogger
     {
         public static string LogToCloudTopic = $"arn:aws:sns:us-east-1:{settings.Default.AWSAccountId}:SE-LOGS-SERVICE";
-        public static int SendMessageInSecondsThreshold = 60;
-        public static int SecondsCounter;
 
         public static async Task LogToSnsAsync(string message, string subject)
         {

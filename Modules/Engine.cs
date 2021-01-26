@@ -22,20 +22,15 @@ namespace SearchEngine.Modules
         protected Dictionary<string, string> RequestDataHeadersDictionary = new Dictionary<string, string>();
 
         protected string ServiceAreaFilterData;
-        protected int TotalOffersCounter;
-        protected int TotalAcceptedOffers;
-        protected int TotalApiCalls;
-
-        protected ScheduleValidator ScheduleValidator;
         protected UserDto Authenticator;
 
         public const string TokenKeyConstant = "x-amz-access-token";
+
         public JToken SearchSchedule;
         protected string RefreshToken;
         protected string AccessToken;
         public List<string> Areas;
         public float MinimumPrice;
-        protected float Speed;
         public string UserId;
 
         public string AppVersion => settings.Default.FlexAppVersion;
@@ -53,12 +48,6 @@ namespace SearchEngine.Modules
             // Set token in request dictionary
             RequestDataHeadersDictionary[TokenKeyConstant] = AccessToken;
 
-            // set bot speed delay
-            SetSpeed(Authenticator.Speed);
-
-            // refactor user schedule to unix format slot list
-            ScheduleValidator = new ScheduleValidator(SearchSchedule);
-
             // HttpClients are init here
             ApiHelper.InitializeClient();
 
@@ -71,9 +60,6 @@ namespace SearchEngine.Modules
             // set headers to clients
             ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary, ApiHelper.SeekerClient);
             ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary, ApiHelper.CatcherClient);
-
-            // output to console
-            Log($"\nInitializing engine on user {UserId} ...");
         }
 
         private string GetServiceAreaId()
@@ -121,11 +107,6 @@ namespace SearchEngine.Modules
             await client.PublishAsync(request);
         }
 
-        public void SetSpeed(float speed)
-        {
-            Speed = (int)(speed * 1000.0f);
-        }
-
         public int GetTimestamp()
         {
             TimeSpan time = (DateTime.UtcNow - new DateTime(1970, 1, 1));
@@ -151,7 +132,6 @@ namespace SearchEngine.Modules
             {
                 ["serviceAreaIds"] = new[] { serviceAreaId },
                 ["filters"] = filtersDict,
-
             };
 
             // MERGE THE HEADERS OFFERS AND SERVICE DATA IN ONE MAIN HEADER DICTIONARY

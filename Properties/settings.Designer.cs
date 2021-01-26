@@ -97,18 +97,6 @@ namespace SearchEngine.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("\"\"")]
-        public string Version {
-            get {
-                return ((string)(this["Version"]));
-            }
-            set {
-                this["Version"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("436783151981")]
         public string AWSAccountId {
             get {

@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.SNSEvents;
 using Newtonsoft.Json;
-using SearchEngine.Properties;
 using SearchEngine.Modules;
 
 
@@ -18,14 +17,13 @@ namespace SearchEngine.Serverless
         [LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
         public async Task<string> FunctionHandler(SNSEvent userData, ILambdaContext context)
         {
-            settings.Default.Version = "Running Version: 26-01-2021 23:49";
             UserDto userDto = JsonConvert.DeserializeObject<UserDto>(userData.Records[0].Sns.Message);
             string logUserId = $"User-{userDto.UserId}";
 
             try
             {
                 BlockCatcher catcher = new BlockCatcher(userDto);
-                await catcher.LookingForBlocksLegacy();
+                await catcher.LookingForBlocks();
             }
             catch (Exception e)
             {

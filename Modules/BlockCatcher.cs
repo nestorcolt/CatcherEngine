@@ -15,16 +15,18 @@ namespace SearchEngine.Modules
     class BlockCatcher : Engine
     {
         private readonly SignatureObject _signature = new SignatureObject();
-        private readonly Stopwatch _mainTimer = Stopwatch.StartNew();
-        private readonly DateTime _startTime = DateTime.Now;
+        protected ScheduleValidator ScheduleValidator;
 
         public BlockCatcher(UserDto authenticator)
         {
-            // This can be changed to SNSEvents for serverless
+            // The DTO object for the current user filters
             Authenticator = authenticator;
 
             // setup engine details
             InitializeEngine();
+
+            // validator of weekly schedule
+            ScheduleValidator = new ScheduleValidator(SearchSchedule);
         }
 
         private async Task<HttpStatusCode> GetOffersAsyncHandle()
@@ -35,7 +37,6 @@ namespace SearchEngine.Modules
             ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary, ApiHelper.CatcherClient);
 
             var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, ServiceAreaFilterData, ApiHelper.SeekerClient);
-            TotalApiCalls++;
 
             if (response.IsSuccessStatusCode)
             {
@@ -46,8 +47,6 @@ namespace SearchEngine.Modules
                 {
                     Thread acceptThread = new Thread(task => AcceptOffers(offerList));
                     acceptThread.Start();
-
-                    TotalOffersCounter += offerList.Count();
                 }
             }
 
@@ -107,10 +106,9 @@ namespace SearchEngine.Modules
                 if (response.IsSuccessStatusCode)
                 {
                     // send to owner endpoint accept data to log and send to the user the notification
-                    TotalAcceptedOffers++;
                 }
 
-                Console.WriteLine($"\nAccept Block Operation Status >> Code >> {response.StatusCode}\n");
+                Log($"\nAccept Block Operation Status >> Code >> {response.StatusCode}\n");
             }
         }
 
@@ -124,47 +122,18 @@ namespace SearchEngine.Modules
             });
         }
 
-        private void CreateStreams(string statusCode, long elapsed)
+        public async Task LookingForBlocks()
         {
-            // output log to console
-            string responseStatus = $"\nRequest Status >> Reason >> {statusCode}\n";
-            string stats =
-                $"{settings.Default.Version} | Start Time: {_startTime}  |  On Air: {_mainTimer.Elapsed}  |" +
-                $" Execution Speed: {elapsed / 1000.0}  - | Api Calls: {TotalApiCalls} |" +
-                $" - OFFERS DATA >> Total: {TotalOffersCounter} -- Accepted: {TotalAcceptedOffers}";
-
-            // Logs to cloud watch
-            if (CloudLogger.SecondsCounter >= CloudLogger.SendMessageInSecondsThreshold)
-            {
-                // restore counter
-                CloudLogger.SecondsCounter = 0;
-
-                // send the message
-                Log(responseStatus);
-                Log(stats);
-            }
-
-            CloudLogger.SecondsCounter++;
-        }
-
-        public async Task LookingForBlocksLegacy()
-        {
-            Stopwatch watcher = Stopwatch.StartNew();
-            Log($"\t- User {UserId} looking for blocks...");
-
             // start logic here main request
             HttpStatusCode statusCode = await GetOffersAsyncHandle();
 
-            // custom delay to save request
-            Thread.Sleep((int)Speed);
-
             // Stream Logs
-            CreateStreams(statusCode.ToString(), watcher.ElapsedMilliseconds);
+            string responseStatus = $"\nRequest Status >> Reason >> {statusCode}\n";
+            Log(responseStatus);
 
             if (statusCode is HttpStatusCode.BadRequest || statusCode is HttpStatusCode.TooManyRequests)
             {
                 // Request exceed. Send to SNS topic to terminate the instance. Put to sleep for 31 minutes
-                Log($"\nRequest Status >> Reason >> {statusCode}\n");
                 SendSnsMessage(SleepSnsTopic, UserId).Wait();
             }
         }
