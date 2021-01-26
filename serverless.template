@@ -2,6 +2,13 @@
   "AWSTemplateFormatVersion": "2010-09-09",
   "Transform": "AWS::Serverless-2016-10-31",
   "Description": "An AWS Serverless Application.",
+  "Parameters": {
+    "AccountId": {
+        "Type": "String",
+        "Default": "436783151981"
+    }
+  },
+
   "Resources": {
     "SearchEngineGetUserBlocks": {
       "Type": "AWS::Serverless::Function",
@@ -10,15 +17,48 @@
         "Handler": "SearchEngine::SearchEngine.Serverless.GetUserBlocks::FunctionHandler",
         "Runtime": "dotnetcore3.1",
         "CodeUri": "",
+        "MemorySize": 1024,
+        "Timeout": 30,
+        "Policies": [
+          "AWSLambdaBasicExecutionRole",
+          "AmazonSNSFullAccess"
+        ],
+        "Events":{
+            "SnsEvent": {
+                "Type": "SNS",
+                "Properties": {
+                  "Topic": {"Fn::Sub": "arn:aws:sns:us-east-1:${AccountId}:SE-START-SERVICE"}
+             }
+           }
+        }
+      }
+    },
+
+    "SearchEngineAuthenticateUser": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "FunctionName": "SearchEngineAuthenticateUser",
+        "Handler": "SearchEngine::SearchEngine.Serverless.AuthenticateUser::FunctionHandler",
+        "Runtime": "dotnetcore3.1",
+        "CodeUri": "",
         "MemorySize": 512,
         "Timeout": 30,
         "Policies": [
           "AWSLambdaBasicExecutionRole",
           "AmazonSNSFullAccess"
-        ]
+        ],
+        "Events":{
+            "SnsEvent": {
+                "Type": "SNS",
+                "Properties": {
+                  "Topic": {"Fn::Sub": "arn:aws:sns:us-east-1:${AccountId}:SE-AUTHENTICATE-SERVICE"}
+             }
+           }
+        }
       }
     }
   },
+
   "Outputs": {
 
   }
