@@ -7,7 +7,7 @@
       "Type": "AWS::Serverless::Function",
       "Properties": {
         "FunctionName": "SearchEngineGetUserBlocks",
-        "Handler": "SearchEngine::GetUserBlocks::FunctionHandler",
+        "Handler": "SearchEngine::SearchEngine.Serverless.GetUserBlocks::FunctionHandler",
         "Runtime": "dotnetcore3.1",
         "CodeUri": "",
         "MemorySize": 512,

@@ -9,12 +9,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SearchEngine.Modules;
 using SearchEngine.Properties;
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 
-namespace SearchEngine
+namespace SearchEngine.Modules
 {
     class BlockCatcher : Engine
     {
