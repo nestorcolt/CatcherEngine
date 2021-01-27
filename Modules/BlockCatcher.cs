@@ -104,7 +104,12 @@ namespace SearchEngine.Modules
                 if (response.IsSuccessStatusCode)
                 {
                     // send to owner endpoint accept data to log and send to the user the notification
-                    SendSnsMessage();
+                    JObject data = new JObject(
+                        new JProperty("user_id", UserId),
+                        new JProperty("data", block)
+                        );
+
+                    await SendSnsMessage(AcceptedSnsTopic, data.ToString());
                 }
 
                 Log($"\nAccept Block Operation Status >> Code >> {response.StatusCode}\n");

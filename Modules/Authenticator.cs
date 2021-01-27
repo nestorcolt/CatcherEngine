@@ -5,15 +5,20 @@ using System.Text;
 using System.Threading.Tasks;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
+using Amazon.SimpleNotificationService;
+using Amazon.SimpleNotificationService.Model;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SearchEngine.Properties;
 
 namespace SearchEngine.Modules
 {
     class Authenticator
     {
+        protected string ErrorSnsTopic = $"arn:aws:sns:us-east-1:{settings.Default.AWSAccountId}:SE-ERROR-TOPIC";
         private const string AuthTokenUrl = "https://api.amazon.com/auth/token";
         private const string UserPk = "user_id";
+        private string _userId;
 
         private async Task SetUserData(string userId, string data)
         {
@@ -40,7 +45,7 @@ namespace SearchEngine.Modules
             var response = await client.UpdateItemAsync(request);
         }
 
-        private static async Task<string> GetAmazonAccessToken(string refreshToken)
+        private async Task<string> GetAmazonAccessToken(string refreshToken)
         {
             var authenticationHeader = new Dictionary<string, string>
             {
@@ -68,17 +73,33 @@ namespace SearchEngine.Modules
             throw UnauthorizedAccessException(response);
         }
 
-        private static Exception UnauthorizedAccessException(HttpResponseMessage response)
+        private Exception UnauthorizedAccessException(HttpResponseMessage response)
         {
-            // TODO probably adding code to handle the error. HINT: Send SNS message to topic to track this.
+            ErrorToSnsAsync(_userId).Wait();
             throw new UnauthorizedAccessException($"There is a problem with the authentication.\nReason: {response.Content}");
+        }
+
+        public async Task ErrorToSnsAsync(string message)
+        {
+            IAmazonSimpleNotificationService client = new AmazonSimpleNotificationServiceClient();
+
+            var request = new PublishRequest
+            {
+                TopicArn = ErrorSnsTopic,
+                Message = message,
+            };
+
+            // send the message
+            await client.PublishAsync(request);
         }
 
         public async Task Authenticate(string refreshToken, string userId)
         {
+            _userId = userId;
+
             // authenticated for new access token
             string accessToken = Task.Run(() => GetAmazonAccessToken(refreshToken)).Result;
-            await SetUserData(userId, accessToken);
+            await SetUserData(_userId, accessToken);
         }
     }
 }

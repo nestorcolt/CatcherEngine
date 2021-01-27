@@ -20,7 +20,6 @@ namespace SearchEngine.Modules
         protected string AuthenticationSnsTopic = $"arn:aws:sns:us-east-1:{settings.Default.AWSAccountId}:SE-AUTHENTICATE-TOPIC";
         protected string AcceptedSnsTopic = $"arn:aws:sns:us-east-1:{settings.Default.AWSAccountId}:SE-ACCEPTED-TOPIC";
         protected string SleepSnsTopic = $"arn:aws:sns:us-east-1:{settings.Default.AWSAccountId}:SE-SLEEP-TOPIC";
-
         protected Dictionary<string, string> RequestDataHeadersDictionary = new Dictionary<string, string>();
 
         protected string ServiceAreaFilterData;
