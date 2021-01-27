@@ -29,7 +29,7 @@
             "SnsEvent": {
                 "Type": "SNS",
                 "Properties": {
-                  "Topic": {"Fn::Sub": "arn:aws:sns:us-east-1:${AccountId}:SE-START-SEARCH"}
+                  "Topic": {"Fn::Sub": "arn:aws:sns:us-east-1:${AccountId}:SE-START-TOPIC"}
              }
            }
         }
@@ -55,7 +55,7 @@
             "SnsEvent": {
                 "Type": "SNS",
                 "Properties": {
-                  "Topic": {"Fn::Sub": "arn:aws:sns:us-east-1:${AccountId}:SE-AUTHENTICATE-SERVICE"}
+                  "Topic": {"Fn::Sub": "arn:aws:sns:us-east-1:${AccountId}:SE-AUTHENTICATE-TOPIC"}
              }
            }
         }
