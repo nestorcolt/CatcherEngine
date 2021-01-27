@@ -17,8 +17,10 @@ namespace SearchEngine.Modules
     // Will used asynchronous programming and multi-threading to speed up the process and the API request.
 
     {
-        protected string AuthenticationSnsTopic = $"arn:aws:sns:us-east-1:{settings.Default.AWSAccountId}:SE-AUTHENTICATE-SERVICE";
-        protected string SleepSnsTopic = $"arn:aws:sns:us-east-1:{settings.Default.AWSAccountId}:SE-SLEEP-INSTANCE-SERVICE";
+        protected string AuthenticationSnsTopic = $"arn:aws:sns:us-east-1:{settings.Default.AWSAccountId}:SE-AUTHENTICATE-TOPIC";
+        protected string AcceptedSnsTopic = $"arn:aws:sns:us-east-1:{settings.Default.AWSAccountId}:SE-ACCEPTED-TOPIC";
+        protected string SleepSnsTopic = $"arn:aws:sns:us-east-1:{settings.Default.AWSAccountId}:SE-SLEEP-TOPIC";
+
         protected Dictionary<string, string> RequestDataHeadersDictionary = new Dictionary<string, string>();
 
         protected string ServiceAreaFilterData;

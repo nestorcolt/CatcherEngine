@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -8,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SearchEngine.Properties;
 
 namespace SearchEngine.Modules
 {
@@ -106,6 +104,7 @@ namespace SearchEngine.Modules
                 if (response.IsSuccessStatusCode)
                 {
                     // send to owner endpoint accept data to log and send to the user the notification
+                    SendSnsMessage();
                 }
 
                 Log($"\nAccept Block Operation Status >> Code >> {response.StatusCode}\n");
