@@ -132,10 +132,6 @@ namespace SearchEngine.Modules
                 {
                     Thread acceptThread = new Thread(task => AcceptOffers(offerList));
                     acceptThread.Start();
-
-                    // Stream Logs
-                    string responseStatus = $"\nBlocks Found In Response >> {offerList.Count()} blocks\n";
-                    Log(responseStatus);
                 }
             }
 
