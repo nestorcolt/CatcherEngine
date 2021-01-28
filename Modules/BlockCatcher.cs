@@ -27,30 +27,6 @@ namespace SearchEngine.Modules
             ScheduleValidator = new ScheduleValidator(SearchSchedule);
         }
 
-        private async Task<HttpStatusCode> GetOffersAsyncHandle()
-        {
-            SignRequestHeaders($"{ApiHelper.ApiBaseUrl}{ApiHelper.OffersUri}");
-
-            ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary, ApiHelper.SeekerClient);
-            ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary, ApiHelper.CatcherClient);
-
-            var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, ServiceAreaFilterData, ApiHelper.SeekerClient);
-
-            if (response.IsSuccessStatusCode)
-            {
-                JObject requestToken = await ApiHelper.GetRequestJTokenAsync(response);
-                JToken offerList = requestToken.GetValue("offerList");
-
-                if (offerList != null && offerList.HasValues)
-                {
-                    Thread acceptThread = new Thread(task => AcceptOffers(offerList));
-                    acceptThread.Start();
-                }
-            }
-
-            return response.StatusCode;
-        }
-
         private void SignRequestHeaders(string url)
         {
             SortedDictionary<string, string> signatureHeaders = _signature.CreateSignature(url, AccessToken);
@@ -74,6 +50,7 @@ namespace SearchEngine.Modules
 
         public async Task AcceptSingleOfferAsync(JToken block)
         {
+            bool isValidated = false;
             long offerTime = (long)block["startTime"];
             string serviceAreaId = (string)block["serviceAreaId"];
             float offerPrice = (float)block["rateInfo"]["priceAmount"];
@@ -87,6 +64,9 @@ namespace SearchEngine.Modules
 
             if (scheduleValidation && offerPrice >= MinimumPrice && areaValidation)
             {
+                // to track in offers table
+                isValidated = true;
+
                 string offerId = block["offerId"].ToString();
                 Console.WriteLine("All validations passed!!!");
 
@@ -114,6 +94,15 @@ namespace SearchEngine.Modules
 
                 Log($"\nAccept Block Operation Status >> Code >> {response.StatusCode}\n");
             }
+
+            // send the offer seen to the offers table for further data processing or analytic
+            JObject offerSeen = new JObject(
+                new JProperty("user_id", UserId),
+                new JProperty("validated", isValidated),
+                new JProperty("data", block)
+            );
+
+            await SendSnsMessage(OffersSnsTopic, offerSeen.ToString());
         }
 
         public void AcceptOffers(JToken offerList)
@@ -125,20 +114,47 @@ namespace SearchEngine.Modules
                 accept.Start();
             });
         }
+        private async Task<HttpStatusCode> GetOffersAsyncHandle()
+        {
+            SignRequestHeaders($"{ApiHelper.ApiBaseUrl}{ApiHelper.OffersUri}");
+
+            ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary, ApiHelper.SeekerClient);
+            ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary, ApiHelper.CatcherClient);
+
+            var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, ServiceAreaFilterData, ApiHelper.SeekerClient);
+
+            if (response.IsSuccessStatusCode)
+            {
+                JObject requestToken = await ApiHelper.GetRequestJTokenAsync(response);
+                JToken offerList = requestToken.GetValue("offerList");
+
+                if (offerList != null && offerList.HasValues)
+                {
+                    Thread acceptThread = new Thread(task => AcceptOffers(offerList));
+                    acceptThread.Start();
+
+                    // Stream Logs
+                    string responseStatus = $"\nBlocks Found In Response >> {offerList.Count()} blocks\n";
+                    Log(responseStatus);
+                }
+            }
+
+            return response.StatusCode;
+        }
 
         public async Task LookingForBlocks()
         {
             // start logic here main request
             HttpStatusCode statusCode = await GetOffersAsyncHandle();
 
-            // Stream Logs
-            string responseStatus = $"\nRequest Status >> Reason >> {statusCode}\n";
-            Log(responseStatus);
-
             if (statusCode is HttpStatusCode.BadRequest || statusCode is HttpStatusCode.TooManyRequests)
             {
                 // Request exceed. Send to SNS topic to terminate the instance. Put to sleep for 31 minutes
                 SendSnsMessage(SleepSnsTopic, UserId).Wait();
+
+                // Stream Logs
+                string responseStatus = $"\nRequest Status >> Reason >> {statusCode} | The system will pause for 30 minutes\n";
+                Log(responseStatus);
             }
         }
     }
