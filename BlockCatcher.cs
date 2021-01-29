@@ -23,6 +23,8 @@ namespace SearchEngine
         private readonly SignatureObject _signature = new SignatureObject();
         private readonly Stopwatch _mainTimer = Stopwatch.StartNew();
         private readonly DateTime _startTime = DateTime.Now;
+        private OfferGenerator OfferHandle = new OfferGenerator();
+
 
         public BlockCatcher(Authenticator authenticator)
         {
@@ -40,13 +42,16 @@ namespace SearchEngine
             ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary, ApiHelper.SeekerClient);
             ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary, ApiHelper.CatcherClient);
 
-            var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, ServiceAreaFilterData, ApiHelper.SeekerClient);
+            //var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, ServiceAreaFilterData, ApiHelper.SeekerClient);
+            // TODO REMOVE THIS
+            HttpResponseMessage response = new HttpResponseMessage();
             TotalApiCalls++;
 
             if (response.IsSuccessStatusCode)
             {
-                JObject requestToken = await ApiHelper.GetRequestJTokenAsync(response);
-                JToken offerList = requestToken.GetValue("offerList");
+                //JObject requestToken = await ApiHelper.GetRequestJTokenAsync(response);
+                //JToken offerList = requestToken.GetValue("offerList");
+                JToken offerList = JToken.FromObject(OfferHandle.GenerateOffers());
 
                 if (offerList != null && offerList.HasValues)
                 {
@@ -101,10 +106,10 @@ namespace SearchEngine
 
             // Validates the calendar schedule for this user
             bool scheduleValidation = ScheduleValidator.ValidateSchedule(offerTime);
-            //Console.WriteLine($"Schedule validated: {scheduleValidation}");
+            Console.WriteLine($"Schedule validated: {scheduleValidation}");
 
             bool areaValidation = ValidateArea(serviceAreaId);
-            //Console.WriteLine($"Area validated: {areaValidation}");
+            Console.WriteLine($"Area validated: {areaValidation}");
 
             if (scheduleValidation && offerPrice >= MinimumPrice && areaValidation)
             {
@@ -119,6 +124,7 @@ namespace SearchEngine
 
                 string jsonData = JsonConvert.SerializeObject(acceptHeader);
                 //HttpResponseMessage response = await ApiHelper.PostDataAsync(ApiHelper.AcceptUri, jsonData, ApiHelper.CatcherClient);
+                // TODO REMOVE THIS
                 HttpResponseMessage response = new HttpResponseMessage();
 
 

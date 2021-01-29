@@ -7,7 +7,8 @@ namespace SearchEngine.Modules
 {
     static class CloudLogger
     {
-        private const string LogToCloudTopic = "arn:aws:sns:us-east-1:320132171574:SE-LOGS-SERVICE";
+        // TODO REMOVE THIS ACCOUNT ID
+        private const string LogToCloudTopic = "arn:aws:sns:us-east-1:436783151981:SE-LOGS-TOPIC";
         public static int SendMessageInSecondsThreshold = 60;
         public static int SecondsCounter;
 

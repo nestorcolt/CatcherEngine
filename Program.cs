@@ -13,19 +13,16 @@ namespace SearchEngine
 
         {
             settings.Default.Version = "Running Version: 23-01-2021 12:00";
-            settings.Default.UserId = "11";
+            settings.Default.UserId = "15";
 
-            var offerHandle = new OfferGenerator();
-            offerHandle.GenerateOffers();
-
-            //Authenticator authenticator = new Authenticator();
-            //authenticator.Authenticate();
+            Authenticator authenticator = new Authenticator();
+            authenticator.Authenticate();
 
             //Instance the search engine class
-            //BlockCatcher catcher = new BlockCatcher(authenticator);
+            BlockCatcher catcher = new BlockCatcher(authenticator);
 
-            // Main loop method is being called here
-            //catcher.LookingForBlocksLegacy();
+            //Main loop method is being called here
+            catcher.LookingForBlocksLegacy();
         }
     }
 }

@@ -37,16 +37,16 @@ namespace SearchEngine.Modules
             return timestamp;
         }
 
-        public List<JObject> GenerateOffers()
+        public List<JToken> GenerateOffers()
         {
-            var offers = new List<JObject>();
+            var offers = new List<JToken>();
             Random rnd = new Random();
 
             for (int i = 0; i < 10; i++)
             {
                 int unixTargetTime = rnd.Next(_start, _stop);
+                _offerModel["startTime"] = unixTargetTime.ToString();
                 offers.Add(_offerModel);
-                Console.WriteLine(unixTargetTime);
             }
 
             return offers;
