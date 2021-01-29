@@ -15,14 +15,17 @@ namespace SearchEngine
             settings.Default.Version = "Running Version: 23-01-2021 12:00";
             settings.Default.UserId = "11";
 
-            Authenticator authenticator = new Authenticator();
-            authenticator.Authenticate();
+            var offerHandle = new OfferGenerator();
+            offerHandle.GenerateOffers();
+
+            //Authenticator authenticator = new Authenticator();
+            //authenticator.Authenticate();
 
             //Instance the search engine class
-            BlockCatcher catcher = new BlockCatcher(authenticator);
+            //BlockCatcher catcher = new BlockCatcher(authenticator);
 
             // Main loop method is being called here
-            catcher.LookingForBlocksLegacy();
+            //catcher.LookingForBlocksLegacy();
         }
     }
 }
