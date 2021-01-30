@@ -83,10 +83,9 @@ namespace SearchEngine.Modules
                         new JProperty("data", block)
                         );
 
-                    await SendSnsMessage(AcceptedSnsTopic, data.ToString());
+                    //await SendSnsMessage(AcceptedSnsTopic, data.ToString());
+                    //Log($"\nAccept Block Operation Status >> Code >> {response.StatusCode}\n");
                 }
-
-                Log($"\nAccept Block Operation Status >> Code >> {response.StatusCode}\n");
             }
 
             // send the offer seen to the offers table for further data processing or analytic
