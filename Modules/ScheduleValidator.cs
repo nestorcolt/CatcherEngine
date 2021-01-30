@@ -8,6 +8,7 @@ namespace SearchEngine.Modules
     {
         public Dictionary<int, List<long>> ScheduleSlots = new Dictionary<int, List<long>>();
         private int _scheduleSlotCounter;
+        private int _daysToValidate = 7;
 
         public ScheduleValidator(JToken weekSchedule)
         {
@@ -26,7 +27,7 @@ namespace SearchEngine.Modules
             DateTime today = DateTime.Today;
             List<dynamic> dateObjects = new List<dynamic>() { today };
 
-            for (int i = 1; i < 7; i++)
+            for (int i = 1; i < _daysToValidate; i++)
             {
                 DateTime day = today.AddDays(i);
                 dateObjects.Add(day);
