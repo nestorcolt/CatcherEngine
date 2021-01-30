@@ -13,6 +13,6 @@
     "s3-prefix"     : "SearchEngine/",
     "template"      : "serverless.template",
     "template-parameters" : "",
-    "s3-bucket"           : "bis-se-bucket",
+    "s3-bucket"           : "bis-prod-app",
     "stack-name"          : "bis-se-stack"
 }

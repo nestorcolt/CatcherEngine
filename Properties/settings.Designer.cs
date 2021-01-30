@@ -97,7 +97,7 @@ namespace SearchEngine.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("436783151981")]
+        [global::System.Configuration.DefaultSettingValueAttribute("320132171574")]
         public string AWSAccountId {
             get {
                 return ((string)(this["AWSAccountId"]));

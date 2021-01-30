@@ -21,7 +21,7 @@
       <Value Profile="(Default)">user_id</Value>
     </Setting>
     <Setting Name="AWSAccountId" Type="System.String" Scope="User">
-      <Value Profile="(Default)">436783151981</Value>
+      <Value Profile="(Default)">320132171574</Value>
     </Setting>
   </Settings>
 </SettingsFile>
