@@ -20,7 +20,7 @@ namespace SearchEngine.Modules
             DateTime today = DateTime.Today;
 
             _start = GetTimestamp(today);
-            _stop = GetTimestamp(today.AddDays(2));
+            _stop = GetTimestamp(today.AddDays(7));
         }
 
         public async Task<JObject> LoadJsonAsync(string filePath)
@@ -37,16 +37,26 @@ namespace SearchEngine.Modules
             return timestamp;
         }
 
+        public void GetTimeFromSeconds(long seconds)
+        {
+            DateTimeOffset dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(seconds);
+            DateTime dateTime = dateTimeOffset.UtcDateTime;
+            string blockTime = $"Offer: {dateTime.DayOfWeek} at {dateTime.ToString("HH:mm")}";
+            Console.WriteLine(blockTime);
+        }
+
         public List<JToken> GenerateOffers()
         {
             var offers = new List<JToken>();
-            Random rnd = new Random();
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 5; i++) // number of offers returned
             {
-                int unixTargetTime = rnd.Next(_start, _stop);
-                _offerModel["startTime"] = unixTargetTime.ToString();
-                offers.Add(_offerModel);
+                Random rnd = new Random();
+                long unixTargetTime = rnd.Next(_start, _stop);
+                JToken offerDict = (JToken)_offerModel.DeepClone();
+
+                offerDict["startTime"] = unixTargetTime.ToString();
+                offers.Add(offerDict);
             }
 
             return offers;

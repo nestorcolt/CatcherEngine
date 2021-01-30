@@ -24,10 +24,13 @@ namespace SearchEngine.Modules
         private void CreateWeekMap(JToken weekSchedule)
         {
             DateTime today = DateTime.Today;
-            DateTime plus1Day = today.AddDays(1);
-            DateTime plus2Day = today.AddDays(2);
+            List<dynamic> dateObjects = new List<dynamic>() { today };
 
-            List<dynamic> dateObjects = new List<dynamic>() { today, plus1Day, plus2Day };
+            for (int i = 1; i < 7; i++)
+            {
+                DateTime day = today.AddDays(i);
+                dateObjects.Add(day);
+            }
 
             foreach (var dateObject in dateObjects)
             {

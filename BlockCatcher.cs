@@ -106,16 +106,11 @@ namespace SearchEngine
 
             // Validates the calendar schedule for this user
             bool scheduleValidation = ScheduleValidator.ValidateSchedule(offerTime);
-            Console.WriteLine($"Schedule validated: {scheduleValidation}");
-
             bool areaValidation = ValidateArea(serviceAreaId);
-            Console.WriteLine($"Area validated: {areaValidation}");
 
             if (scheduleValidation && offerPrice >= MinimumPrice && areaValidation)
             {
                 string offerId = block["offerId"].ToString();
-                Console.WriteLine("All validations passed!!!");
-
                 var acceptHeader = new Dictionary<string, string>
                 {
                     {"__type", $"AcceptOfferInput:{ApiHelper.AcceptInputUrl}"},
@@ -127,6 +122,8 @@ namespace SearchEngine
                 // TODO REMOVE THIS
                 HttpResponseMessage response = new HttpResponseMessage();
 
+                OfferHandle.GetTimeFromSeconds(offerTime);
+                //Console.WriteLine("All validations passed!!!");
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -134,7 +131,7 @@ namespace SearchEngine
                     TotalAcceptedOffers++;
                 }
 
-                Console.WriteLine($"\nAccept Block Operation Status >> Code >> {response.StatusCode}\n");
+                //Console.WriteLine($"\nAccept Block Operation Status >> Code >> {response.StatusCode}\n");
             }
         }
 
