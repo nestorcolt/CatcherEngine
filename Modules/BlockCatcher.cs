@@ -57,18 +57,13 @@ namespace SearchEngine.Modules
 
             // Validates the calendar schedule for this user
             bool scheduleValidation = ScheduleValidator.ValidateSchedule(offerTime);
-            //Console.WriteLine($"Schedule validated: {scheduleValidation}");
-
             bool areaValidation = ValidateArea(serviceAreaId);
-            //Console.WriteLine($"Area validated: {areaValidation}");
 
             if (scheduleValidation && offerPrice >= MinimumPrice && areaValidation)
             {
                 // to track in offers table
                 isValidated = true;
-
                 string offerId = block["offerId"].ToString();
-                Console.WriteLine("All validations passed!!!");
 
                 var acceptHeader = new Dictionary<string, string>
                 {
@@ -79,7 +74,6 @@ namespace SearchEngine.Modules
                 string jsonData = JsonConvert.SerializeObject(acceptHeader);
                 //HttpResponseMessage response = await ApiHelper.PostDataAsync(ApiHelper.AcceptUri, jsonData, ApiHelper.CatcherClient);
                 HttpResponseMessage response = new HttpResponseMessage();
-
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -145,7 +139,7 @@ namespace SearchEngine.Modules
 
             if (statusCode is HttpStatusCode.BadRequest || statusCode is HttpStatusCode.TooManyRequests)
             {
-                // Request exceed. Send to SNS topic to terminate the instance. Put to sleep for 31 minutes
+                // Request exceed. Send to SNS topic to terminate the instance. Put to sleep for 30 minutes
                 SendSnsMessage(SleepSnsTopic, UserId).Wait();
 
                 // Stream Logs
