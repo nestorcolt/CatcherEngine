@@ -70,12 +70,7 @@ namespace SearchEngine.Modules
                 return requestToken["access_token"].ToString();
             }
 
-            throw UnauthorizedAccessException(response);
-        }
-
-        private Exception UnauthorizedAccessException(HttpResponseMessage response)
-        {
-            ErrorToSnsAsync(_userId).Wait();
+            await ErrorToSnsAsync(_userId);
             throw new UnauthorizedAccessException($"There is a problem with the authentication.\nReason: {response.Content}");
         }
 
