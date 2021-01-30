@@ -69,21 +69,25 @@ namespace SearchEngine.Modules
             ApiHelper.ApiClient.DefaultRequestHeaders.Add(TokenKeyConstant, AccessToken);
             HttpResponseMessage content = ApiHelper.GetDataAsync(ApiHelper.ServiceAreaUri).Result;
 
+            if (content.IsSuccessStatusCode)
+            {
+                // continue if the validation succeed
+                JObject requestToken = ApiHelper.GetRequestJTokenAsync(content).Result;
+                JToken result = requestToken.GetValue("serviceAreaIds");
+
+                if (result.HasValues)
+                    return (string)result[0];
+            }
+
             // validations on errors
             if (content.StatusCode is HttpStatusCode.Unauthorized || content.StatusCode is HttpStatusCode.Forbidden)
             {
                 // Re-authenticate after the access token has expired
                 RequestNewAccessToken();
-                Environment.Exit(0);
+                Environment.Exit(1);
             }
 
-            // continue if the validation succeed
-            JObject requestToken = ApiHelper.GetRequestJTokenAsync(content).Result;
-            JToken result = requestToken.GetValue("serviceAreaIds");
-
-            if (result.HasValues)
-                return (string)result[0];
-
+            Environment.Exit(1);
             return null;
         }
 
