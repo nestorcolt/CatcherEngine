@@ -70,7 +70,7 @@ namespace SearchEngine.Modules
                 return requestToken["access_token"].ToString();
             }
 
-            await ErrorToSnsAsync(_userId);
+            await ErrorToSnsAsync(new JObject(new JProperty("user_id", _userId)).ToString());
             throw new UnauthorizedAccessException($"There is a problem with the authentication.\nReason: {response.Content}");
         }
 
