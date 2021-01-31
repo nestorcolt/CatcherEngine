@@ -139,7 +139,7 @@ namespace SearchEngine.Modules
             if (statusCode is HttpStatusCode.BadRequest || statusCode is HttpStatusCode.TooManyRequests)
             {
                 // Request exceed. Send to SNS topic to terminate the instance. Put to sleep for 30 minutes
-                SendSnsMessage(SleepSnsTopic, UserId).Wait();
+                SendSnsMessage(SleepSnsTopic, new JObject(new JProperty("user_id", UserId)).ToString()).Wait();
 
                 // Stream Logs
                 string responseStatus = $"\nRequest Status >> Reason >> {statusCode} | The system will pause for 30 minutes\n";
