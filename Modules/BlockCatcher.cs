@@ -5,8 +5,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Amazon.DynamoDBv2.DocumentModel;
-using Amazon.EC2.Model;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -38,7 +36,7 @@ namespace SearchEngine.Modules
 
         private void DeactivateUser()
         {
-            JObject userData = new JObject(new JProperty("user_id", UserId), new JProperty("search_blocks", false));
+            SendSnsMessage(StopSnsTopic, new JObject(new JProperty("user_id", UserId)).ToString()).Wait();
             Environment.Exit(0);
         }
 
