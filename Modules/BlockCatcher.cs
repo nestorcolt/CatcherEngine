@@ -5,6 +5,8 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Amazon.DynamoDBv2.DocumentModel;
+using Amazon.EC2.Model;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -24,7 +26,28 @@ namespace SearchEngine.Modules
             InitializeEngine();
 
             // validator of weekly schedule
-            ScheduleValidator = new ScheduleValidator(SearchSchedule);
+            if (ScheduleHasData(SearchSchedule))
+            {
+                ScheduleValidator = new ScheduleValidator(SearchSchedule);
+            }
+            else
+            {
+                DeactivateUser();
+            }
+        }
+
+        private void DeactivateUser()
+        {
+            JObject userData = new JObject(new JProperty("user_id", UserId), new JProperty("search_blocks", false));
+            Environment.Exit(0);
+        }
+
+        private bool ScheduleHasData(JToken searchSchedule)
+        {
+            if (searchSchedule != null && searchSchedule.HasValues)
+                return true;
+
+            return false;
         }
 
         private void SignRequestHeaders(string url)
