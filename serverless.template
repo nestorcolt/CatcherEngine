@@ -2,12 +2,6 @@
   "AWSTemplateFormatVersion": "2010-09-09",
   "Transform": "AWS::Serverless-2016-10-31",
   "Description": "An AWS Serverless Application.",
-  "Parameters": {
-    "AccountId": {
-        "Type": "String",
-        "Default": "320132171574"
-    }
-  },
 
   "Resources": {
     "SearchEngineGetUserBlocks": {
@@ -29,7 +23,7 @@
             "SnsEvent": {
                 "Type": "SNS",
                 "Properties": {
-                  "Topic": {"Fn::Sub": "arn:aws:sns:us-east-1:${AccountId}:SE-START-TOPIC"}
+                  "Topic": {"Fn::Sub": "arn:aws:sns:us-east-1:${AWS::AccountId}:SE-START-TOPIC"}
              }
            }
         }
@@ -55,7 +49,7 @@
             "SnsEvent": {
                 "Type": "SNS",
                 "Properties": {
-                  "Topic": {"Fn::Sub": "arn:aws:sns:us-east-1:${AccountId}:SE-AUTHENTICATE-TOPIC"}
+                  "Topic": {"Fn::Sub": "arn:aws:sns:us-east-1:${AWS::AccountId}:SE-AUTHENTICATE-TOPIC"}
              }
            }
         }
