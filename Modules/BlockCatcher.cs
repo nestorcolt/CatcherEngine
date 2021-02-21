@@ -93,8 +93,7 @@ namespace SearchEngine.Modules
                 };
 
                 string jsonData = JsonConvert.SerializeObject(acceptHeader);
-                //HttpResponseMessage response = await ApiHelper.PostDataAsync(ApiHelper.AcceptUri, jsonData, ApiHelper.CatcherClient);
-                HttpResponseMessage response = new HttpResponseMessage();
+                HttpResponseMessage response = await ApiHelper.PostDataAsync(ApiHelper.AcceptUri, jsonData, ApiHelper.CatcherClient);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -104,8 +103,8 @@ namespace SearchEngine.Modules
                         new JProperty("data", block)
                         );
 
-                    //await SendSnsMessage(AcceptedSnsTopic, data.ToString());
-                    //Log($"\nAccept Block Operation Status >> Code >> {response.StatusCode}\n");
+                    await SendSnsMessage(AcceptedSnsTopic, data.ToString());
+                    Log($"\nAccept Block Operation Status >> Code >> {response.StatusCode}\n");
                 }
             }
 
