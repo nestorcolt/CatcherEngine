@@ -1,3 +1,3 @@
 # Catcher
 
-Amazon Flex Block Catcher [ROBOT]
+Catcher [ROBOT]
