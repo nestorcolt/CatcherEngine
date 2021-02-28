@@ -32,6 +32,7 @@ namespace SearchEngine.Modules
         public JToken SearchSchedule;
         protected string RefreshToken;
         protected string AccessToken;
+        protected string TimeZone;
         public List<string> Areas;
         public float MinimumPrice;
         public string UserId;
@@ -46,6 +47,7 @@ namespace SearchEngine.Modules
             RefreshToken = Authenticator.RefreshToken;
             MinimumPrice = Authenticator.MinimumPrice;
             SearchSchedule = Authenticator.SearchSchedule;
+            TimeZone = Authenticator.TimeZone;
             Areas = Authenticator.Areas;
 
             // Set token in request dictionary

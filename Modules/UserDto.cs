@@ -30,6 +30,9 @@ namespace SearchEngine.Modules
 
         [DataMember(Name = "areas")]
         public List<string> Areas { get; set; }
+
+        [DataMember(Name = "time_zone")]
+        public string TimeZone { get; set; }
     }
 
 }
