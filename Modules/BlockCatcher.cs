@@ -26,7 +26,7 @@ namespace SearchEngine.Modules
             // validator of weekly schedule
             if (ScheduleHasData(SearchSchedule))
             {
-                ScheduleValidator = new ScheduleValidator(SearchSchedule);
+                ScheduleValidator = new ScheduleValidator(SearchSchedule, Authenticator.TimeZone);
             }
             else
             {

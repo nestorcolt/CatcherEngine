@@ -8,10 +8,12 @@ namespace SearchEngine.Modules
     {
         public Dictionary<int, List<long>> ScheduleSlots = new Dictionary<int, List<long>>();
         private int _scheduleSlotCounter;
+        private string _timeZone;
         private int _daysToValidate = 7;
 
-        public ScheduleValidator(JToken weekSchedule)
+        public ScheduleValidator(JToken weekSchedule, string timeZone)
         {
+            _timeZone = timeZone;
             CreateWeekMap(weekSchedule);
         }
 
