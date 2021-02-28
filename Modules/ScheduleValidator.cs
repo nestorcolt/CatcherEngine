@@ -7,8 +7,8 @@ namespace SearchEngine.Modules
     class ScheduleValidator
     {
         public Dictionary<int, List<long>> ScheduleSlots = new Dictionary<int, List<long>>();
+        private readonly string _timeZone;
         private int _scheduleSlotCounter;
-        private string _timeZone;
         private int _daysToValidate = 7;
 
         public ScheduleValidator(JToken weekSchedule, string timeZone)
@@ -17,16 +17,10 @@ namespace SearchEngine.Modules
             CreateWeekMap(weekSchedule);
         }
 
-        public int GetTimestamp(DateTime customDate)
-        {
-            TimeSpan time = (customDate - new DateTime(1970, 1, 1));
-            int timestamp = (int)time.TotalSeconds;
-            return timestamp;
-        }
-
         private void CreateWeekMap(JToken weekSchedule)
         {
-            DateTime today = DateTime.Today;
+            DateTime today = SetTimeZone(DateTime.Today, _timeZone);
+            Console.WriteLine($"{today.ToLongDateString()} {today.ToLongTimeString()}");
             List<dynamic> dateObjects = new List<dynamic>() { today };
 
             for (int i = 1; i < _daysToValidate; i++)
@@ -45,6 +39,21 @@ namespace SearchEngine.Modules
                     }
                 }
             }
+        }
+
+        public int GetTimestamp(DateTime customDate)
+        {
+            TimeSpan time = (customDate - new DateTime(1970, 1, 1));
+            int timestamp = (int)time.TotalSeconds;
+            return timestamp;
+        }
+
+        public DateTime SetTimeZone(DateTime timeToConvert, string timeZone)
+        {
+            // Convert the time zone in UNIX format given Datetime object
+            TimeZoneInfo est = TimeZoneInfo.FindSystemTimeZoneById(timeZone);
+            DateTime targetTime = TimeZoneInfo.ConvertTime(timeToConvert, est);
+            return targetTime;
         }
 
         private void MapDaySchedule(dynamic date, JToken daySchedule)
