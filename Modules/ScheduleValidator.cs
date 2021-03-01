@@ -78,10 +78,6 @@ namespace SearchEngine.Modules
                 DateTime start = ScheduleSlots[i][0];
                 DateTime stop = ScheduleSlots[i][1];
 
-                Console.WriteLine($"Check: {start.ToLongDateString()} {start.ToLongTimeString()} | " +
-                                  $"{blockDateTime.ToLongDateString()} {blockDateTime.ToLongTimeString()} | " +
-                                  $"{stop.ToLongDateString()} {stop.ToLongTimeString()}");
-
                 if (start <= blockDateTime && blockDateTime <= stop)
                     return true;
             }
