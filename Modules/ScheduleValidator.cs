@@ -6,7 +6,7 @@ namespace SearchEngine.Modules
 {
     class ScheduleValidator
     {
-        public Dictionary<int, List<long>> ScheduleSlots = new Dictionary<int, List<long>>();
+        public Dictionary<int, List<DateTime>> ScheduleSlots = new Dictionary<int, List<DateTime>>();
         private readonly string _timeZone;
         private int _scheduleSlotCounter;
         private int _daysToValidate = 7;
@@ -20,7 +20,6 @@ namespace SearchEngine.Modules
         private void CreateWeekMap(JToken weekSchedule)
         {
             DateTime today = SetTimeZone(DateTime.Today, _timeZone);
-            Console.WriteLine($"{today.ToLongDateString()} {today.ToLongTimeString()}");
             List<dynamic> dateObjects = new List<dynamic>() { today };
 
             for (int i = 1; i < _daysToValidate; i++)
@@ -41,16 +40,8 @@ namespace SearchEngine.Modules
             }
         }
 
-        public int GetTimestamp(DateTime customDate)
-        {
-            TimeSpan time = (customDate - new DateTime(1970, 1, 1));
-            int timestamp = (int)time.TotalSeconds;
-            return timestamp;
-        }
-
         public DateTime SetTimeZone(DateTime timeToConvert, string timeZone)
         {
-            // Convert the time zone in UNIX format given Datetime object
             TimeZoneInfo est = TimeZoneInfo.FindSystemTimeZoneById(timeZone);
             DateTime targetTime = TimeZoneInfo.ConvertTime(timeToConvert, est);
             return targetTime;
@@ -66,22 +57,32 @@ namespace SearchEngine.Modules
                 DateTime startDateTime = new DateTime(date.Year, date.Month, date.Day, int.Parse(startTime[0]), int.Parse(startTime[1]), 0);
                 DateTime endDateTime = new DateTime(date.Year, date.Month, date.Day, int.Parse(endTime[0]), int.Parse(endTime[1]), 0);
 
-                long startUnixDate = GetTimestamp(startDateTime);
-                long stopUnixDate = GetTimestamp(endDateTime);
-
-                ScheduleSlots[_scheduleSlotCounter] = new List<long>() { startUnixDate, stopUnixDate };
+                ScheduleSlots[_scheduleSlotCounter] = new List<DateTime>() { startDateTime, endDateTime };
                 _scheduleSlotCounter++;
             }
         }
 
+        private DateTime UnixToDateTime(long timeInSeconds)
+        {
+            DateTimeOffset dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(timeInSeconds);
+            DateTime dateTime = dateTimeOffset.DateTime;
+            return SetTimeZone(dateTime, _timeZone);
+        }
+
         public bool ValidateSchedule(long blockTime)
         {
+            DateTime blockDateTime = UnixToDateTime(blockTime);
+
             for (int i = 0; i < _scheduleSlotCounter; ++i)
             {
-                long start = ScheduleSlots[i][0];
-                long stop = ScheduleSlots[i][1];
+                DateTime start = ScheduleSlots[i][0];
+                DateTime stop = ScheduleSlots[i][1];
 
-                if (blockTime >= start && blockTime <= stop)
+                Console.WriteLine($"Check: {start.ToLongDateString()} {start.ToLongTimeString()} | " +
+                                  $"{blockDateTime.ToLongDateString()} {blockDateTime.ToLongTimeString()} | " +
+                                  $"{stop.ToLongDateString()} {stop.ToLongTimeString()}");
+
+                if (start <= blockDateTime && blockDateTime <= stop)
                     return true;
             }
 
