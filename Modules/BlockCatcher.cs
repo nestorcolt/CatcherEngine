@@ -37,7 +37,6 @@ namespace SearchEngine.Modules
         private void DeactivateUser()
         {
             SendSnsMessage(StopSnsTopic, new JObject(new JProperty("user_id", UserId)).ToString()).Wait();
-            Environment.Exit(0);
         }
 
         private bool ScheduleHasData(JToken searchSchedule)
@@ -99,6 +98,7 @@ namespace SearchEngine.Modules
                     acceptHeader.ToString(), ApiHelper.CatcherClient);
 
                 // test to log in cloud watch
+                Log($"\n{UserId}: Operation Status >> Code >> {response.StatusCode}\n");
                 Console.WriteLine($"\n{UserId}: Operation Status >> Code >> {response.StatusCode}\n");
 
                 if (response.IsSuccessStatusCode)

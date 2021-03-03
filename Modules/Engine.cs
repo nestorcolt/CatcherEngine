@@ -87,10 +87,8 @@ namespace SearchEngine.Modules
             {
                 // Re-authenticate after the access token has expired
                 RequestNewAccessToken();
-                Environment.Exit(1);
             }
 
-            Environment.Exit(1);
             return null;
         }
 
