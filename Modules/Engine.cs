@@ -37,6 +37,8 @@ namespace SearchEngine.Modules
         public float MinimumPrice;
         public string UserId;
 
+        public bool ProcessSucceed { get; set; }
+
         public string AppVersion => settings.Default.FlexAppVersion;
 
         public void InitializeEngine()
@@ -79,7 +81,10 @@ namespace SearchEngine.Modules
                 JToken result = requestToken.GetValue("serviceAreaIds");
 
                 if (result.HasValues)
+                {
+                    ProcessSucceed = true;
                     return (string)result[0];
+                }
             }
 
             // validations on errors
@@ -87,6 +92,7 @@ namespace SearchEngine.Modules
             {
                 // Re-authenticate after the access token has expired
                 RequestNewAccessToken();
+                ProcessSucceed = false;
             }
 
             return null;

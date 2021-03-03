@@ -25,6 +25,9 @@ namespace SearchEngine.Modules
         [DataMember(Name = "speed")]
         public float Speed { get; set; }
 
+        [DataMember(Name = "search_blocks")]
+        public bool SearchBlocks { get; set; }
+
         [DataMember(Name = "search_schedule")]
         public JToken SearchSchedule { get; set; }
 

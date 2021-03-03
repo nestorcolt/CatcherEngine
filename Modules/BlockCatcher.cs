@@ -5,7 +5,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace SearchEngine.Modules
@@ -157,10 +156,14 @@ namespace SearchEngine.Modules
             return response.StatusCode;
         }
 
-        public async Task LookingForBlocks()
+        public bool LookingForBlocks()
         {
+
+            if (!ProcessSucceed)
+                return ProcessSucceed;
+
             // start logic here main request
-            HttpStatusCode statusCode = await GetOffersAsyncHandle();
+            HttpStatusCode statusCode = GetOffersAsyncHandle().Result;
 
             if (statusCode is HttpStatusCode.BadRequest || statusCode is HttpStatusCode.TooManyRequests)
             {
@@ -171,6 +174,9 @@ namespace SearchEngine.Modules
                 string responseStatus = $"\nRequest Status >> Reason >> {statusCode} | The system will pause for 30 minutes\n";
                 Log(responseStatus);
             }
+
+            return ProcessSucceed;
+
         }
     }
 }
