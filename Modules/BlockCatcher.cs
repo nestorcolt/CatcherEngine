@@ -98,6 +98,9 @@ namespace SearchEngine.Modules
                 HttpResponseMessage response = await ApiHelper.PostDataAsync(ApiHelper.AcceptUri,
                     acceptHeader.ToString(), ApiHelper.CatcherClient);
 
+                // test to log in cloud watch
+                Console.WriteLine($"\n{UserId}: Operation Status >> Code >> {response.StatusCode}\n");
+
                 if (response.IsSuccessStatusCode)
                 {
                     // send to owner endpoint accept data to log and send to the user the notification
