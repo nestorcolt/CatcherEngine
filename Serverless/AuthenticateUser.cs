@@ -30,7 +30,7 @@ namespace SearchEngine.Serverless
             }
             catch (Exception e)
             {
-                await CloudLogger.LogToSnsAsync(message: e.ToString(), subject: logUserId);
+                await CloudLogger.PublishToSnsAsync(message: e.ToString(), subject: logUserId);
             }
 
             HttpStatusCode responseCode = HttpStatusCode.Accepted;

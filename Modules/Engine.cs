@@ -99,7 +99,7 @@ namespace SearchEngine.Modules
 
         public void Log(string message)
         {
-            CloudLogger.LogToSnsAsync(message, $"User-{UserId}").Wait();
+            CloudLogger.PublishToSnsAsync(message, $"User-{UserId}").Wait();
         }
 
         public void RequestNewAccessToken()

@@ -28,7 +28,7 @@ namespace SearchEngine.Serverless
             }
             catch (Exception e)
             {
-                await CloudLogger.LogToSnsAsync(message: e.ToString(), subject: logUserId);
+                await CloudLogger.PublishToSnsAsync(message: e.ToString(), subject: logUserId);
             }
             finally
             {
@@ -36,6 +36,7 @@ namespace SearchEngine.Serverless
                 if (recursive && userDto.SearchBlocks)
                 {
                     // pass userData SNSEvent
+                    await CloudLogger.PublishToSnsAsync(userData.Records[0].Sns.Message, logUserId, userData.Records[0].Sns.TopicArn);
                 }
             }
 
