@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.SNSEvents;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SearchEngine.Modules;
 
 
@@ -14,21 +15,24 @@ namespace SearchEngine.Serverless
 {
     class GetUserBlocks
     {
+        private readonly BlockCatcher _catcher = new BlockCatcher();
+
         [LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
-        public async Task<string> FunctionHandler(SNSEvent userData, ILambdaContext context)
+        public async Task<string> FunctionHandler(SNSEvent snsEvent, ILambdaContext context)
         {
-            UserDto userDto = JsonConvert.DeserializeObject<UserDto>(userData.Records[0].Sns.Message);
-            string logUserId = $"User-{userDto.UserId}";
+            JObject oldData = JObject.Parse(snsEvent.Records[0].Sns.Message);
+            string newData = DynamoHandler.QueryUser(oldData["user_id"].ToString());
+            UserDto userDto = JsonConvert.DeserializeObject<UserDto>(newData);
             bool recursive = false;
 
             try
             {
-                BlockCatcher catcher = new BlockCatcher(userDto);
-                recursive = catcher.LookingForBlocks();
+                _catcher.BlockCatcherInit(userDto);
+                recursive = _catcher.LookingForBlocks();
             }
             catch (Exception e)
             {
-                await CloudLogger.PublishToSnsAsync(message: e.ToString(), subject: logUserId);
+                await CloudLogger.PublishToSnsAsync(message: e.ToString(), subject: $"User-{userDto.UserId}");
             }
             finally
             {
@@ -36,7 +40,7 @@ namespace SearchEngine.Serverless
                 if (recursive && userDto.SearchBlocks)
                 {
                     // pass userData SNSEvent
-                    await CloudLogger.PublishToSnsAsync(userData.Records[0].Sns.Message, logUserId, userData.Records[0].Sns.TopicArn);
+                    await CloudLogger.PublishToSnsAsync(newData, "recursive", snsEvent.Records[0].Sns.TopicArn);
                 }
             }
 

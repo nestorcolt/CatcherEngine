@@ -14,7 +14,7 @@ namespace SearchEngine.Modules
         private readonly SignatureObject _signature = new SignatureObject();
         protected ScheduleValidator ScheduleValidator;
 
-        public BlockCatcher(UserDto authenticator)
+        public void BlockCatcherInit(UserDto authenticator)
         {
             // The DTO object for the current user filters
             Authenticator = authenticator;
