@@ -77,8 +77,12 @@ namespace SearchEngine.Modules
             float offerPrice = (float)block["rateInfo"]["priceAmount"];
 
             // Validates the calendar schedule for this user
-            bool scheduleValidation = ScheduleValidator.ValidateSchedule(offerTime);
-            bool areaValidation = ValidateArea(serviceAreaId);
+            bool scheduleValidation = false;
+            bool areaValidation = false;
+
+            Parallel.Invoke(() => scheduleValidation = ScheduleValidator.ValidateSchedule(offerTime),
+                () => areaValidation = ValidateArea(serviceAreaId));
+
 
             if (scheduleValidation && offerPrice >= MinimumPrice && areaValidation)
             {
@@ -86,14 +90,13 @@ namespace SearchEngine.Modules
                 isValidated = true;
                 string offerId = block["offerId"].ToString();
 
-                var acceptHeader = new Dictionary<string, string>
-                {
-                    {"__type", $"AcceptOfferInput:{ApiHelper.AcceptInputUrl}"},
-                    {"offerId", offerId}
-                };
+                JObject acceptHeader = new JObject(
+                    new JProperty("__type", $"AcceptOfferInput:{ApiHelper.AcceptInputUrl}"),
+                    new JProperty("offerId", offerId)
+                );
 
-                string jsonData = JsonConvert.SerializeObject(acceptHeader);
-                HttpResponseMessage response = await ApiHelper.PostDataAsync(ApiHelper.AcceptUri, jsonData, ApiHelper.CatcherClient);
+                HttpResponseMessage response = await ApiHelper.PostDataAsync(ApiHelper.AcceptUri,
+                    acceptHeader.ToString(), ApiHelper.CatcherClient);
 
                 if (response.IsSuccessStatusCode)
                 {
