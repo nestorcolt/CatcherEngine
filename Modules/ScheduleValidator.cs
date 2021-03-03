@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
 namespace SearchEngine.Modules
@@ -72,17 +73,22 @@ namespace SearchEngine.Modules
         public bool ValidateSchedule(long blockTime)
         {
             DateTime blockDateTime = UnixToDateTime(blockTime);
+            bool result = false;
 
-            for (int i = 0; i < _scheduleSlotCounter; ++i)
+            Parallel.For(0, _scheduleSlotCounter, (n, state) =>
             {
-                DateTime start = ScheduleSlots[i][0];
-                DateTime stop = ScheduleSlots[i][1];
+                DateTime start = ScheduleSlots[n][0];
+                DateTime stop = ScheduleSlots[n][1];
 
                 if (start <= blockDateTime && blockDateTime <= stop)
-                    return true;
-            }
+                {
+                    result = true;
+                    state.Stop();
+                }
 
-            return false;
+            });
+
+            return result;
         }
     }
 }
