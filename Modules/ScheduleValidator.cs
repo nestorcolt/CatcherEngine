@@ -85,7 +85,6 @@ namespace SearchEngine.Modules
                     result = true;
                     state.Stop();
                 }
-
             });
 
             return result;
