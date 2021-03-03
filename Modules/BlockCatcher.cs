@@ -36,6 +36,7 @@ namespace SearchEngine.Modules
         private void DeactivateUser()
         {
             SendSnsMessage(StopSnsTopic, new JObject(new JProperty("user_id", UserId)).ToString()).Wait();
+            ProcessSucceed = false;
         }
 
         private bool ScheduleHasData(JToken searchSchedule)
@@ -93,8 +94,7 @@ namespace SearchEngine.Modules
                     new JProperty("offerId", offerId)
                 );
 
-                HttpResponseMessage response = await ApiHelper.PostDataAsync(ApiHelper.AcceptUri,
-                    acceptHeader.ToString(), ApiHelper.CatcherClient);
+                HttpResponseMessage response = await ApiHelper.PostDataAsync(ApiHelper.AcceptUri, acceptHeader.ToString());
 
                 // test to log in cloud watch
                 Log($"\n{UserId}: Operation Status >> Code >> {response.StatusCode}\n");
@@ -136,10 +136,9 @@ namespace SearchEngine.Modules
         {
             SignRequestHeaders($"{ApiHelper.ApiBaseUrl}{ApiHelper.OffersUri}");
 
-            ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary, ApiHelper.SeekerClient);
-            ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary, ApiHelper.CatcherClient);
+            ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary);
 
-            var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, ServiceAreaFilterData, ApiHelper.SeekerClient);
+            var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, ServiceAreaFilterData);
 
             if (response.IsSuccessStatusCode)
             {

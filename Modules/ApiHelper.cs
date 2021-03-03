@@ -19,26 +19,20 @@ namespace SearchEngine.Modules
         public static string OffersUri = "GetOffersForProviderPost";
         public static string ServiceAreaUri = "eligibleServiceAreas";
 
+        public static HttpClientHandler ClientHandler { get; set; }
         public static HttpClient ApiClient { get; set; }
-        public static HttpClient CatcherClient { get; set; }
-        public static HttpClientHandler CatcherClientHandler { get; set; }
-        public static HttpClient SeekerClient { get; set; }
-        public static HttpClientHandler SeekerClientHandler { get; set; }
 
         public static void InitializeClient()
         {
-            ApiClient = new HttpClient { BaseAddress = new Uri(ApiBaseUrl) };
             int maxConnectionsPerServerThreshold = 500;
 
-            CatcherClientHandler = new HttpClientHandler();
-            CatcherClientHandler.UseDefaultCredentials = true;
-            CatcherClientHandler.MaxConnectionsPerServer = maxConnectionsPerServerThreshold;
-            CatcherClient = new HttpClient(CatcherClientHandler) { BaseAddress = new Uri(ApiBaseUrl) };
+            ClientHandler = new HttpClientHandler
+            {
+                UseDefaultCredentials = true,
+                MaxConnectionsPerServer = maxConnectionsPerServerThreshold
+            };
 
-            SeekerClientHandler = new HttpClientHandler();
-            SeekerClientHandler.UseDefaultCredentials = true;
-            SeekerClientHandler.MaxConnectionsPerServer = maxConnectionsPerServerThreshold;
-            SeekerClient = new HttpClient(SeekerClientHandler) { BaseAddress = new Uri(ApiBaseUrl) };
+            ApiClient = new HttpClient(ClientHandler) { BaseAddress = new Uri(ApiBaseUrl) };
 
             int connectionLimitThreshold = 10000;
             ServicePointManager.DefaultConnectionLimit = connectionLimitThreshold;
@@ -56,11 +50,10 @@ namespace SearchEngine.Modules
 
         public static async Task<HttpResponseMessage> GetDataAsync(string uri, HttpClient customClient = null)
         {
-            HttpClient client = customClient ?? ApiClient;
 
             try
             {
-                HttpResponseMessage response = await client.GetAsync(uri);
+                HttpResponseMessage response = await ApiClient.GetAsync(uri);
                 return response;
             }
             catch (HttpRequestException e)
@@ -72,13 +65,12 @@ namespace SearchEngine.Modules
             return null;
         }
 
-        public static async Task<HttpResponseMessage> PostDataAsync(string uri, string data, HttpClient customClient = null)
+        public static async Task<HttpResponseMessage> PostDataAsync(string uri, string data)
         {
-            HttpClient client = customClient ?? ApiClient;
 
             try
             {
-                HttpResponseMessage response = await client.PostAsync(uri, new StringContent(data));
+                HttpResponseMessage response = await ApiClient.PostAsync(uri, new StringContent(data));
                 return response;
             }
             catch (HttpRequestException e)
@@ -96,14 +88,13 @@ namespace SearchEngine.Modules
             return await Task.Run(() => JObject.Parse(content));
         }
 
-        public static void AddRequestHeaders(Dictionary<string, string> headersDictionary, HttpClient customClient)
+        public static void AddRequestHeaders(Dictionary<string, string> headersDictionary)
         {
-            HttpClient client = customClient ?? ApiClient;
-            client.DefaultRequestHeaders.Clear();
+            ApiClient.DefaultRequestHeaders.Clear();
 
             foreach (var data in headersDictionary)
             {
-                client.DefaultRequestHeaders.Add(data.Key, data.Value);
+                ApiClient.DefaultRequestHeaders.Add(data.Key, data.Value);
             }
         }
 

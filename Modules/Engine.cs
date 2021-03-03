@@ -65,8 +65,7 @@ namespace SearchEngine.Modules
             SetServiceArea();
 
             // set headers to clients
-            ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary, ApiHelper.SeekerClient);
-            ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary, ApiHelper.CatcherClient);
+            ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary);
         }
 
         private string GetServiceAreaId()
