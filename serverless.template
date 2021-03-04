@@ -11,8 +11,8 @@
         "Handler": "SearchEngine::SearchEngine.Serverless.GetUserBlocks::FunctionHandler",
         "Runtime": "dotnetcore3.1",
         "CodeUri": "",
-        "MemorySize": 1024,
-        "Timeout": 5,
+        "MemorySize": 512,
+        "Timeout": 6,
         "Policies": [
           "AWSLambdaBasicExecutionRole",
           "AmazonSNSFullAccess",
@@ -38,10 +38,10 @@
         "Runtime": "dotnetcore3.1",
         "CodeUri": "",
         "MemorySize": 512,
-        "Timeout": 5,
+        "Timeout": 6,
         "Policies": [
           "AWSLambdaBasicExecutionRole",
-          "AmazonSNSFullAccess",
+          "AmazonSQSFullAccess",
           "AmazonDynamoDBFullAccess",
           "CloudWatchLogsFullAccess"
         ],
