@@ -21,7 +21,7 @@ namespace SearchEngine.Serverless
             JObject message = JObject.Parse(userData.Records[0].Sns.Message);
             string userId = message["user_id"].ToString();
             string refreshToken = message["refresh_token"].ToString();
-            string logUserId = $"User-{userId}";
+            string logUserId = String.Format(CloudLogger.UserLogStreamName, userId);
 
             try
             {
