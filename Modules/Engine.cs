@@ -43,7 +43,9 @@ namespace SearchEngine.Modules
 
         public void InitializeEngine()
         {
-            // Get user data from dynamo DB through and Ec2 instance private IP matching with user ID
+
+            ProcessSucceed = false;
+
             UserId = Authenticator.UserId;
             AccessToken = Authenticator.AccessToken;
             RefreshToken = Authenticator.RefreshToken;
@@ -99,7 +101,7 @@ namespace SearchEngine.Modules
 
         public void Log(string message)
         {
-            CloudLogger.PublishToSnsAsync(message, $"User-{UserId}").Wait();
+            CloudLogger.PublishToSnsAsync(message, String.Format(CloudLogger.UserLogStreamName, UserId)).Wait();
         }
 
         public void RequestNewAccessToken()
@@ -130,8 +132,8 @@ namespace SearchEngine.Modules
         {
             string serviceAreaId = GetServiceAreaId();
 
-            if (serviceAreaId.Length == 0)
-                throw new InvalidOperationException();
+            if (String.IsNullOrEmpty(serviceAreaId))
+                return;
 
             var filtersDict = new Dictionary<string, object>
             {

@@ -29,16 +29,16 @@ namespace SearchEngine.Serverless
             try
             {
                 _catcher.BlockCatcherInit(userDto);
-                recursive = _catcher.LookingForBlocks();
+                //recursive = _catcher.LookingForBlocks();
             }
             catch (Exception e)
             {
-                await CloudLogger.PublishToSnsAsync(message: e.ToString(), subject: $"User-{userDto.UserId}");
+                await CloudLogger.PublishToSnsAsync(e.ToString(), String.Format(CloudLogger.UserLogStreamName, userDto.UserId));
             }
             finally
             {
                 // call trigger SQS to call again this lambda (recursion) base on recursion parameter
-                if (recursive && userDto.SearchBlocks)
+                if (true && userDto.SearchBlocks)
                 {
                     // pass userData SQSEvent
                     string qUrl = await SqsHandler.GetQueueByName(SqsHandler.Client, SqsHandler.StartSearchQueueName);
@@ -46,11 +46,10 @@ namespace SearchEngine.Serverless
                 }
             }
 
-            Console.WriteLine(recursive);
-            Console.WriteLine(userDto.SearchBlocks);
-
             // update last iteration value
             await DynamoHandler.UpdateUserTimestamp(userDto.UserId, _catcher.GetTimestamp());
+            Console.WriteLine($"Recursive: {recursive} - SearchBlocks: {userDto.SearchBlocks} - Time: { DateTime.Now.ToString("HH:mm:ss.fff")}");
+            await CloudLogger.PublishToSnsAsync($"Time: { DateTime.Now.ToString("HH:mm:ss.fff")}", $"User -{userDto.UserId}");
 
             HttpStatusCode responseCode = HttpStatusCode.Accepted;
             return responseCode.ToString();

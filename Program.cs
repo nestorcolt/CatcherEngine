@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using SearchEngine.Modules;
 
@@ -12,7 +13,10 @@ namespace SearchEngine
         {
             //string q = SqsHandler.GetQueueByName(SqsHandler.Client, "GetUserBlocksQueue").Result;
             //Console.WriteLine(q);
-            DynamoHandler.UpdateUserTimestamp("15", 1900).Wait();
+            string timestamp = "ka";
+            string name = "User-{0}";
+            Console.WriteLine(String.Format(name, "15"));
+
         }
     }
 }

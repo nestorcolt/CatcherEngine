@@ -27,12 +27,10 @@ namespace SearchEngine.Modules
         public static async Task SendMessage(IAmazonSQS sqsClient, string qUrl, string messageBody)
         {
             SendMessageResponse responseSendMsg = await sqsClient.SendMessageAsync(qUrl, messageBody);
-            Console.WriteLine($"Message added to queue\n  {qUrl}");
-            Console.WriteLine($"HttpStatusCode: {responseSendMsg.HttpStatusCode}");
         }
+
         public static async Task DeleteMessage(IAmazonSQS sqsClient, Message message, string qUrl)
         {
-            Console.WriteLine($"\nDeleting message {message.MessageId} from queue...");
             await sqsClient.DeleteMessageAsync(qUrl, message.ReceiptHandle);
         }
     }

@@ -16,14 +16,16 @@
         "Policies": [
           "AWSLambdaBasicExecutionRole",
           "AmazonSNSFullAccess",
+          "AmazonSQSFullAccess",
           "AmazonDynamoDBFullAccess",
           "CloudWatchLogsFullAccess"
         ],
         "Events":{
-            "SnsEvent": {
-                "Type": "SNS",
+            "SqsEvent": {
+                "Type": "SQS",
                 "Properties": {
-                  "Topic": {"Fn::Sub": "arn:aws:sns:us-east-1:${AWS::AccountId}:SE-START-TOPIC"}
+                  "Queue": {"Fn::Sub": "arn:aws:sqs:us-east-1:${AWS::AccountId}:GetUserBlocksQueue"},
+                  "BatchSize": 1
              }
            }
         }
@@ -42,6 +44,7 @@
         "Policies": [
           "AWSLambdaBasicExecutionRole",
           "AmazonSQSFullAccess",
+          "AmazonSNSFullAccess",
           "AmazonDynamoDBFullAccess",
           "CloudWatchLogsFullAccess"
         ],
