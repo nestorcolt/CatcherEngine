@@ -49,6 +49,9 @@ namespace SearchEngine.Serverless
             Console.WriteLine(recursive);
             Console.WriteLine(userDto.SearchBlocks);
 
+            // update last iteration value
+            await DynamoHandler.UpdateUserTimestamp(userDto.UserId, _catcher.GetTimestamp());
+
             HttpStatusCode responseCode = HttpStatusCode.Accepted;
             return responseCode.ToString();
         }

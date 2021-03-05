@@ -10,8 +10,9 @@ namespace SearchEngine
     {
         static void Main(string[] args)
         {
-            string q = SqsHandler.GetQueueByName(SqsHandler.Client, "GetUserBlocksQueue").Result;
-            Console.WriteLine(q);
+            //string q = SqsHandler.GetQueueByName(SqsHandler.Client, "GetUserBlocksQueue").Result;
+            //Console.WriteLine(q);
+            DynamoHandler.UpdateUserTimestamp("15", 1900).Wait();
         }
     }
 }
