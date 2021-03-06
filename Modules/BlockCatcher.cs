@@ -97,8 +97,7 @@ namespace SearchEngine.Modules
                 HttpResponseMessage response = await ApiHelper.PostDataAsync(ApiHelper.AcceptUri, acceptHeader.ToString());
 
                 // test to log in cloud watch
-                Log($"\n{UserId}: Operation Status >> Code >> {response.StatusCode}\n");
-                Console.WriteLine($"\n{UserId}: Operation Status >> Code >> {response.StatusCode}\n");
+                Log($"\nAccept Block Operation Status >> Code >> {response.StatusCode}\n");
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -109,7 +108,6 @@ namespace SearchEngine.Modules
                         );
 
                     await SendSnsMessage(AcceptedSnsTopic, data.ToString());
-                    Log($"\nAccept Block Operation Status >> Code >> {response.StatusCode}\n");
                 }
             }
 
@@ -134,8 +132,7 @@ namespace SearchEngine.Modules
         }
         private async Task<HttpStatusCode> GetOffersAsyncHandle()
         {
-            SignRequestHeaders($"{ApiHelper.ApiBaseUrl}{ApiHelper.OffersUri}");
-
+            //SignRequestHeaders($"{ApiHelper.ApiBaseUrl}{ApiHelper.OffersUri}");
             ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary);
 
             var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, ServiceAreaFilterData);
@@ -168,6 +165,7 @@ namespace SearchEngine.Modules
             {
                 // Request exceed. Send to SNS topic to terminate the instance. Put to sleep for 30 minutes
                 SendSnsMessage(SleepSnsTopic, new JObject(new JProperty("user_id", UserId)).ToString()).Wait();
+                ProcessSucceed = false;
 
                 // Stream Logs
                 string responseStatus = $"\nRequest Status >> Reason >> {statusCode} | The system will pause for 30 minutes\n";

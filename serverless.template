@@ -11,8 +11,8 @@
         "Handler": "SearchEngine::SearchEngine.Serverless.GetUserBlocks::FunctionHandler",
         "Runtime": "dotnetcore3.1",
         "CodeUri": "",
-        "MemorySize": 512,
-        "Timeout": 6,
+        "MemorySize": 2048,
+        "Timeout": 10,
         "Policies": [
           "AWSLambdaBasicExecutionRole",
           "AmazonSNSFullAccess",
@@ -39,8 +39,8 @@
         "Handler": "SearchEngine::SearchEngine.Serverless.AuthenticateUser::FunctionHandler",
         "Runtime": "dotnetcore3.1",
         "CodeUri": "",
-        "MemorySize": 512,
-        "Timeout": 6,
+        "MemorySize": 2048,
+        "Timeout": 10,
         "Policies": [
           "AWSLambdaBasicExecutionRole",
           "AmazonSQSFullAccess",
