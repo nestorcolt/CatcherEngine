@@ -20,14 +20,14 @@ namespace SearchEngine.Modules
             await table.UpdateItemAsync(document, userId);
         }
 
-        public static string QueryUser(string userId)
+        public static async Task<string> QueryUser(string userId)
         {
             QueryFilter scanFilter = new QueryFilter();
             Table usersTable = Table.LoadTable(Client, _tableName);
             scanFilter.AddCondition(_tablePk, ScanOperator.Equal, userId);
 
             Search search = usersTable.Query(scanFilter);
-            List<Document> documentSet = search.GetNextSetAsync().Result;
+            List<Document> documentSet = await search.GetNextSetAsync();
 
             if (documentSet.Count > 0)
             {

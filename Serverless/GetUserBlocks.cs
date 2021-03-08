@@ -16,20 +16,19 @@ namespace SearchEngine.Serverless
 {
     class GetUserBlocks
     {
-        private readonly BlockCatcher _catcher = new BlockCatcher();
 
         [LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
         public async Task<string> FunctionHandler(SQSEvent sqsEvent, ILambdaContext context)
         {
-            JObject oldData = JObject.Parse(sqsEvent.Records[0].Body);
-            string newData = DynamoHandler.QueryUser(oldData["user_id"].ToString());
-            UserDto userDto = JsonConvert.DeserializeObject<UserDto>(newData);
+
+            BlockCatcher catcher = new BlockCatcher();
+            UserDto userDto = await GetUserDtoAsync(sqsEvent);
             bool recursive = false;
 
             try
             {
-                _catcher.BlockCatcherInit(userDto);
-                recursive = _catcher.LookingForBlocks();
+                catcher.BlockCatcherInit(userDto);
+                recursive = catcher.LookingForBlocks();
             }
             catch (Exception e)
             {
@@ -47,10 +46,19 @@ namespace SearchEngine.Serverless
             }
 
             // update last iteration value
-            await DynamoHandler.UpdateUserTimestamp(userDto.UserId, _catcher.GetTimestamp());
+            await DynamoHandler.UpdateUserTimestamp(userDto.UserId, catcher.GetTimestamp());
 
             HttpStatusCode responseCode = HttpStatusCode.Accepted;
             return responseCode.ToString();
+        }
+
+        private async Task<UserDto> GetUserDtoAsync(SQSEvent sqsEvent)
+        {
+            JObject oldData = JObject.Parse(sqsEvent.Records[0].Body);
+            string newData = await DynamoHandler.QueryUser(oldData["user_id"].ToString());
+            UserDto userDto = JsonConvert.DeserializeObject<UserDto>(newData);
+
+            return userDto;
         }
     }
 }

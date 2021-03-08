@@ -36,6 +36,7 @@ namespace SearchEngine.Modules
         public List<string> Areas;
         public float MinimumPrice;
         public string UserId;
+        public int Counter;
 
         public bool ProcessSucceed { get; set; }
 
