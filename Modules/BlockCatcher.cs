@@ -81,7 +81,6 @@ namespace SearchEngine.Modules
             Parallel.Invoke(() => scheduleValidation = ScheduleValidator.ValidateSchedule(offerTime),
                 () => areaValidation = ValidateArea(serviceAreaId));
 
-
             if (scheduleValidation && offerPrice >= MinimumPrice && areaValidation)
             {
                 // to track in offers table
@@ -95,9 +94,6 @@ namespace SearchEngine.Modules
 
                 HttpResponseMessage response = await ApiHelper.PostDataAsync(ApiHelper.AcceptUri, acceptHeader.ToString());
 
-                // test to log in cloud watch
-                Log($"\nAccept Block Operation Status >> Code >> {response.StatusCode}\n");
-
                 if (response.IsSuccessStatusCode)
                 {
                     // send to owner endpoint accept data to log and send to the user the notification
@@ -108,6 +104,9 @@ namespace SearchEngine.Modules
 
                     await SendSnsMessage(AcceptedSnsTopic, data.ToString());
                 }
+
+                // test to log in cloud watch
+                Log($"\nAccept Block Operation Status >> Code >> {response.StatusCode}\n");
             }
 
             // send the offer seen to the offers table for further data processing or analytic
