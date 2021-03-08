@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 
@@ -29,9 +26,9 @@ namespace SearchEngine.Modules
             SendMessageResponse responseSendMsg = await sqsClient.SendMessageAsync(qUrl, messageBody);
         }
 
-        public static async Task DeleteMessage(IAmazonSQS sqsClient, Message message, string qUrl)
+        public static async Task DeleteMessage(IAmazonSQS sqsClient, string receiptHandle, string qUrl)
         {
-            await sqsClient.DeleteMessageAsync(qUrl, message.ReceiptHandle);
+            await sqsClient.DeleteMessageAsync(qUrl, receiptHandle);
         }
     }
 }

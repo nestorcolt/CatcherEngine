@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.SQSEvents;
@@ -39,14 +38,15 @@ namespace SearchEngine.Serverless
                 // call trigger SQS to call again this lambda (recursion) base on recursion parameter
                 if (recursive && userDto.SearchBlocks)
                 {
+                    // update last iteration value
+                    await DynamoHandler.UpdateUserTimestamp(userDto.UserId, catcher.GetTimestamp());
+
                     // pass userData SQSEvent
                     string qUrl = await SqsHandler.GetQueueByName(SqsHandler.Client, SqsHandler.StartSearchQueueName);
+                    await SqsHandler.DeleteMessage(SqsHandler.Client, qUrl, sqsEvent.Records[0].ReceiptHandle);
                     await SqsHandler.SendMessage(SqsHandler.Client, qUrl, sqsEvent.Records[0].Body);
                 }
             }
-
-            // update last iteration value
-            await DynamoHandler.UpdateUserTimestamp(userDto.UserId, catcher.GetTimestamp());
 
             HttpStatusCode responseCode = HttpStatusCode.Accepted;
             return responseCode.ToString();
