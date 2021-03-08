@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Text;
-using SearchEngine.Modules;
 
 namespace SearchEngine
 {
@@ -13,9 +9,24 @@ namespace SearchEngine
         {
             //string q = SqsHandler.GetQueueByName(SqsHandler.Client, "GetUserBlocksQueue").Result;
             //Console.WriteLine(q);
-            string name = "User-{0}";
-            Console.WriteLine(String.Format(name, "15"));
+            string zone = "Pacific Standard Time";
+            Console.WriteLine(UnixToDateTime(1615226400, zone).ToLongTimeString());
+            Console.WriteLine(UnixToDateTime(1615226400, zone).ToLongTimeString());
 
+        }
+
+        public static DateTime SetTimeZone(DateTime timeToConvert, string timeZone)
+        {
+            TimeZoneInfo est = TimeZoneInfo.FindSystemTimeZoneById(timeZone);
+            DateTime targetTime = TimeZoneInfo.ConvertTime(timeToConvert, est);
+            return targetTime;
+        }
+
+        private static DateTime UnixToDateTime(long timeInSeconds, string timeZone)
+        {
+            DateTimeOffset dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(timeInSeconds);
+            DateTime dateTime = dateTimeOffset.DateTime;
+            return SetTimeZone(dateTime, timeZone);
         }
     }
 }

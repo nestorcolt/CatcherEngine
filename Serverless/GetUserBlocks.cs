@@ -1,11 +1,11 @@
-﻿using System;
-using System.Net;
-using System.Threading.Tasks;
-using Amazon.Lambda.Core;
+﻿using Amazon.Lambda.Core;
 using Amazon.Lambda.SQSEvents;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SearchEngine.Modules;
+using System;
+using System.Net;
+using System.Threading.Tasks;
 
 
 // The Main program for looking, catching and accepting blocks for the amazon flex service. Automate the process and handle a single user process instance and this needs
@@ -43,8 +43,8 @@ namespace SearchEngine.Serverless
 
                     // pass userData SQSEvent
                     string qUrl = await SqsHandler.GetQueueByName(SqsHandler.Client, SqsHandler.StartSearchQueueName);
-                    await SqsHandler.DeleteMessage(SqsHandler.Client, qUrl, sqsEvent.Records[0].ReceiptHandle);
                     await SqsHandler.SendMessage(SqsHandler.Client, qUrl, sqsEvent.Records[0].Body);
+                    await SqsHandler.DeleteMessage(SqsHandler.Client, sqsEvent.Records[0].ReceiptHandle, qUrl);
                 }
             }
 
@@ -57,7 +57,6 @@ namespace SearchEngine.Serverless
             JObject oldData = JObject.Parse(sqsEvent.Records[0].Body);
             string newData = await DynamoHandler.QueryUser(oldData["user_id"].ToString());
             UserDto userDto = JsonConvert.DeserializeObject<UserDto>(newData);
-
             return userDto;
         }
     }

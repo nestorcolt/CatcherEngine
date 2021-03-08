@@ -1,10 +1,10 @@
-﻿using System;
-using System.Net;
-using System.Threading.Tasks;
-using Amazon.Lambda.Core;
+﻿using Amazon.Lambda.Core;
 using Amazon.Lambda.SNSEvents;
 using Newtonsoft.Json.Linq;
 using SearchEngine.Modules;
+using System;
+using System.Net;
+using System.Threading.Tasks;
 
 /*
  * The authenticator is in charge of getting the new access token every time is necessary

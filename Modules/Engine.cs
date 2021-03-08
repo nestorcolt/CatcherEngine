@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
-using Amazon.SimpleNotificationService;
+﻿using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SearchEngine.Properties;
+using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace SearchEngine.Modules
 {
@@ -36,7 +36,6 @@ namespace SearchEngine.Modules
         public List<string> Areas;
         public float MinimumPrice;
         public string UserId;
-        public int Counter;
 
         public bool ProcessSucceed { get; set; }
 

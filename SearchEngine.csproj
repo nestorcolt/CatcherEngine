@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	<OutputType>Library</OutputType>
+	<OutputType>Exe</OutputType>
 	<TargetFramework>netcoreapp3.1</TargetFramework>
 	<GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
 	<AssemblyName>SearchEngine</AssemblyName>
@@ -36,12 +36,6 @@
   </ItemGroup>
 
   <ItemGroup>
-	<None Update="Data\BlockModel.json">
-	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	</None>
-	<None Update="Data\ScheduleModel.json">
-	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	</None>
 	<None Update="Properties\settings.settings">
 	  <Generator>PublicSettingsSingleFileGenerator</Generator>
 	  <LastGenOutput>settings.Designer.cs</LastGenOutput>
