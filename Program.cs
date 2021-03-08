@@ -7,12 +7,9 @@ namespace SearchEngine
     {
         static void Main(string[] args)
         {
-            //string q = SqsHandler.GetQueueByName(SqsHandler.Client, "GetUserBlocksQueue").Result;
-            //Console.WriteLine(q);
             string zone = "Pacific Standard Time";
             Console.WriteLine(UnixToDateTime(1615226400, zone).ToLongTimeString());
-            Console.WriteLine(UnixToDateTime(1615226400, zone).ToLongTimeString());
-
+            Console.WriteLine(UnixToDateTime(1615233600, zone).ToLongTimeString());
         }
 
         public static DateTime SetTimeZone(DateTime timeToConvert, string timeZone)
