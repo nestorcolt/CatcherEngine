@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
@@ -13,11 +14,9 @@ namespace SearchEngine.Serverless
 {
     class GetUserBlocksTest
     {
-
         [LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
         public async Task<string> FunctionHandler(SQSEvent sqsEvent, ILambdaContext context)
         {
-
             BlockCatcher catcher = new BlockCatcher();
             UserDto userDto = await GetUserDtoAsync(sqsEvent);
             bool recursive = false;
@@ -29,12 +28,14 @@ namespace SearchEngine.Serverless
             }
             catch (Exception e)
             {
-                await CloudLogger.PublishToSnsAsync(e.ToString(), String.Format(CloudLogger.UserLogStreamName, userDto.UserId));
+                await CloudLogger.PublishToSnsAsync(e.ToString(),
+                    String.Format(CloudLogger.UserLogStreamName, userDto.UserId));
             }
             finally
             {
                 // call trigger SQS to call again this lambda (recursion) base on recursion parameter
-                if (recursive && userDto.SearchBlocks)
+                //if (recursive && userDto.SearchBlocks)
+                if (true)
                 {
                     // update last iteration value
                     await DynamoHandler.UpdateUserTimestamp(userDto.UserId, catcher.GetTimestamp());
@@ -42,13 +43,14 @@ namespace SearchEngine.Serverless
                     // pass userData SQSEvent
                     string qUrl = await SqsHandler.GetQueueByName(SqsHandler.Client, SqsHandler.StartSearchQueueName);
                     await SqsHandler.SendMessage(SqsHandler.Client, qUrl, sqsEvent.Records[0].Body);
-                    await SqsHandler.DeleteMessage(SqsHandler.Client, sqsEvent.Records[0].ReceiptHandle, qUrl);
+                    //await SqsHandler.DeleteMessage(SqsHandler.Client, sqsEvent.Records[0].ReceiptHandle, qUrl);
                 }
             }
 
             HttpStatusCode responseCode = HttpStatusCode.Accepted;
             return responseCode.ToString();
         }
+
 
         private async Task<UserDto> GetUserDtoAsync(SQSEvent sqsEvent)
         {

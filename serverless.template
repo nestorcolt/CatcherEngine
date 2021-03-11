@@ -39,23 +39,14 @@
         "Runtime": "dotnetcore3.1",
         "CodeUri": "",
         "MemorySize": 4096,
-        "Timeout": 10,
+        "Timeout": 900,
         "Policies": [
           "AWSLambdaBasicExecutionRole",
           "AmazonSNSFullAccess",
           "AmazonSQSFullAccess",
           "AmazonDynamoDBFullAccess",
           "CloudWatchLogsFullAccess"
-        ],
-        "Events":{
-            "SqsEvent": {
-                "Type": "SQS",
-                "Properties": {
-                  "Queue": {"Fn::Sub": "arn:aws:sqs:us-east-1:${AWS::AccountId}:PowerTunningQueue"},
-                  "BatchSize": 1
-             }
-           }
-        }
+        ]
       }
     },
 
