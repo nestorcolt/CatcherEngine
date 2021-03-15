@@ -15,23 +15,22 @@ namespace SearchEngine.Serverless
 {
     class GetUserBlocks
     {
+        readonly BlockCatcher _catcher = new BlockCatcher();
 
         [LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
         public async Task<string> FunctionHandler(SQSEvent sqsEvent, ILambdaContext context)
         {
 
-            BlockCatcher catcher = new BlockCatcher();
             UserDto userDto = await GetUserDtoAsync(sqsEvent);
             bool recursive = false;
 
             try
             {
-                catcher.BlockCatcherInit(userDto);
-                recursive = catcher.LookingForBlocks();
+                recursive = await _catcher.LookingForBlocks(userDto);
             }
             catch (Exception e)
             {
-                await CloudLogger.PublishToSnsAsync(e.ToString(), String.Format(CloudLogger.UserLogStreamName, userDto.UserId));
+                await CloudLogger.Log(e.ToString(), userDto.UserId);
             }
             finally
             {
@@ -39,7 +38,7 @@ namespace SearchEngine.Serverless
                 if (recursive && userDto.SearchBlocks)
                 {
                     // update last iteration value
-                    await DynamoHandler.UpdateUserTimestamp(userDto.UserId, catcher.GetTimestamp());
+                    await DynamoHandler.UpdateUserTimestamp(userDto.UserId, _catcher.GetTimestamp());
 
                     // pass userData SQSEvent
                     string qUrl = await SqsHandler.GetQueueByName(SqsHandler.Client, SqsHandler.StartSearchQueueName);

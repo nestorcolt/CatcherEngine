@@ -22,63 +22,33 @@ namespace SearchEngine.Modules
         protected string OffersSnsTopic = $"arn:aws:sns:us-east-1:{settings.Default.AWSAccountId}:SE-OFFERS-TOPIC";
         protected string SleepSnsTopic = $"arn:aws:sns:us-east-1:{settings.Default.AWSAccountId}:SE-SLEEP-TOPIC";
         protected string StopSnsTopic = $"arn:aws:sns:us-east-1:{settings.Default.AWSAccountId}:SE-STOP-TOPIC";
-        protected Dictionary<string, string> RequestDataHeadersDictionary = new Dictionary<string, string>();
-
-        protected string ServiceAreaFilterData;
-        protected UserDto Authenticator;
 
         public const string TokenKeyConstant = "x-amz-access-token";
-
-        public JToken SearchSchedule;
-        protected string RefreshToken;
-        protected string AccessToken;
-        protected string TimeZone;
-        public List<string> Areas;
-        public float MinimumPrice;
-        public string UserId;
-
-        public bool ProcessSucceed { get; set; }
-
         public string AppVersion => settings.Default.FlexAppVersion;
+        public bool ProcessSucceed { get; set; }
+        public string UserPk = "user_id";
 
-        public void InitializeEngine()
+        public async Task RequestNewAccessToken(UserDto userDto)
         {
-
-            ProcessSucceed = false;
-
-            UserId = Authenticator.UserId;
-            AccessToken = Authenticator.AccessToken;
-            RefreshToken = Authenticator.RefreshToken;
-            MinimumPrice = Authenticator.MinimumPrice;
-            SearchSchedule = Authenticator.SearchSchedule;
-            TimeZone = Authenticator.TimeZone;
-            Areas = Authenticator.Areas;
-
-            // Set token in request dictionary
-            RequestDataHeadersDictionary[TokenKeyConstant] = AccessToken;
-
-            // HttpClients are init here
-            ApiHelper.InitializeClient();
-
-            // Primary methods resolution to get access to the request headers
-            EmulateDevice();
-
-            // Set the client service area to sent as extra data with the request on get blocks method
-            SetServiceArea();
-
-            // set headers to clients
-            ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary);
+            await SnsHandler.PublishToSnsAsync(JsonConvert.SerializeObject(userDto), "", AuthenticationSnsTopic);
         }
 
-        private string GetServiceAreaId()
+        public int GetTimestamp()
         {
-            ApiHelper.ApiClient.DefaultRequestHeaders.Add(TokenKeyConstant, AccessToken);
-            HttpResponseMessage content = ApiHelper.GetDataAsync(ApiHelper.ServiceAreaUri).Result;
+            TimeSpan time = (DateTime.UtcNow - DateTime.UnixEpoch);
+            int timestamp = (int)time.TotalSeconds;
+            return timestamp;
+        }
+
+        public async Task<string> GetServiceAreaId(UserDto userDto)
+        {
+            ApiHelper.ApiClient.DefaultRequestHeaders.Add(TokenKeyConstant, userDto.AccessToken);
+            HttpResponseMessage content = await ApiHelper.GetDataAsync(ApiHelper.ServiceAreaUri);
 
             if (content.IsSuccessStatusCode)
             {
                 // continue if the validation succeed
-                JObject requestToken = ApiHelper.GetRequestJTokenAsync(content).Result;
+                JObject requestToken = await ApiHelper.GetRequestJTokenAsync(content);
                 JToken result = requestToken.GetValue("serviceAreaIds");
 
                 if (result.HasValues)
@@ -92,48 +62,19 @@ namespace SearchEngine.Modules
             if (content.StatusCode is HttpStatusCode.Unauthorized || content.StatusCode is HttpStatusCode.Forbidden)
             {
                 // Re-authenticate after the access token has expired
-                RequestNewAccessToken();
+                await RequestNewAccessToken(userDto);
                 ProcessSucceed = false;
             }
 
             return null;
         }
 
-        public void Log(string message)
+        public async Task<string> SetServiceArea(UserDto userDto)
         {
-            CloudLogger.PublishToSnsAsync(message, String.Format(CloudLogger.UserLogStreamName, UserId)).Wait();
-        }
-
-        public void RequestNewAccessToken()
-        {
-            SendSnsMessage(AuthenticationSnsTopic, JsonConvert.SerializeObject(Authenticator)).Wait();
-        }
-
-        public async Task SendSnsMessage(string topicArn, string message)
-        {
-            IAmazonSimpleNotificationService client = new AmazonSimpleNotificationServiceClient();
-            var request = new PublishRequest
-            {
-                TopicArn = topicArn,
-                Message = message
-            };
-
-            await client.PublishAsync(request);
-        }
-
-        public int GetTimestamp()
-        {
-            TimeSpan time = (DateTime.UtcNow - new DateTime(1970, 1, 1));
-            int timestamp = (int)time.TotalSeconds;
-            return timestamp;
-        }
-
-        private void SetServiceArea()
-        {
-            string serviceAreaId = GetServiceAreaId();
+            string serviceAreaId = await GetServiceAreaId(userDto);
 
             if (String.IsNullOrEmpty(serviceAreaId))
-                return;
+                return null;
 
             var filtersDict = new Dictionary<string, object>
             {
@@ -149,10 +90,11 @@ namespace SearchEngine.Modules
             };
 
             // MERGE THE HEADERS OFFERS AND SERVICE DATA IN ONE MAIN HEADER DICTIONARY
-            ServiceAreaFilterData = JsonConvert.SerializeObject(serviceDataDictionary).Replace("\\", "");
+            string serviceAreaFilterData = JsonConvert.SerializeObject(serviceDataDictionary).Replace("\\", "");
+            return serviceAreaFilterData;
         }
 
-        private void EmulateDevice()
+        public Dictionary<string, string> EmulateDevice(Dictionary<string, string> requestDictionary)
         {
             string instanceId = Guid.NewGuid().ToString().Replace("-", "");
             string androidVersion = settings.Default.OSVersion;
@@ -171,8 +113,10 @@ namespace SearchEngine.Modules
             // Set the class field with the new offer headers
             foreach (var header in offerAcceptHeaders)
             {
-                RequestDataHeadersDictionary[header.Key] = header.Value;
+                requestDictionary[header.Key] = header.Value;
             }
+
+            return requestDictionary;
         }
     }
 }

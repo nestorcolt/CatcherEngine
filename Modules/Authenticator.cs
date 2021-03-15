@@ -47,6 +47,7 @@ namespace SearchEngine.Modules
 
         private async Task<string> GetAmazonAccessToken(string refreshToken)
         {
+            // TODO CHANGE APP VERSION HERE WITH PROPERTY
             var authenticationHeader = new Dictionary<string, string>
             {
                 {"app_name", "com.amazon.rabbit"},

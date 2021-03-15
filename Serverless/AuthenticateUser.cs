@@ -21,7 +21,6 @@ namespace SearchEngine.Serverless
             JObject message = JObject.Parse(userData.Records[0].Sns.Message);
             string userId = message["user_id"].ToString();
             string refreshToken = message["refresh_token"].ToString();
-            string logUserId = String.Format(CloudLogger.UserLogStreamName, userId);
 
             try
             {
@@ -30,7 +29,7 @@ namespace SearchEngine.Serverless
             }
             catch (Exception e)
             {
-                await CloudLogger.PublishToSnsAsync(message: e.ToString(), subject: logUserId);
+                await CloudLogger.Log(e.ToString(), userId);
             }
 
             HttpStatusCode responseCode = HttpStatusCode.Accepted;

@@ -10,31 +10,12 @@ namespace SearchEngine.Modules
 {
     class BlockCatcher : Engine
     {
-        private readonly SignatureObject _signature = new SignatureObject();
+        //private readonly SignatureObject _signature = new SignatureObject();
         protected ScheduleValidator ScheduleValidator;
 
-        public void BlockCatcherInit(UserDto authenticator)
+        private async Task DeactivateUser(string userId)
         {
-            // The DTO object for the current user filters
-            Authenticator = authenticator;
-
-            // setup engine details
-            InitializeEngine();
-
-            // validator of weekly schedule
-            if (ScheduleHasData(SearchSchedule))
-            {
-                ScheduleValidator = new ScheduleValidator(SearchSchedule, Authenticator.TimeZone);
-            }
-            else
-            {
-                DeactivateUser();
-            }
-        }
-
-        private void DeactivateUser()
-        {
-            SendSnsMessage(StopSnsTopic, new JObject(new JProperty("user_id", UserId)).ToString()).Wait();
+            await SnsHandler.PublishToSnsAsync(new JObject(new JProperty(UserPk, userId)).ToString(), "", StopSnsTopic);
             ProcessSucceed = false;
         }
 
@@ -46,28 +27,28 @@ namespace SearchEngine.Modules
             return false;
         }
 
-        private void SignRequestHeaders(string url)
+        private bool ValidateArea(string serviceAreaId, List<string> areas)
         {
-            SortedDictionary<string, string> signatureHeaders = _signature.CreateSignature(url, AccessToken);
-
-            RequestDataHeadersDictionary["X-Amz-Date"] = signatureHeaders["X-Amz-Date"];
-            RequestDataHeadersDictionary["X-Flex-Client-Time"] = GetTimestamp().ToString();
-            RequestDataHeadersDictionary["X-Amzn-RequestId"] = signatureHeaders["X-Amzn-RequestId"];
-            RequestDataHeadersDictionary["Authorization"] = signatureHeaders["Authorization"];
-        }
-
-        private bool ValidateArea(string serviceAreaId)
-        {
-            if (Areas.Count == 0)
+            if (areas.Count == 0)
                 return true;
 
-            if (Areas.Contains(serviceAreaId))
+            if (areas.Contains(serviceAreaId))
                 return true;
 
             return false;
         }
 
-        public async Task AcceptSingleOfferAsync(JToken block)
+        //private void SignRequestHeaders(string url)
+        //{
+        //    SortedDictionary<string, string> signatureHeaders = _signature.CreateSignature(url, AccessToken);
+
+        //    RequestDataHeadersDictionary["X-Amz-Date"] = signatureHeaders["X-Amz-Date"];
+        //    RequestDataHeadersDictionary["X-Flex-Client-Time"] = GetTimestamp().ToString();
+        //    RequestDataHeadersDictionary["X-Amzn-RequestId"] = signatureHeaders["X-Amzn-RequestId"];
+        //    RequestDataHeadersDictionary["Authorization"] = signatureHeaders["Authorization"];
+        //}
+
+        public async Task AcceptSingleOfferAsync(JToken block, UserDto userDto)
         {
             bool isValidated = false;
             long offerTime = (long)block["startTime"];
@@ -79,9 +60,9 @@ namespace SearchEngine.Modules
             bool areaValidation = false;
 
             Parallel.Invoke(() => scheduleValidation = ScheduleValidator.ValidateSchedule(offerTime),
-                () => areaValidation = ValidateArea(serviceAreaId));
+                () => areaValidation = ValidateArea(serviceAreaId, userDto.Areas));
 
-            if (scheduleValidation && offerPrice >= MinimumPrice && areaValidation)
+            if (scheduleValidation && offerPrice >= userDto.MinimumPrice && areaValidation)
             {
                 // to track in offers table
                 isValidated = true;
@@ -98,42 +79,42 @@ namespace SearchEngine.Modules
                 {
                     // send to owner endpoint accept data to log and send to the user the notification
                     JObject data = new JObject(
-                        new JProperty("user_id", UserId),
+                        new JProperty(UserPk, userDto.UserId),
                         new JProperty("data", block)
                         );
 
-                    await SendSnsMessage(AcceptedSnsTopic, data.ToString());
+                    await SnsHandler.PublishToSnsAsync(data.ToString(), "", AcceptedSnsTopic);
                 }
 
                 // test to log in cloud watch
-                Log($"\nAccept Block Operation Status >> Code >> {response.StatusCode}\n");
+                await CloudLogger.Log($"\nAccept Block Operation Status >> Code >> {response.StatusCode}\n", userDto.UserId);
             }
 
             // send the offer seen to the offers table for further data processing or analytic
             JObject offerSeen = new JObject(
-                new JProperty("user_id", UserId),
+                new JProperty(UserPk, userDto.UserId),
                 new JProperty("validated", isValidated),
                 new JProperty("data", block)
             );
 
-            await SendSnsMessage(OffersSnsTopic, offerSeen.ToString());
+            await SnsHandler.PublishToSnsAsync(offerSeen.ToString(), "", OffersSnsTopic);
         }
 
-        public void AcceptOffers(JToken offerList)
+        public void AcceptOffers(JToken offerList, UserDto userDto)
         {
             Parallel.For(0, offerList.Count(), n =>
             {
                 JToken innerBlock = offerList[n];
-                Thread accept = new Thread(async task => await AcceptSingleOfferAsync(innerBlock));
+                Thread accept = new Thread(async task => await AcceptSingleOfferAsync(innerBlock, userDto));
                 accept.Start();
             });
         }
-        private async Task<HttpStatusCode> GetOffersAsyncHandle()
+
+        private async Task<HttpStatusCode> GetOffersAsyncHandle(UserDto userDto, Dictionary<string, string> requestHeaders, string serviceAreaId)
         {
             //SignRequestHeaders($"{ApiHelper.ApiBaseUrl}{ApiHelper.OffersUri}");
-            ApiHelper.AddRequestHeaders(RequestDataHeadersDictionary);
-
-            var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, ServiceAreaFilterData);
+            ApiHelper.AddRequestHeaders(requestHeaders);
+            var response = await ApiHelper.PostDataAsync(ApiHelper.OffersUri, serviceAreaId);
 
             if (response.IsSuccessStatusCode)
             {
@@ -142,7 +123,7 @@ namespace SearchEngine.Modules
 
                 if (offerList != null && offerList.HasValues)
                 {
-                    Thread acceptThread = new Thread(task => AcceptOffers(offerList));
+                    Thread acceptThread = new Thread(task => AcceptOffers(offerList, userDto));
                     acceptThread.Start();
                 }
             }
@@ -150,28 +131,59 @@ namespace SearchEngine.Modules
             return response.StatusCode;
         }
 
-        public bool LookingForBlocks()
+        public async Task<bool> LookingForBlocks(UserDto userDto)
         {
+            // setup engine details
+            ProcessSucceed = false;
 
+            // validator of weekly schedule
+            if (ScheduleHasData(userDto.SearchSchedule))
+            {
+                ScheduleValidator = new ScheduleValidator(userDto.SearchSchedule, userDto.TimeZone);
+            }
+            else
+            {
+                await DeactivateUser(userDto.UserId);
+                return ProcessSucceed;
+            }
+
+            // Start
+            var requestHeaders = new Dictionary<string, string>();
+
+            // Set token in request dictionary
+            requestHeaders[TokenKeyConstant] = userDto.AccessToken;
+
+            // HttpClients are init here
+            ApiHelper.InitializeClient();
+
+            // Primary methods resolution to get access to the request headers
+            requestHeaders = EmulateDevice(requestHeaders);
+
+            // Set the client service area to sent as extra data with the request on get blocks method
+            string serviceAreaId = await SetServiceArea(userDto);
+
+            // set headers to clients
+            ApiHelper.AddRequestHeaders(requestHeaders);
+
+            // validation before continue
             if (!ProcessSucceed)
                 return ProcessSucceed;
 
             // start logic here main request
-            HttpStatusCode statusCode = GetOffersAsyncHandle().Result;
+            HttpStatusCode statusCode = GetOffersAsyncHandle(userDto, requestHeaders, serviceAreaId).Result;
 
             if (statusCode is HttpStatusCode.BadRequest || statusCode is HttpStatusCode.TooManyRequests)
             {
                 // Request exceed. Send to SNS topic to terminate the instance. Put to sleep for 30 minutes
-                SendSnsMessage(SleepSnsTopic, new JObject(new JProperty("user_id", UserId)).ToString()).Wait();
+                await SnsHandler.PublishToSnsAsync(new JObject(new JProperty(UserPk, userDto.UserId)).ToString(), "", SleepSnsTopic);
                 ProcessSucceed = false;
 
                 // Stream Logs
                 string responseStatus = $"\nRequest Status >> Reason >> {statusCode} | The system will pause for 30 minutes\n";
-                Log(responseStatus);
+                CloudLogger.Log(responseStatus, userDto.UserId).Wait();
             }
 
             return ProcessSucceed;
-
         }
     }
 }
