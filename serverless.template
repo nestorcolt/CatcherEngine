@@ -11,7 +11,7 @@
         "Handler": "SearchEngine::SearchEngine.Serverless.GetUserBlocks::FunctionHandler",
         "Runtime": "dotnetcore3.1",
         "CodeUri": "",
-        "MemorySize": 4096,
+        "MemorySize": 2048,
         "Timeout": 10,
         "Policies": [
           "AWSLambdaBasicExecutionRole",
@@ -38,7 +38,7 @@
         "Handler": "SearchEngine::SearchEngine.Serverless.GetUserBlocksTest::FunctionHandler",
         "Runtime": "dotnetcore3.1",
         "CodeUri": "",
-        "MemorySize": 4096,
+        "MemorySize": 2048,
         "Timeout": 900,
         "Policies": [
           "AWSLambdaBasicExecutionRole",
