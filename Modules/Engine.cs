@@ -27,7 +27,7 @@ namespace SearchEngine.Modules
 
         public async Task RequestNewAccessToken(UserDto userDto)
         {
-            await SnsHandler.PublishToSnsAsync(JsonConvert.SerializeObject(userDto), "", AuthenticationSnsTopic);
+            await SnsHandler.PublishToSnsAsync(JsonConvert.SerializeObject(userDto), "msg", AuthenticationSnsTopic);
         }
 
         public int GetTimestamp()

@@ -16,7 +16,7 @@ namespace SearchEngine.Modules
 
         private async Task DeactivateUser(string userId)
         {
-            await SnsHandler.PublishToSnsAsync(new JObject(new JProperty(UserPk, userId)).ToString(), "", StopSnsTopic);
+            await SnsHandler.PublishToSnsAsync(new JObject(new JProperty(UserPk, userId)).ToString(), "msg", StopSnsTopic);
         }
 
         private bool ScheduleHasData(JToken searchSchedule)
@@ -83,7 +83,8 @@ namespace SearchEngine.Modules
                         new JProperty("data", block)
                         );
 
-                    await SnsHandler.PublishToSnsAsync(data.ToString(), "", AcceptedSnsTopic);
+                    // LOGS FOR ACCEPTED OFFERS
+                    await SnsHandler.PublishToSnsAsync(data.ToString(), "msg", AcceptedSnsTopic);
                 }
 
                 // test to log in cloud watch
@@ -97,7 +98,8 @@ namespace SearchEngine.Modules
                 new JProperty("data", block)
             );
 
-            await SnsHandler.PublishToSnsAsync(offerSeen.ToString(), "", OffersSnsTopic);
+            // LOGS FOR SEEN OFFERS
+            await SnsHandler.PublishToSnsAsync(offerSeen.ToString(), "msg", OffersSnsTopic);
         }
 
         public void AcceptOffers(JToken offerList, UserDto userDto)
@@ -136,6 +138,7 @@ namespace SearchEngine.Modules
             // validator of weekly schedule
             if (ScheduleHasData(userDto.SearchSchedule))
             {
+                // todo mover esto a dentro de la funcion
                 ScheduleValidator = new ScheduleValidator(userDto.SearchSchedule, userDto.TimeZone);
             }
             else
@@ -163,24 +166,27 @@ namespace SearchEngine.Modules
             if (String.IsNullOrEmpty(serviceAreaId))
                 return false;
 
-            // set headers to clients
-            ApiHelper.AddRequestHeaders(requestHeaders);
-
             // start logic here main request
-            HttpStatusCode statusCode = GetOffersAsyncHandle(userDto, requestHeaders, serviceAreaId).Result;
+            HttpStatusCode statusCode = await GetOffersAsyncHandle(userDto, requestHeaders, serviceAreaId);
+            Console.WriteLine(statusCode.ToString());
+
+            if (statusCode is HttpStatusCode.OK)
+            {
+                return true;
+            }
 
             if (statusCode is HttpStatusCode.BadRequest || statusCode is HttpStatusCode.TooManyRequests)
             {
                 // Request exceed. Send to SNS topic to terminate the instance. Put to sleep for 30 minutes
-                await SnsHandler.PublishToSnsAsync(new JObject(new JProperty(UserPk, userDto.UserId)).ToString(), "", SleepSnsTopic);
+                await SnsHandler.PublishToSnsAsync(new JObject(new JProperty(UserPk, userDto.UserId)).ToString(), "msg", SleepSnsTopic);
 
                 // Stream Logs
                 string responseStatus = $"\nRequest Status >> Reason >> {statusCode} | The system will pause for 30 minutes\n";
-                CloudLogger.Log(responseStatus, userDto.UserId).Wait();
+                await CloudLogger.Log(responseStatus, userDto.UserId);
                 return false;
             }
 
-            return true;
+            return false;
         }
     }
 }

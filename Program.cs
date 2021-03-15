@@ -1,5 +1,7 @@
 ﻿using SearchEngine.Properties;
 using System;
+using System.Threading.Tasks;
+using SearchEngine.Serverless;
 
 namespace SearchEngine
 {
@@ -8,8 +10,8 @@ namespace SearchEngine
     {
         static void Main(string[] args)
         {
-            string version = settings.Default.FlexAppVersion;
-            Console.WriteLine(version.Replace(".", ""));
+            var ub = new GetUserBlocksTest();
+            Task.Run(() => ub.FunctionHandler());
         }
 
         public static DateTime SetTimeZone(DateTime timeToConvert, string timeZone)
