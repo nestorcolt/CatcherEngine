@@ -1,6 +1,4 @@
-﻿using Amazon.SimpleNotificationService;
-using Amazon.SimpleNotificationService.Model;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SearchEngine.Properties;
 using System;
@@ -25,7 +23,6 @@ namespace SearchEngine.Modules
 
         public const string TokenKeyConstant = "x-amz-access-token";
         public string AppVersion => settings.Default.FlexAppVersion;
-        public bool ProcessSucceed { get; set; }
         public string UserPk = "user_id";
 
         public async Task RequestNewAccessToken(UserDto userDto)
@@ -53,7 +50,6 @@ namespace SearchEngine.Modules
 
                 if (result.HasValues)
                 {
-                    ProcessSucceed = true;
                     return (string)result[0];
                 }
             }
@@ -63,7 +59,6 @@ namespace SearchEngine.Modules
             {
                 // Re-authenticate after the access token has expired
                 await RequestNewAccessToken(userDto);
-                ProcessSucceed = false;
             }
 
             return null;

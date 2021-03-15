@@ -1,11 +1,5 @@
-﻿using System;
-using System.Threading.Tasks;
-using Amazon.Lambda.Core;
-using Amazon.Lambda.SNSEvents;
-using Amazon.Lambda.SQSEvents;
-using Newtonsoft.Json.Linq;
-using SearchEngine.Properties;
-using SearchEngine.Serverless;
+﻿using SearchEngine.Properties;
+using System;
 
 namespace SearchEngine
 {

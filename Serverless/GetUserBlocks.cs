@@ -20,7 +20,6 @@ namespace SearchEngine.Serverless
         [LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
         public async Task<string> FunctionHandler(SQSEvent sqsEvent, ILambdaContext context)
         {
-
             UserDto userDto = await GetUserDtoAsync(sqsEvent);
             bool recursive = false;
 

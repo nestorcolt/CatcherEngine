@@ -1,7 +1,5 @@
-﻿using System;
-using Amazon.SimpleNotificationService;
-using Amazon.SimpleNotificationService.Model;
-using SearchEngine.Properties;
+﻿using SearchEngine.Properties;
+using System;
 using System.Threading.Tasks;
 
 namespace SearchEngine.Modules
