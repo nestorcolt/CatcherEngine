@@ -12,7 +12,6 @@ namespace SearchEngine.Modules
     class BlockCatcher : Engine
     {
         //private readonly SignatureObject _signature = new SignatureObject();
-        protected ScheduleValidator ScheduleValidator;
 
         private async Task DeactivateUser(string userId)
         {
@@ -59,7 +58,7 @@ namespace SearchEngine.Modules
             bool scheduleValidation = false;
             bool areaValidation = false;
 
-            Parallel.Invoke(() => scheduleValidation = ScheduleValidator.ValidateSchedule(offerTime),
+            Parallel.Invoke(() => scheduleValidation = ScheduleValidator.ValidateSchedule(userDto.SearchSchedule, offerTime, userDto.TimeZone),
                 () => areaValidation = ValidateArea(serviceAreaId, userDto.Areas));
 
             if (scheduleValidation && offerPrice >= userDto.MinimumPrice && areaValidation)
@@ -136,25 +135,20 @@ namespace SearchEngine.Modules
         public async Task<bool> LookingForBlocks(UserDto userDto)
         {
             // validator of weekly schedule
-            if (ScheduleHasData(userDto.SearchSchedule))
-            {
-                // todo mover esto a dentro de la funcion
-                ScheduleValidator = new ScheduleValidator(userDto.SearchSchedule, userDto.TimeZone);
-            }
-            else
+            if (!ScheduleHasData(userDto.SearchSchedule))
             {
                 await DeactivateUser(userDto.UserId);
                 return false;
             }
+
+            // HttpClients are init here
+            ApiHelper.InitializeClient();
 
             // Start filling the headers
             var requestHeaders = new Dictionary<string, string>();
 
             // Set token in request dictionary
             requestHeaders[TokenKeyConstant] = userDto.AccessToken;
-
-            // HttpClients are init here
-            ApiHelper.InitializeClient();
 
             // Primary methods resolution to get access to the request headers
             requestHeaders = EmulateDevice(requestHeaders);
@@ -168,7 +162,6 @@ namespace SearchEngine.Modules
 
             // start logic here main request
             HttpStatusCode statusCode = await GetOffersAsyncHandle(userDto, requestHeaders, serviceAreaId);
-            Console.WriteLine(statusCode.ToString());
 
             if (statusCode is HttpStatusCode.OK)
             {
@@ -183,7 +176,6 @@ namespace SearchEngine.Modules
                 // Stream Logs
                 string responseStatus = $"\nRequest Status >> Reason >> {statusCode} | The system will pause for 30 minutes\n";
                 await CloudLogger.Log(responseStatus, userDto.UserId);
-                return false;
             }
 
             return false;

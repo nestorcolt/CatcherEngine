@@ -1,7 +1,6 @@
-﻿using SearchEngine.Properties;
+﻿using SearchEngine.Serverless;
 using System;
 using System.Threading.Tasks;
-using SearchEngine.Serverless;
 
 namespace SearchEngine
 {
