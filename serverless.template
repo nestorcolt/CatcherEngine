@@ -21,11 +21,10 @@
           "CloudWatchLogsFullAccess"
         ],
         "Events":{
-            "SqsEvent": {
-                "Type": "SQS",
+            "SnsEvent": {
+                "Type": "SNS",
                 "Properties": {
-                  "Queue": {"Fn::Sub": "arn:aws:sqs:us-east-1:${AWS::AccountId}:GetUserBlocksQueue"},
-                  "BatchSize": 1
+                  "Topic": {"Fn::Sub": "arn:aws:sns:us-east-1:${AWS::AccountId}:SE-START-TOPIC"}
              }
            }
         }

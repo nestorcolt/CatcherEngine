@@ -5,8 +5,8 @@ using Newtonsoft.Json.Linq;
 using SearchEngine.Modules;
 using System;
 using System.Net;
-using System.Net.Sockets;
 using System.Threading.Tasks;
+using Amazon.Lambda.SNSEvents;
 
 
 // The Main program for looking, catching and accepting blocks for the amazon flex service. Automate the process and handle a single user process instance and this needs
@@ -19,32 +19,17 @@ namespace SearchEngine.Serverless
         private ApiHandler Client = new ApiHandler();
 
         [LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
-        public async Task<string> FunctionHandler(SQSEvent sqsEvent, ILambdaContext context)
+        public async Task<string> FunctionHandler(SNSEvent snsEvent, ILambdaContext context)
         {
-            UserDto userDto = await GetUserDtoAsync(sqsEvent);
-            bool recursive = false;
+            UserDto userDto = await GetUserDtoAsync(snsEvent);
 
             try
             {
-                recursive = await BlockCatcher.LookingForBlocks(userDto);
+                await BlockCatcher.LookingForBlocks(userDto);
             }
             catch (Exception e)
             {
                 await CloudLogger.Log(e.ToString(), userDto.UserId);
-            }
-            finally
-            {
-                // call trigger SQS to call again this lambda (recursion) base on recursion parameter
-                if (recursive && userDto.SearchBlocks)
-                {
-                    // update last iteration value
-                    await DynamoHandler.UpdateUserTimestamp(userDto.UserId, BlockCatcher.GetTimestamp());
-
-                    // pass userData SQSEvent
-                    string qUrl = await SqsHandler.GetQueueByName(SqsHandler.Client, Constants.StartSearchQueueName);
-                    await SqsHandler.SendMessage(SqsHandler.Client, qUrl, sqsEvent.Records[0].Body);
-                    await SqsHandler.DeleteMessage(SqsHandler.Client, sqsEvent.Records[0].ReceiptHandle, qUrl);
-                }
             }
 
             string ip = new WebClient().DownloadString("http://checkip.amazonaws.com");
@@ -54,9 +39,9 @@ namespace SearchEngine.Serverless
             return responseCode.ToString();
         }
 
-        private async Task<UserDto> GetUserDtoAsync(SQSEvent sqsEvent)
+        private async Task<UserDto> GetUserDtoAsync(SNSEvent snsEvent)
         {
-            JObject oldData = JObject.Parse(sqsEvent.Records[0].Body);
+            JObject oldData = JObject.Parse(snsEvent.Records[0].Sns.Message);
             string newData = await DynamoHandler.QueryUser(oldData["user_id"].ToString());
             UserDto userDto = JsonConvert.DeserializeObject<UserDto>(newData);
             return userDto;
