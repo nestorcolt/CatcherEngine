@@ -1,6 +1,4 @@
-﻿using SearchEngine.Serverless;
-using System;
-using System.Threading.Tasks;
+﻿using System;
 
 namespace SearchEngine
 {
@@ -9,8 +7,7 @@ namespace SearchEngine
     {
         static void Main(string[] args)
         {
-            var ub = new GetUserBlocksTest();
-            Task.Run(() => ub.FunctionHandler());
+
         }
 
         public static DateTime SetTimeZone(DateTime timeToConvert, string timeZone)

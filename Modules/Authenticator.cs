@@ -47,11 +47,10 @@ namespace SearchEngine.Modules
 
         private async Task<string> GetAmazonAccessToken(string refreshToken)
         {
-            // TODO CHANGE APP VERSION HERE WITH PROPERTY
             var authenticationHeader = new Dictionary<string, string>
             {
                 {"app_name", "com.amazon.rabbit"},
-                {"app_version", "130050002"},
+                {"app_version", settings.Default.FlexAppVersion.Replace(".", "")},
                 {"source_token_type", "refresh_token"},
                 {"source_token", refreshToken},
                 {"requested_token_type", "access_token"}
@@ -71,7 +70,7 @@ namespace SearchEngine.Modules
                 return requestToken["access_token"].ToString();
             }
 
-            await ErrorToSnsAsync(new JObject(new JProperty("user_id", _userId)).ToString());
+            await ErrorToSnsAsync(new JObject(new JProperty(UserPk, _userId)).ToString());
             throw new UnauthorizedAccessException($"There is a problem with the authentication.\nReason: {response.Content}");
         }
 
