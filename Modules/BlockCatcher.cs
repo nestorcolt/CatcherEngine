@@ -63,8 +63,9 @@ namespace SearchEngine.Modules
 
         public static async Task<string> GetServiceAreaId(UserDto userDto)
         {
-            ApiHelper.ApiClient.DefaultRequestHeaders.Add(Constants.TokenKeyConstant, userDto.AccessToken);
-            HttpResponseMessage content = await ApiHelper.GetDataAsync(Constants.ServiceAreaUri);
+            ApiHelper.ServiceAreaClient.DefaultRequestHeaders.Clear();
+            ApiHelper.ServiceAreaClient.DefaultRequestHeaders.Add(Constants.TokenKeyConstant, userDto.AccessToken);
+            HttpResponseMessage content = await ApiHelper.GetDataAsync(Constants.ServiceAreaUri, ApiHelper.ServiceAreaClient);
 
             if (content.IsSuccessStatusCode)
             {
@@ -246,7 +247,10 @@ namespace SearchEngine.Modules
 
             // validation before continue
             if (String.IsNullOrEmpty(serviceAreaId))
+            {
+                await CloudLogger.Log("Service Area ID Failed on Request", userDto.UserId);
                 return false;
+            }
 
             // start logic here main request
             HttpStatusCode statusCode = await GetOffersAsyncHandle(userDto, requestHeaders, serviceAreaId);

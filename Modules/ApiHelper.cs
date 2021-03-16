@@ -11,6 +11,7 @@ namespace SearchEngine.Modules
     public class ApiHelper
     {
         public static HttpClientHandler ClientHandler { get; set; }
+        public static HttpClient ServiceAreaClient { get; set; }
         public static HttpClient ApiClient { get; set; }
 
         public ApiHelper()
@@ -36,7 +37,6 @@ namespace SearchEngine.Modules
 
             ApiClient.DefaultRequestHeaders.Accept.Clear();
             ApiClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
         }
 
         private static void SetMaxConcurrency(string url, int maxConcurrentRequests)
@@ -46,10 +46,11 @@ namespace SearchEngine.Modules
 
         public static async Task<HttpResponseMessage> GetDataAsync(string uri, HttpClient customClient = null)
         {
+            HttpClient client = customClient ?? ApiClient;
 
             try
             {
-                HttpResponseMessage response = await ApiClient.GetAsync(uri);
+                HttpResponseMessage response = await client.GetAsync(uri);
                 return response;
             }
             catch (HttpRequestException e)
@@ -63,7 +64,6 @@ namespace SearchEngine.Modules
 
         public static async Task<HttpResponseMessage> PostDataAsync(string uri, string data)
         {
-
             try
             {
                 HttpResponseMessage response = await ApiClient.PostAsync(uri, new StringContent(data));
@@ -93,6 +93,5 @@ namespace SearchEngine.Modules
                 ApiClient.DefaultRequestHeaders.Add(data.Key, data.Value);
             }
         }
-
     }
 }
