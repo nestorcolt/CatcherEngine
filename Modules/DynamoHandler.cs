@@ -1,6 +1,5 @@
 ﻿using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DocumentModel;
-using Amazon.DynamoDBv2.Model;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -10,9 +9,10 @@ namespace SearchEngine.Modules
     {
         private static readonly AmazonDynamoDBClient Client = new AmazonDynamoDBClient();
         private static string _lastIteration = "last_iteration";
+        private static string _accessToken = "access_token";
+        private static string _serviceArea = "service_area";
         private static string _tableName = "Users";
         private static string _tablePk = "user_id";
-
 
         public static async Task UpdateUserTimestamp(string userId, int timeStamp)
         {
@@ -38,24 +38,17 @@ namespace SearchEngine.Modules
             return null;
         }
 
-        public static async Task SetUserData(string userId, string data)
+        public static async Task SetUserData(string userId, string accessToken, string serviceArea)
         {
-            var request = new UpdateItemRequest
+            Table usersTable = Table.LoadTable(Client, _tableName);
+
+            Document order = new Document
             {
-                Key = new Dictionary<string, AttributeValue>() { { _tablePk, new AttributeValue { S = userId } } },
-                ExpressionAttributeNames = new Dictionary<string, string>()
-                {
-                    {"#Q", "access_token"}
-                },
-                ExpressionAttributeValues = new Dictionary<string, AttributeValue>()
-                {
-                    {":data",new AttributeValue {S = data}}
-                },
-                UpdateExpression = "SET #Q = :data",
-                TableName = "Users"
+                [_serviceArea] = serviceArea,
+                [_accessToken] = accessToken
             };
 
-            await Client.UpdateItemAsync(request);
+            await usersTable.UpdateItemAsync(order, userId);
         }
     }
 }

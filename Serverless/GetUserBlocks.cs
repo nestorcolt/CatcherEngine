@@ -15,7 +15,7 @@ namespace SearchEngine.Serverless
 {
     class GetUserBlocks
     {
-        private ApiHelper Client = new ApiHelper();
+        private ApiHandler Client = new ApiHandler();
 
         [LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
         public async Task<string> FunctionHandler(SQSEvent sqsEvent, ILambdaContext context)

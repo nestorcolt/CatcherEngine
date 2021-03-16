@@ -36,6 +36,9 @@ namespace SearchEngine.Modules
 
         [DataMember(Name = "time_zone")]
         public string TimeZone { get; set; }
+
+        [DataMember(Name = "service_area")]
+        public string ServiceAreaHeader { get; set; }
     }
 
 }

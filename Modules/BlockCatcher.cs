@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using SearchEngine.Properties;
 using System;
 using System.Collections.Generic;
@@ -49,69 +48,11 @@ namespace SearchEngine.Modules
         //    RequestDataHeadersDictionary["Authorization"] = signatureHeaders["Authorization"];
         //}
 
-        public static async Task RequestNewAccessToken(UserDto userDto)
-        {
-            await SnsHandler.PublishToSnsAsync(JsonConvert.SerializeObject(userDto), "msg", Constants.AuthenticationSnsTopic);
-        }
-
         public static int GetTimestamp()
         {
             TimeSpan time = (DateTime.UtcNow - DateTime.UnixEpoch);
             int timestamp = (int)time.TotalSeconds;
             return timestamp;
-        }
-
-        public static async Task<string> GetServiceAreaId(UserDto userDto)
-        {
-            ApiHelper.ServiceAreaClient.DefaultRequestHeaders.Clear();
-            ApiHelper.ServiceAreaClient.DefaultRequestHeaders.Add(Constants.TokenKeyConstant, userDto.AccessToken);
-            HttpResponseMessage content = await ApiHelper.GetDataAsync(Constants.ServiceAreaUri, ApiHelper.ServiceAreaClient);
-
-            if (content.IsSuccessStatusCode)
-            {
-                // continue if the validation succeed
-                JObject requestToken = await ApiHelper.GetRequestJTokenAsync(content);
-                JToken result = requestToken.GetValue("serviceAreaIds");
-
-                if (result.HasValues)
-                {
-                    return (string)result[0];
-                }
-            }
-
-            // validations on errors
-            if (content.StatusCode is HttpStatusCode.Unauthorized || content.StatusCode is HttpStatusCode.Forbidden)
-            {
-                // Re-authenticate after the access token has expired
-                await RequestNewAccessToken(userDto);
-            }
-
-            return null;
-        }
-
-        public static async Task<string> SetServiceArea(UserDto userDto)
-        {
-            string serviceAreaId = await GetServiceAreaId(userDto);
-
-            if (String.IsNullOrEmpty(serviceAreaId))
-                return null;
-
-            var filtersDict = new Dictionary<string, object>
-            {
-                ["serviceAreaFilter"] = new List<string>(),
-                ["timeFilter"] = new Dictionary<string, string>(),
-            };
-
-            // Id Dictionary to parse to offer headers later
-            var serviceDataDictionary = new Dictionary<string, object>
-            {
-                ["serviceAreaIds"] = new[] { serviceAreaId },
-                ["filters"] = filtersDict,
-            };
-
-            // MERGE THE HEADERS OFFERS AND SERVICE DATA IN ONE MAIN HEADER DICTIONARY
-            string serviceAreaFilterData = JsonConvert.SerializeObject(serviceDataDictionary).Replace("\\", "");
-            return serviceAreaFilterData;
         }
 
         public static Dictionary<string, string> EmulateDevice(Dictionary<string, string> requestDictionary)
@@ -164,7 +105,7 @@ namespace SearchEngine.Modules
                     new JProperty("offerId", offerId)
                 );
 
-                HttpResponseMessage response = await ApiHelper.PostDataAsync(Constants.AcceptUri, acceptHeader.ToString());
+                HttpResponseMessage response = await ApiHandler.PostDataAsync(Constants.AcceptUri, acceptHeader.ToString());
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -205,13 +146,13 @@ namespace SearchEngine.Modules
 
         public static async Task<HttpStatusCode> GetOffersAsyncHandle(UserDto userDto, Dictionary<string, string> requestHeaders, string serviceAreaId)
         {
-            //SignRequestHeaders($"{ApiHelper.ApiBaseUrl}{ApiHelper.OffersUri}");
-            ApiHelper.AddRequestHeaders(requestHeaders);
-            var response = await ApiHelper.PostDataAsync(Constants.OffersUri, serviceAreaId);
+            //SignRequestHeaders($"{ApiHandler.ApiBaseUrl}{ApiHandler.OffersUri}");
+            ApiHandler.AddRequestHeaders(requestHeaders);
+            var response = await ApiHandler.PostDataAsync(Constants.OffersUri, serviceAreaId);
 
             if (response.IsSuccessStatusCode)
             {
-                JObject requestToken = await ApiHelper.GetRequestJTokenAsync(response);
+                JObject requestToken = await ApiHandler.GetRequestJTokenAsync(response);
                 JToken offerList = requestToken.GetValue("offerList");
 
                 if (offerList != null && offerList.HasValues)
@@ -242,25 +183,29 @@ namespace SearchEngine.Modules
             // Primary methods resolution to get access to the request headers
             requestHeaders = EmulateDevice(requestHeaders);
 
-            // Set the client service area to sent as extra data with the request on get blocks method
-            string serviceAreaId = await SetServiceArea(userDto);
-
             // validation before continue
-            if (String.IsNullOrEmpty(serviceAreaId))
+            if (String.IsNullOrEmpty(userDto.ServiceAreaHeader))
             {
                 await CloudLogger.Log("Service Area ID Failed on Request", userDto.UserId);
+                await Authenticator.RequestNewAccessToken(userDto);
                 return false;
             }
 
             // start logic here main request
-            HttpStatusCode statusCode = await GetOffersAsyncHandle(userDto, requestHeaders, serviceAreaId);
+            HttpStatusCode statusCode = await GetOffersAsyncHandle(userDto, requestHeaders, userDto.ServiceAreaHeader);
 
             if (statusCode is HttpStatusCode.OK)
             {
                 return true;
             }
 
-            if (statusCode is HttpStatusCode.BadRequest || statusCode is HttpStatusCode.TooManyRequests)
+            if (statusCode is HttpStatusCode.Unauthorized || statusCode is HttpStatusCode.Forbidden)
+            {
+                // Re-authenticate after the access token has expired
+                await Authenticator.RequestNewAccessToken(userDto);
+            }
+
+            else if (statusCode is HttpStatusCode.BadRequest || statusCode is HttpStatusCode.TooManyRequests)
             {
                 // Request exceed. Send to SNS topic to terminate the instance. Put to sleep for 30 minutes
                 await SnsHandler.PublishToSnsAsync(new JObject(new JProperty(Constants.UserPk, userDto.UserId)).ToString(), "msg", Constants.SleepSnsTopic);

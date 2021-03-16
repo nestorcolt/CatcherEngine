@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SearchEngine.Properties;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -16,7 +15,6 @@ namespace SearchEngine.Modules
             var authenticationHeader = new Dictionary<string, string>
             {
                 {"app_name", "com.amazon.rabbit"},
-                {"app_version", settings.Default.FlexAppVersion.Replace(".", "")},
                 {"source_token_type", "refresh_token"},
                 {"source_token", refreshToken},
                 {"requested_token_type", "access_token"}
@@ -32,7 +30,7 @@ namespace SearchEngine.Modules
 
             if (response.IsSuccessStatusCode)
             {
-                JObject requestToken = await ApiHelper.GetRequestJTokenAsync(response);
+                JObject requestToken = await ApiHandler.GetRequestJTokenAsync(response);
                 return requestToken["access_token"].ToString();
             }
 
@@ -40,11 +38,60 @@ namespace SearchEngine.Modules
             throw new UnauthorizedAccessException($"There is a problem with the authentication.\nReason: {response.Content}");
         }
 
+        public static async Task RequestNewAccessToken(UserDto userDto)
+        {
+            await SnsHandler.PublishToSnsAsync(JsonConvert.SerializeObject(userDto), "msg", Constants.AuthenticationSnsTopic);
+        }
+
+        public static async Task<string> GetServiceArea(string accessToken)
+        {
+            ApiHandler.ServiceAreaClient.DefaultRequestHeaders.Clear();
+            ApiHandler.ServiceAreaClient.DefaultRequestHeaders.Add(Constants.TokenKeyConstant, accessToken);
+            HttpResponseMessage content = await ApiHandler.GetDataAsync(Constants.ServiceAreaUri, ApiHandler.ServiceAreaClient);
+
+            if (content.IsSuccessStatusCode)
+            {
+                // declare place holder variable
+                string serviceAreaId = "";
+
+                // continue if the validation succeed
+                JObject requestToken = await ApiHandler.GetRequestJTokenAsync(content);
+                JToken result = requestToken.GetValue("serviceAreaIds");
+
+                if (result.HasValues)
+                {
+                    serviceAreaId = (string)result[0];
+                }
+
+                var filtersDict = new Dictionary<string, object>
+                {
+                    ["serviceAreaFilter"] = new List<string>(),
+                    ["timeFilter"] = new Dictionary<string, string>(),
+                };
+
+                // Id Dictionary to parse to offer headers later
+                var serviceDataDictionary = new Dictionary<string, object>
+                {
+                    ["serviceAreaIds"] = new[] { serviceAreaId },
+                    ["filters"] = filtersDict,
+                };
+
+                // MERGE THE HEADERS OFFERS AND SERVICE DATA IN ONE MAIN HEADER DICTIONARY
+                string serviceAreaFilterData = JsonConvert.SerializeObject(serviceDataDictionary).Replace("\\", "");
+                return serviceAreaFilterData;
+            }
+
+            return null;
+        }
+
         public static async Task Authenticate(string refreshToken, string userId)
         {
             // authenticated for new access token
             string accessToken = Task.Run(() => GetAmazonAccessToken(refreshToken, userId)).Result;
-            await DynamoHandler.SetUserData(userId, accessToken);
+            string serviceArea = GetServiceArea(accessToken).Result;
+
+            // save credentials and user meta data
+            await DynamoHandler.SetUserData(userId, accessToken, serviceArea);
         }
     }
 }
