@@ -10,8 +10,8 @@ namespace SearchEngine.Modules
 {
     public class ApiHelper
     {
+        public static HttpClient ServiceAreaClient = new HttpClient() { BaseAddress = new Uri(Constants.ApiBaseUrl) };
         public static HttpClientHandler ClientHandler { get; set; }
-        public static HttpClient ServiceAreaClient { get; set; }
         public static HttpClient ApiClient { get; set; }
 
         public ApiHelper()
