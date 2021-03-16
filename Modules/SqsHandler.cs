@@ -1,4 +1,5 @@
-﻿using Amazon.SQS;
+﻿using System;
+using Amazon.SQS;
 using Amazon.SQS.Model;
 using System.Threading.Tasks;
 
@@ -27,7 +28,14 @@ namespace SearchEngine.Modules
 
         public static async Task DeleteMessage(IAmazonSQS sqsClient, string receiptHandle, string qUrl)
         {
-            await sqsClient.DeleteMessageAsync(qUrl, receiptHandle);
+            try
+            {
+                await sqsClient.DeleteMessageAsync(qUrl, receiptHandle);
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Message couldn't be deleted. Was null or didn't exist");
+            }
         }
     }
 }

@@ -30,5 +30,6 @@ namespace SearchEngine.Modules
 
         // SQS
         public static string StartSearchQueueName = @"GetUserBlocksQueue";
+        public static string PowerTuningQueueName = @"PowerTunningQueue";
     }
 }
