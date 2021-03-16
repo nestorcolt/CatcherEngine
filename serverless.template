@@ -12,7 +12,7 @@
         "Runtime": "dotnetcore3.1",
         "CodeUri": "",
         "MemorySize": 2048,
-        "Timeout": 900,
+        "Timeout": 10,
         "Policies": [
           "AWSLambdaBasicExecutionRole",
           "AmazonSNSFullAccess",
@@ -29,24 +29,6 @@
              }
            }
         }
-      }
-    },
-    "GetUserBlocksTest": {
-      "Type": "AWS::Serverless::Function",
-      "Properties": {
-        "FunctionName": "GetUserBlocksTest",
-        "Handler": "SearchEngine::SearchEngine.Serverless.GetUserBlocksTest::FunctionHandler",
-        "Runtime": "dotnetcore3.1",
-        "CodeUri": "",
-        "MemorySize": 2048,
-        "Timeout": 900,
-        "Policies": [
-          "AWSLambdaBasicExecutionRole",
-          "AmazonSNSFullAccess",
-          "AmazonSQSFullAccess",
-          "AmazonDynamoDBFullAccess",
-          "CloudWatchLogsFullAccess"
-        ]
       }
     },
 

@@ -40,7 +40,7 @@ namespace SearchEngine.Serverless
                     await DynamoHandler.UpdateUserTimestamp(userDto.UserId, BlockCatcher.GetTimestamp());
 
                     // pass userData SQSEvent
-                    string qUrl = await SqsHandler.GetQueueByName(SqsHandler.Client, Constants.PowerTuningQueueName);
+                    string qUrl = await SqsHandler.GetQueueByName(SqsHandler.Client, Constants.StartSearchQueueName);
                     await SqsHandler.SendMessage(SqsHandler.Client, qUrl, sqsEvent.Records[0].Body);
                     await SqsHandler.DeleteMessage(SqsHandler.Client, sqsEvent.Records[0].ReceiptHandle, qUrl);
                 }
