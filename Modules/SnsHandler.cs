@@ -1,14 +1,20 @@
 ﻿using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
+using System;
 using System.Threading.Tasks;
 
 namespace SearchEngine.Modules
 {
     static class SnsHandler
     {
+        public static IAmazonSimpleNotificationService Client = new AmazonSimpleNotificationServiceClient();
+
         public static async Task PublishToSnsAsync(string message, string subject, string topicArn)
         {
-            IAmazonSimpleNotificationService client = new AmazonSimpleNotificationServiceClient();
+            if (String.IsNullOrEmpty(subject))
+            {
+                subject = "msg";
+            }
 
             var request = new PublishRequest
             {
@@ -18,8 +24,7 @@ namespace SearchEngine.Modules
             };
 
             // send the message
-            await client.PublishAsync(request);
-
+            await Client.PublishAsync(request);
         }
     }
 }

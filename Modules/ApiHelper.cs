@@ -10,19 +10,15 @@ namespace SearchEngine.Modules
 {
     public class ApiHelper
     {
-        // main URLS
-        public const string AcceptInputUrl = "http://internal.amazon.com/coral/com.amazon.omwbuseyservice.offers/";
-        public const string ApiBaseUrl = "https://flex-capacity-na.amazon.com/";
-
-        // directories
-        public static string AcceptUri = "AcceptOffer";
-        public static string OffersUri = "GetOffersForProviderPost";
-        public static string ServiceAreaUri = "eligibleServiceAreas";
-
         public static HttpClientHandler ClientHandler { get; set; }
         public static HttpClient ApiClient { get; set; }
 
-        public static void InitializeClient()
+        public ApiHelper()
+        {
+            InitializeClient();
+        }
+
+        public void InitializeClient()
         {
             int maxConnectionsPerServerThreshold = 500;
 
@@ -32,11 +28,11 @@ namespace SearchEngine.Modules
                 MaxConnectionsPerServer = maxConnectionsPerServerThreshold
             };
 
-            ApiClient = new HttpClient(ClientHandler) { BaseAddress = new Uri(ApiBaseUrl) };
+            ApiClient = new HttpClient(ClientHandler) { BaseAddress = new Uri(Constants.ApiBaseUrl) };
 
             int connectionLimitThreshold = 10000;
             ServicePointManager.DefaultConnectionLimit = connectionLimitThreshold;
-            SetMaxConcurrency(ApiBaseUrl, connectionLimitThreshold);
+            SetMaxConcurrency(Constants.ApiBaseUrl, connectionLimitThreshold);
 
             ApiClient.DefaultRequestHeaders.Accept.Clear();
             ApiClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));

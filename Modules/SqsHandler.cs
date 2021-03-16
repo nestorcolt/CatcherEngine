@@ -7,7 +7,6 @@ namespace SearchEngine.Modules
     static class SqsHandler
     {
         public static IAmazonSQS Client = new AmazonSQSClient();
-        public static string StartSearchQueueName = @"GetUserBlocksQueue";
 
         public static async Task<string> GetQueueByName(IAmazonSQS sqsClient, string name)
         {

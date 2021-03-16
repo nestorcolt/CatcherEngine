@@ -1,8 +1,4 @@
-﻿using Amazon.DynamoDBv2;
-using Amazon.DynamoDBv2.Model;
-using Amazon.SimpleNotificationService;
-using Amazon.SimpleNotificationService.Model;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SearchEngine.Properties;
 using System;
@@ -13,39 +9,9 @@ using System.Threading.Tasks;
 
 namespace SearchEngine.Modules
 {
-    class Authenticator
+    static class Authenticator
     {
-        protected string ErrorSnsTopic = $"arn:aws:sns:us-east-1:{settings.Default.AWSAccountId}:SE-ERROR-TOPIC";
-        private const string AuthTokenUrl = "https://api.amazon.com/auth/token";
-        private const string UserPk = "user_id";
-        private string _userId;
-
-        private async Task SetUserData(string userId, string data)
-        {
-            /*
-             * Get the user data making a query to dynamo db table Users parsing the user_id 
-             */
-            AmazonDynamoDBClient client = new AmazonDynamoDBClient();
-
-            var request = new UpdateItemRequest
-            {
-                Key = new Dictionary<string, AttributeValue>() { { UserPk, new AttributeValue { S = userId } } },
-                ExpressionAttributeNames = new Dictionary<string, string>()
-                {
-                    {"#Q", "access_token"}
-                },
-                ExpressionAttributeValues = new Dictionary<string, AttributeValue>()
-                {
-                    {":data",new AttributeValue {S = data}}
-                },
-                UpdateExpression = "SET #Q = :data",
-                TableName = "Users"
-            };
-
-            var response = await client.UpdateItemAsync(request);
-        }
-
-        private async Task<string> GetAmazonAccessToken(string refreshToken)
+        public static async Task<string> GetAmazonAccessToken(string refreshToken, string userId)
         {
             var authenticationHeader = new Dictionary<string, string>
             {
@@ -56,7 +22,7 @@ namespace SearchEngine.Modules
                 {"requested_token_type", "access_token"}
             };
 
-            HttpRequestMessage httpRequest = new HttpRequestMessage(HttpMethod.Post, AuthTokenUrl)
+            HttpRequestMessage httpRequest = new HttpRequestMessage(HttpMethod.Post, Constants.AuthTokenUrl)
             {
                 Content = new StringContent(JsonConvert.SerializeObject(authenticationHeader), Encoding.UTF8, "application/json")
             };
@@ -70,31 +36,15 @@ namespace SearchEngine.Modules
                 return requestToken["access_token"].ToString();
             }
 
-            await ErrorToSnsAsync(new JObject(new JProperty(UserPk, _userId)).ToString());
+            await SnsHandler.PublishToSnsAsync(new JObject(new JProperty(Constants.UserPk, userId)).ToString(), "msg", Constants.ErrorSnsTopic);
             throw new UnauthorizedAccessException($"There is a problem with the authentication.\nReason: {response.Content}");
         }
 
-        public async Task ErrorToSnsAsync(string message)
+        public static async Task Authenticate(string refreshToken, string userId)
         {
-            IAmazonSimpleNotificationService client = new AmazonSimpleNotificationServiceClient();
-
-            var request = new PublishRequest
-            {
-                TopicArn = ErrorSnsTopic,
-                Message = message,
-            };
-
-            // send the message
-            await client.PublishAsync(request);
-        }
-
-        public async Task Authenticate(string refreshToken, string userId)
-        {
-            _userId = userId;
-
             // authenticated for new access token
-            string accessToken = Task.Run(() => GetAmazonAccessToken(refreshToken)).Result;
-            await SetUserData(_userId, accessToken);
+            string accessToken = Task.Run(() => GetAmazonAccessToken(refreshToken, userId)).Result;
+            await DynamoHandler.SetUserData(userId, accessToken);
         }
     }
 }

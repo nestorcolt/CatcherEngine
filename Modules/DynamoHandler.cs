@@ -1,5 +1,6 @@
 ﻿using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DocumentModel;
+using Amazon.DynamoDBv2.Model;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -35,6 +36,26 @@ namespace SearchEngine.Modules
             }
 
             return null;
+        }
+
+        public static async Task SetUserData(string userId, string data)
+        {
+            var request = new UpdateItemRequest
+            {
+                Key = new Dictionary<string, AttributeValue>() { { _tablePk, new AttributeValue { S = userId } } },
+                ExpressionAttributeNames = new Dictionary<string, string>()
+                {
+                    {"#Q", "access_token"}
+                },
+                ExpressionAttributeValues = new Dictionary<string, AttributeValue>()
+                {
+                    {":data",new AttributeValue {S = data}}
+                },
+                UpdateExpression = "SET #Q = :data",
+                TableName = "Users"
+            };
+
+            await Client.UpdateItemAsync(request);
         }
     }
 }

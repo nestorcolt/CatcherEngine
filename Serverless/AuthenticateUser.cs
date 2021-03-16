@@ -24,8 +24,7 @@ namespace SearchEngine.Serverless
 
             try
             {
-                Authenticator authenticate = new Authenticator();
-                await authenticate.Authenticate(refreshToken, userId);
+                await Authenticator.Authenticate(refreshToken, userId);
             }
             catch (Exception e)
             {
