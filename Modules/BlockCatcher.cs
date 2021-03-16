@@ -14,7 +14,7 @@ namespace SearchEngine.Modules
     {
         //public readonly SignatureObject _signature = new SignatureObject();
 
-        public static async Task DeactivateUser(string userId)
+        private static async Task DeactivateUser(string userId)
         {
             await SnsHandler.PublishToSnsAsync(new JObject(new JProperty(Constants.UserPk, userId)).ToString(), "msg", Constants.StopSnsTopic);
         }
@@ -27,7 +27,7 @@ namespace SearchEngine.Modules
             return false;
         }
 
-        public static bool ValidateArea(string serviceAreaId, List<string> areas)
+        private static bool ValidateArea(string serviceAreaId, List<string> areas)
         {
             if (areas.Count == 0)
                 return true;
@@ -55,7 +55,7 @@ namespace SearchEngine.Modules
             return timestamp;
         }
 
-        public static Dictionary<string, string> EmulateDevice(Dictionary<string, string> requestDictionary)
+        private static Dictionary<string, string> EmulateDevice(Dictionary<string, string> requestDictionary)
         {
             string instanceId = Guid.NewGuid().ToString().Replace("-", "");
             string androidVersion = settings.Default.OSVersion;
@@ -80,7 +80,7 @@ namespace SearchEngine.Modules
             return requestDictionary;
         }
 
-        public static async Task AcceptSingleOfferAsync(JToken block, UserDto userDto)
+        private static async Task AcceptSingleOfferAsync(JToken block, UserDto userDto)
         {
             bool isValidated = false;
             long offerTime = (long)block["startTime"];
@@ -134,7 +134,7 @@ namespace SearchEngine.Modules
             await SnsHandler.PublishToSnsAsync(offerSeen.ToString(), "msg", Constants.OffersSnsTopic);
         }
 
-        public static void AcceptOffers(JToken offerList, UserDto userDto)
+        private static void AcceptOffers(JToken offerList, UserDto userDto)
         {
             Parallel.For(0, offerList.Count(), n =>
             {
@@ -144,7 +144,7 @@ namespace SearchEngine.Modules
             });
         }
 
-        public static async Task<HttpStatusCode> GetOffersAsyncHandle(UserDto userDto, Dictionary<string, string> requestHeaders, string serviceAreaId)
+        private static async Task<HttpStatusCode> GetOffersAsyncHandle(UserDto userDto, Dictionary<string, string> requestHeaders, string serviceAreaId)
         {
             //SignRequestHeaders($"{ApiHandler.ApiBaseUrl}{ApiHandler.OffersUri}");
             ApiHandler.AddRequestHeaders(requestHeaders);
@@ -186,7 +186,7 @@ namespace SearchEngine.Modules
             // validation before continue
             if (String.IsNullOrEmpty(userDto.ServiceAreaHeader))
             {
-                await CloudLogger.Log("Service Area ID Failed on Request", userDto.UserId);
+                await CloudLogger.Log("Service area ID was empty or null. Re-trying authentication...", userDto.UserId);
                 await Authenticator.RequestNewAccessToken(userDto);
                 return false;
             }

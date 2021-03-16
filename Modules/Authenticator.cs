@@ -10,7 +10,7 @@ namespace SearchEngine.Modules
 {
     static class Authenticator
     {
-        public static async Task<string> GetAmazonAccessToken(string refreshToken, string userId)
+        private static async Task<string> GetAmazonAccessToken(string refreshToken, string userId)
         {
             var authenticationHeader = new Dictionary<string, string>
             {
@@ -43,7 +43,7 @@ namespace SearchEngine.Modules
             await SnsHandler.PublishToSnsAsync(JsonConvert.SerializeObject(userDto), "msg", Constants.AuthenticationSnsTopic);
         }
 
-        public static async Task<string> GetServiceArea(string accessToken)
+        private static async Task<string> GetServiceArea(string accessToken)
         {
             ApiHandler.ServiceAreaClient.DefaultRequestHeaders.Clear();
             ApiHandler.ServiceAreaClient.DefaultRequestHeaders.Add(Constants.TokenKeyConstant, accessToken);

@@ -7,9 +7,9 @@ namespace SearchEngine.Modules
 {
     static class ScheduleValidator
     {
-        public static int DaysToValidate = 7;
+        private static int DaysToValidate = 7;
 
-        public static DateTime SetTimeZone(DateTime timeToConvert, string timeZone)
+        private static DateTime SetTimeZone(DateTime timeToConvert, string timeZone)
         {
             TimeZoneInfo est = TimeZoneInfo.FindSystemTimeZoneById(timeZone);
             DateTime targetTime = TimeZoneInfo.ConvertTime(timeToConvert, est);
