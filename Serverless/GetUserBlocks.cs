@@ -47,16 +47,11 @@ namespace SearchEngine.Serverless
                 }
             }
 
-            Console.WriteLine($"User: {userDto.UserId} with IP: {GetIpAddress()}");
+            string ip = new WebClient().DownloadString("http://checkip.amazonaws.com");
+            Console.WriteLine($"User: {userDto.UserId} with IP: {ip}");
 
             HttpStatusCode responseCode = HttpStatusCode.Accepted;
             return responseCode.ToString();
-        }
-
-        public static string GetIpAddress()
-        {
-            string ip = new WebClient().DownloadString("https://api.ipify.org");
-            return ip;
         }
 
         private async Task<UserDto> GetUserDtoAsync(SQSEvent sqsEvent)
