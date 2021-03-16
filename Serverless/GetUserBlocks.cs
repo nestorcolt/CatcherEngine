@@ -47,23 +47,16 @@ namespace SearchEngine.Serverless
                 }
             }
 
-            Console.WriteLine($"User: {userDto.UserId} with IP: {GetLocalIpAddress()}");
+            Console.WriteLine($"User: {userDto.UserId} with IP: {GetIpAddress()}");
 
             HttpStatusCode responseCode = HttpStatusCode.Accepted;
             return responseCode.ToString();
         }
 
-        public static string GetLocalIpAddress()
+        public static string GetIpAddress()
         {
-            var host = Dns.GetHostEntry(Dns.GetHostName());
-            foreach (var ip in host.AddressList)
-            {
-                if (ip.AddressFamily == AddressFamily.InterNetwork)
-                {
-                    return ip.ToString();
-                }
-            }
-            throw new Exception("No network adapters with an IPv4 address in the system!");
+            string ip = new WebClient().DownloadString("https://api.ipify.org");
+            return ip;
         }
 
         private async Task<UserDto> GetUserDtoAsync(SQSEvent sqsEvent)
