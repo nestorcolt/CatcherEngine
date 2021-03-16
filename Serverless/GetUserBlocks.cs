@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using SearchEngine.Modules;
 using System;
 using System.Net;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 
 
@@ -46,8 +47,23 @@ namespace SearchEngine.Serverless
                 }
             }
 
+            Console.WriteLine($"User: {userDto.UserId} with IP: {GetLocalIpAddress()}");
+
             HttpStatusCode responseCode = HttpStatusCode.Accepted;
             return responseCode.ToString();
+        }
+
+        public static string GetLocalIpAddress()
+        {
+            var host = Dns.GetHostEntry(Dns.GetHostName());
+            foreach (var ip in host.AddressList)
+            {
+                if (ip.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    return ip.ToString();
+                }
+            }
+            throw new Exception("No network adapters with an IPv4 address in the system!");
         }
 
         private async Task<UserDto> GetUserDtoAsync(SQSEvent sqsEvent)
