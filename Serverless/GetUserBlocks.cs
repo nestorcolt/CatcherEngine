@@ -29,6 +29,12 @@ namespace SearchEngine.Serverless
                 await CloudLogger.Log(e.ToString(), userDto.UserId);
             }
 
+            if (!result)
+            {
+                // update last iteration value (in case we need to skip this user for X period of time while some process occur)
+                await DynamoHandler.UpdateUserTimestamp(userDto.UserId, BlockCatcher.GetTimestamp());
+            }
+
             string ip = new WebClient().DownloadString("http://checkip.amazonaws.com");
             Console.WriteLine($"User: {userDto.UserId} with IP: {ip}");
 
