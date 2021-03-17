@@ -1,7 +1,6 @@
 ﻿using Amazon.Lambda.Core;
 using Amazon.Lambda.SNSEvents;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using SearchEngine.Modules;
 using System;
 using System.Net;
@@ -18,11 +17,12 @@ namespace SearchEngine.Serverless
         [LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
         public async Task<string> FunctionHandler(SNSEvent snsEvent, ILambdaContext context)
         {
-            UserDto userDto = await GetUserDtoAsync(snsEvent);
+            UserDto userDto = JsonConvert.DeserializeObject<UserDto>(snsEvent.Records[0].Sns.Message);
+            bool result = false;
 
             try
             {
-                await BlockCatcher.LookingForBlocks(userDto);
+                result = await BlockCatcher.LookingForBlocks(userDto);
             }
             catch (Exception e)
             {
@@ -34,14 +34,6 @@ namespace SearchEngine.Serverless
 
             HttpStatusCode responseCode = HttpStatusCode.Accepted;
             return responseCode.ToString();
-        }
-
-        private async Task<UserDto> GetUserDtoAsync(SNSEvent snsEvent)
-        {
-            JObject oldData = JObject.Parse(snsEvent.Records[0].Sns.Message);
-            string newData = await DynamoHandler.QueryUser(oldData["user_id"].ToString());
-            UserDto userDto = JsonConvert.DeserializeObject<UserDto>(newData);
-            return userDto;
         }
     }
 }
