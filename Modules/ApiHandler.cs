@@ -11,26 +11,15 @@ namespace SearchEngine.Modules
     public class ApiHandler
     {
         public static HttpClient ServiceAreaClient = new HttpClient() { BaseAddress = new Uri(Constants.ApiBaseUrl) };
-        public static HttpClientHandler ClientHandler { get; set; }
-        public static HttpClient ApiClient { get; set; }
 
-        public ApiHandler()
+        private static readonly HttpClientHandler ClientHandler = new HttpClientHandler
+        { UseDefaultCredentials = true, MaxConnectionsPerServer = 500 };
+
+        public static HttpClient ApiClient = new HttpClient(ClientHandler)
+        { BaseAddress = new Uri(Constants.ApiBaseUrl) };
+
+        public static void InitializeClient()
         {
-            InitializeClient();
-        }
-
-        public void InitializeClient()
-        {
-            int maxConnectionsPerServerThreshold = 500;
-
-            ClientHandler = new HttpClientHandler
-            {
-                UseDefaultCredentials = true,
-                MaxConnectionsPerServer = maxConnectionsPerServerThreshold
-            };
-
-            ApiClient = new HttpClient(ClientHandler) { BaseAddress = new Uri(Constants.ApiBaseUrl) };
-
             int connectionLimitThreshold = 10000;
             ServicePointManager.DefaultConnectionLimit = connectionLimitThreshold;
             SetMaxConcurrency(Constants.ApiBaseUrl, connectionLimitThreshold);

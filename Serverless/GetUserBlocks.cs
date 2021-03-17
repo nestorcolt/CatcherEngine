@@ -1,12 +1,11 @@
 ﻿using Amazon.Lambda.Core;
-using Amazon.Lambda.SQSEvents;
+using Amazon.Lambda.SNSEvents;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SearchEngine.Modules;
 using System;
 using System.Net;
 using System.Threading.Tasks;
-using Amazon.Lambda.SNSEvents;
 
 
 // The Main program for looking, catching and accepting blocks for the amazon flex service. Automate the process and handle a single user process instance and this needs
@@ -16,8 +15,6 @@ namespace SearchEngine.Serverless
 {
     class GetUserBlocks
     {
-        private ApiHandler Client = new ApiHandler();
-
         [LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
         public async Task<string> FunctionHandler(SNSEvent snsEvent, ILambdaContext context)
         {

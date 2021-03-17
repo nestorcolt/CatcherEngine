@@ -1,6 +1,6 @@
-﻿using System;
-using Amazon.SQS;
+﻿using Amazon.SQS;
 using Amazon.SQS.Model;
+using System;
 using System.Threading.Tasks;
 
 namespace SearchEngine.Modules

@@ -167,6 +167,8 @@ namespace SearchEngine.Modules
 
         public static async Task<bool> LookingForBlocks(UserDto userDto)
         {
+            ApiHandler.InitializeClient();
+
             // validator of weekly schedule
             if (!ScheduleHasData(userDto.SearchSchedule))
             {
