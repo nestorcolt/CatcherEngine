@@ -6,13 +6,13 @@
         "dotnet lambda help",
         "All the command line options for the Lambda command can be specified in this file."
     ],
-    "profile"     : "default",
+    "profile"     : "devAccount",
     "region"      : "us-east-1",
     "configuration" : "Release",
     "framework"     : "netcoreapp3.1",
     "s3-prefix"     : "SearchEngine/",
     "template"      : "serverless.template",
     "template-parameters" : "",
-    "s3-bucket"           : "bis-prod-app",
+    "s3-bucket"           : "bis-app-bucket",
     "stack-name"          : "bis-se-stack"
 }
