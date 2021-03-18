@@ -73,30 +73,6 @@ namespace SearchEngine.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Users")]
-        public string UsersTable {
-            get {
-                return ((string)(this["UsersTable"]));
-            }
-            set {
-                this["UsersTable"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("user_id")]
-        public string UserPk {
-            get {
-                return ((string)(this["UserPk"]));
-            }
-            set {
-                this["UserPk"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("320132171574")]
         public string AWSAccountId {
             get {
