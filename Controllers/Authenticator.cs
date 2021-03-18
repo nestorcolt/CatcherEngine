@@ -55,8 +55,8 @@ namespace SearchEngine.Controllers
 
         public async Task<string> GetServiceArea(string accessToken)
         {
-            //_apiHandler.ServiceAreaClient.DefaultRequestHeaders.Add(Constants.TokenKeyConstant, accessToken);
-            HttpResponseMessage content = await _apiHandler.GetDataAsync(Constants.ServiceAreaUri);
+            var headers = new Dictionary<string, string>() { [Constants.TokenKeyConstant] = accessToken };
+            HttpResponseMessage content = await _apiHandler.GetDataAsync(Constants.ServiceAreaUri, headers);
 
             if (content.IsSuccessStatusCode)
             {

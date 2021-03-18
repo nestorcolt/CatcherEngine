@@ -3,7 +3,9 @@ using SearchEngine.Models;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace SearchEngine.Controllers
 {
@@ -16,9 +18,12 @@ namespace SearchEngine.Controllers
             _httpClient = client;
         }
 
-        public async Task<HttpResponseMessage> GetDataAsync(string uri)
+        public async Task<HttpResponseMessage> GetDataAsync(string uri, Dictionary<string, string> headers = null)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
+
+            if (headers != null)
+                request = AddRequestHeaders(headers, request);
 
             try
             {
@@ -34,11 +39,19 @@ namespace SearchEngine.Controllers
             return null;
         }
 
-        public async Task<HttpResponseMessage> PostDataAsync(string uri, string data)
+        public async Task<HttpResponseMessage> PostDataAsync(string uri, string content, Dictionary<string, string> headers = null)
         {
+            var request = new HttpRequestMessage(HttpMethod.Post, uri)
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json")
+            };
+
+            if (headers != null)
+                request = AddRequestHeaders(headers, request);
+
             try
             {
-                HttpResponseMessage response = await _httpClient.PostAsync(uri, new StringContent(data));
+                HttpResponseMessage response = await _httpClient.SendAsync(request);
                 return response;
             }
             catch (HttpRequestException e)
@@ -56,14 +69,14 @@ namespace SearchEngine.Controllers
             return await Task.Run(() => JObject.Parse(content));
         }
 
-        public void AddRequestHeaders(Dictionary<string, string> headersDictionary)
+        private HttpRequestMessage AddRequestHeaders(Dictionary<string, string> headersDictionary, HttpRequestMessage request)
         {
-            _httpClient.DefaultRequestHeaders.Clear();
-
             foreach (var data in headersDictionary)
             {
-                _httpClient.DefaultRequestHeaders.Add(data.Key, data.Value);
+                request.Headers.Add(data.Key, data.Value);
             }
+
+            return request;
         }
     }
 }

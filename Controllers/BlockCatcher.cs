@@ -156,9 +156,9 @@ namespace SearchEngine.Controllers
 
         public async Task<HttpStatusCode> GetOffersAsyncHandle(UserDto userDto, Dictionary<string, string> requestHeaders, string serviceAreaId)
         {
+            // Todo: in case we need this, I will come back to this part to parse the signature to the headers.
             //SignRequestHeaders($"{ApiHandler.ApiBaseUrl}{ApiHandler.OffersUri}");
-            _apiHandler.AddRequestHeaders(requestHeaders);
-            var response = await _apiHandler.PostDataAsync(Constants.OffersUri, serviceAreaId);
+            var response = await _apiHandler.PostDataAsync(Constants.OffersUri, serviceAreaId, requestHeaders);
 
             if (response.IsSuccessStatusCode)
             {
