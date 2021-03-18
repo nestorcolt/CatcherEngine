@@ -10,15 +10,18 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace SearchEngine.Controllers
 {
     public class BlockCatcher : IBlockCatcher
     {
+        private readonly ILogger<BlockCatcher> _log;
         private readonly IApiHandler _apiHandler;
 
-        public BlockCatcher(IApiHandler apiHandler)
+        public BlockCatcher(ILogger<BlockCatcher> log, IApiHandler apiHandler)
         {
+            _log = log;
             _apiHandler = apiHandler;
         }
 
@@ -130,7 +133,9 @@ namespace SearchEngine.Controllers
                 }
 
                 // test to log in cloud watch
-                await CloudLogger.Log($"\nAccept Block Operation Status >> Code >> {response.StatusCode}\n", userDto.UserId);
+                var msg = $"\nAccept Block Operation Status >> Code >> {response.StatusCode}\n";
+                await CloudLogger.Log(msg, userDto.UserId);
+                _log.LogInformation(msg);
             }
 
             // send the offer seen to the offers table for further data processing or analytic
@@ -165,6 +170,9 @@ namespace SearchEngine.Controllers
                 JObject requestToken = await _apiHandler.GetRequestJTokenAsync(response);
                 JToken offerList = requestToken.GetValue("offerList");
 
+                // If log debug
+                _log.LogDebug(offerList.ToString());
+
                 if (offerList != null && offerList.HasValues)
                 {
                     Thread acceptThread = new Thread(task => AcceptOffers(offerList, userDto));
@@ -182,6 +190,7 @@ namespace SearchEngine.Controllers
             if (!ScheduleHasData(userDto.SearchSchedule))
             {
                 await DeactivateUser(userDto.UserId);
+                _log.LogWarning("User Is being Deactivated");
                 return false;
             }
 
@@ -214,6 +223,7 @@ namespace SearchEngine.Controllers
             {
                 // Re-authenticate after the access token has expired
                 await Authenticator.RequestNewAccessToken(userDto);
+                _log.LogWarning("Requesting New Access Token");
             }
 
             else if (statusCode is HttpStatusCode.BadRequest || statusCode is HttpStatusCode.TooManyRequests)
@@ -224,6 +234,7 @@ namespace SearchEngine.Controllers
                 // Stream Logs
                 string responseStatus = $"\nRequest Status >> Reason >> {statusCode} | The system will pause for 30 minutes\n";
                 await CloudLogger.Log(responseStatus, userDto.UserId);
+                _log.LogWarning(responseStatus);
             }
 
             return false;
