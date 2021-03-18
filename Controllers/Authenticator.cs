@@ -5,11 +5,19 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using SearchEngine.Modules;
 
-namespace SearchEngine.Modules
+namespace SearchEngine.Controllers
 {
-    static class Authenticator
+    public class Authenticator
     {
+        private readonly IApiHandler _apiHandler;
+
+        public Authenticator(IApiHandler apiHandler)
+        {
+            _apiHandler = apiHandler;
+        }
+
         private static async Task<string> GetAmazonAccessToken(string refreshToken, string userId)
         {
             var authenticationHeader = new Dictionary<string, string>
@@ -30,7 +38,7 @@ namespace SearchEngine.Modules
 
             if (response.IsSuccessStatusCode)
             {
-                JObject requestToken = await ApiHandler.GetRequestJTokenAsync(response);
+                JObject requestToken = await _apiHandler.GetRequestJTokenAsync(response);
                 return requestToken["access_token"].ToString();
             }
 
@@ -38,16 +46,16 @@ namespace SearchEngine.Modules
             throw new UnauthorizedAccessException($"There is a problem with the authentication.\nReason: {response.Content}");
         }
 
-        public static async Task RequestNewAccessToken(UserDto userDto)
+        public async Task RequestNewAccessToken(UserDto userDto)
         {
             await SnsHandler.PublishToSnsAsync(JsonConvert.SerializeObject(userDto), "msg", Constants.AuthenticationSnsTopic);
         }
 
-        private static async Task<string> GetServiceArea(string accessToken)
+        private async Task<string> GetServiceArea(string accessToken)
         {
-            ApiHandler.ServiceAreaClient.DefaultRequestHeaders.Clear();
-            ApiHandler.ServiceAreaClient.DefaultRequestHeaders.Add(Constants.TokenKeyConstant, accessToken);
-            HttpResponseMessage content = await ApiHandler.GetDataAsync(Constants.ServiceAreaUri, ApiHandler.ServiceAreaClient);
+            _apiHandler.ServiceAreaClient.DefaultRequestHeaders.Clear();
+            _apiHandler.ServiceAreaClient.DefaultRequestHeaders.Add(Constants.TokenKeyConstant, accessToken);
+            HttpResponseMessage content = await _apiHandler.GetDataAsync(Constants.ServiceAreaUri);
 
             if (content.IsSuccessStatusCode)
             {
@@ -55,7 +63,7 @@ namespace SearchEngine.Modules
                 string serviceAreaId = "";
 
                 // continue if the validation succeed
-                JObject requestToken = await ApiHandler.GetRequestJTokenAsync(content);
+                JObject requestToken = await _apiHandler.GetRequestJTokenAsync(content);
                 JToken result = requestToken.GetValue("serviceAreaIds");
 
                 if (result.HasValues)
@@ -84,7 +92,7 @@ namespace SearchEngine.Modules
             return null;
         }
 
-        public static async Task Authenticate(string refreshToken, string userId)
+        public async Task Authenticate(string refreshToken, string userId)
         {
             // authenticated for new access token
             string accessToken = Task.Run(() => GetAmazonAccessToken(refreshToken, userId)).Result;

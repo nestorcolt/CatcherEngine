@@ -7,19 +7,27 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using SearchEngine.Models;
 
-namespace SearchEngine.Modules
+namespace SearchEngine.Controllers
 {
-    static class BlockCatcher
+    public class BlockCatcher : IBlockCatcher
     {
+        private readonly IApiHandler _apiHandler;
+
+        public BlockCatcher(IApiHandler apiHandler)
+        {
+            _apiHandler = apiHandler;
+        }
+
         //public readonly SignatureObject _signature = new SignatureObject();
 
-        private static async Task DeactivateUser(string userId)
+        public async Task DeactivateUser(string userId)
         {
             await SnsHandler.PublishToSnsAsync(new JObject(new JProperty(Constants.UserPk, userId)).ToString(), "msg", Constants.StopSnsTopic);
         }
 
-        private static bool ScheduleHasData(JToken searchSchedule)
+        public bool ScheduleHasData(JToken searchSchedule)
         {
             if (searchSchedule != null && searchSchedule.HasValues)
                 return true;
@@ -27,7 +35,7 @@ namespace SearchEngine.Modules
             return false;
         }
 
-        private static bool ValidateArea(string serviceAreaId, List<string> areas)
+        public bool ValidateArea(string serviceAreaId, List<string> areas)
         {
             if (areas.Count == 0)
                 return true;
@@ -48,14 +56,14 @@ namespace SearchEngine.Modules
         //    RequestDataHeadersDictionary["Authorization"] = signatureHeaders["Authorization"];
         //}
 
-        public static int GetTimestamp()
+        public int GetTimestamp()
         {
             TimeSpan time = (DateTime.UtcNow - DateTime.UnixEpoch);
             int timestamp = (int)time.TotalSeconds;
             return timestamp;
         }
 
-        private static Dictionary<string, string> EmulateDevice(Dictionary<string, string> requestDictionary)
+        public Dictionary<string, string> EmulateDevice(Dictionary<string, string> requestDictionary)
         {
             string instanceId = Guid.NewGuid().ToString().Replace("-", "");
             string androidVersion = settings.Default.OSVersion;
@@ -80,7 +88,7 @@ namespace SearchEngine.Modules
             return requestDictionary;
         }
 
-        private static async Task AcceptSingleOfferAsync(JToken block, UserDto userDto)
+        public async Task AcceptSingleOfferAsync(JToken block, UserDto userDto)
         {
             bool isValidated = false;
             long offerTime = (long)block["startTime"];
@@ -105,7 +113,7 @@ namespace SearchEngine.Modules
                     new JProperty("offerId", offerId)
                 );
 
-                HttpResponseMessage response = await ApiHandler.PostDataAsync(Constants.AcceptUri, acceptHeader.ToString());
+                HttpResponseMessage response = await _apiHandler.PostDataAsync(Constants.AcceptUri, acceptHeader.ToString());
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -134,7 +142,7 @@ namespace SearchEngine.Modules
             await SnsHandler.PublishToSnsAsync(offerSeen.ToString(), "msg", Constants.OffersSnsTopic);
         }
 
-        private static void AcceptOffers(JToken offerList, UserDto userDto)
+        public void AcceptOffers(JToken offerList, UserDto userDto)
         {
             Parallel.For(0, offerList.Count(), n =>
             {
@@ -144,15 +152,15 @@ namespace SearchEngine.Modules
             });
         }
 
-        private static async Task<HttpStatusCode> GetOffersAsyncHandle(UserDto userDto, Dictionary<string, string> requestHeaders, string serviceAreaId)
+        public async Task<HttpStatusCode> GetOffersAsyncHandle(UserDto userDto, Dictionary<string, string> requestHeaders, string serviceAreaId)
         {
             //SignRequestHeaders($"{ApiHandler.ApiBaseUrl}{ApiHandler.OffersUri}");
-            ApiHandler.AddRequestHeaders(requestHeaders);
-            var response = await ApiHandler.PostDataAsync(Constants.OffersUri, serviceAreaId);
+            _apiHandler.AddRequestHeaders(requestHeaders);
+            var response = await _apiHandler.PostDataAsync(Constants.OffersUri, serviceAreaId);
 
             if (response.IsSuccessStatusCode)
             {
-                JObject requestToken = await ApiHandler.GetRequestJTokenAsync(response);
+                JObject requestToken = await _apiHandler.GetRequestJTokenAsync(response);
                 JToken offerList = requestToken.GetValue("offerList");
 
                 if (offerList != null && offerList.HasValues)
@@ -165,9 +173,8 @@ namespace SearchEngine.Modules
             return response.StatusCode;
         }
 
-        public static async Task<bool> LookingForBlocks(UserDto userDto)
+        public async Task<bool> LookingForBlocks(UserDto userDto)
         {
-            ApiHandler.InitializeClient();
 
             // validator of weekly schedule
             if (!ScheduleHasData(userDto.SearchSchedule))
