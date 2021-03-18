@@ -28,7 +28,6 @@ namespace SearchEngine
             services.AddTransient<ILambdaConfiguration, LambdaConfiguration>();
             services.AddTransient<IAuthenticator, Authenticator>();
             services.AddTransient<IBlockCatcher, BlockCatcher>();
-            services.AddTransient<IApiHandler, ApiHandler>();
 
             return services;
         }
