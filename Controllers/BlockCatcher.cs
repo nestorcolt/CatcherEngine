@@ -93,7 +93,7 @@ namespace SearchEngine.Controllers
             return requestDictionary;
         }
 
-        public async Task AcceptSingleOfferAsync(JToken block, UserDto userDto)
+        public async Task AcceptSingleOfferAsync(JToken block, UserDto userDto, Dictionary<string, string> requestHeaders)
         {
             bool isValidated = false;
             long offerTime = (long)block["startTime"];
@@ -118,7 +118,7 @@ namespace SearchEngine.Controllers
                     new JProperty("offerId", offerId)
                 );
 
-                HttpResponseMessage response = await _apiHandler.PostDataAsync(Constants.AcceptUri, acceptHeader.ToString());
+                HttpResponseMessage response = await _apiHandler.PostDataAsync(Constants.AcceptUri, acceptHeader.ToString(), requestHeaders);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -149,17 +149,17 @@ namespace SearchEngine.Controllers
             await SnsHandler.PublishToSnsAsync(offerSeen.ToString(), "msg", Constants.OffersSnsTopic);
         }
 
-        public void AcceptOffers(JToken offerList, UserDto userDto)
+        public void AcceptOffers(JToken offerList, UserDto userDto, Dictionary<string, string> requestHeaders)
         {
             Parallel.For(0, offerList.Count(), n =>
             {
                 JToken innerBlock = offerList[n];
-                Thread accept = new Thread(async task => await AcceptSingleOfferAsync(innerBlock, userDto));
+                Thread accept = new Thread(async task => await AcceptSingleOfferAsync(innerBlock, userDto, requestHeaders));
                 accept.Start();
             });
         }
 
-        public async Task<HttpStatusCode> GetOffersAsyncHandle(UserDto userDto, Dictionary<string, string> requestHeaders, string serviceAreaId)
+        public async Task<HttpStatusCode> GetOffersAsyncHandle(UserDto userDto, string serviceAreaId, Dictionary<string, string> requestHeaders)
         {
             // Todo: in case we need this, I will come back to this part to parse the signature to the headers.
             //SignRequestHeaders($"{ApiHandler.ApiBaseUrl}{ApiHandler.OffersUri}");
@@ -175,7 +175,7 @@ namespace SearchEngine.Controllers
 
                 if (offerList != null && offerList.HasValues)
                 {
-                    Thread acceptThread = new Thread(task => AcceptOffers(offerList, userDto));
+                    Thread acceptThread = new Thread(task => AcceptOffers(offerList, userDto, requestHeaders));
                     acceptThread.Start();
                 }
             }
@@ -212,7 +212,7 @@ namespace SearchEngine.Controllers
             }
 
             // start logic here main request
-            HttpStatusCode statusCode = await GetOffersAsyncHandle(userDto, requestHeaders, userDto.ServiceAreaHeader);
+            HttpStatusCode statusCode = await GetOffersAsyncHandle(userDto, userDto.ServiceAreaHeader, requestHeaders);
 
             if (statusCode is HttpStatusCode.OK)
             {

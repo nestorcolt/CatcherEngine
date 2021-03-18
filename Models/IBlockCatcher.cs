@@ -8,14 +8,15 @@ namespace SearchEngine.Models
 {
     public interface IBlockCatcher
     {
-        Task DeactivateUser(string userId);
-        bool ScheduleHasData(JToken searchSchedule);
         bool ValidateArea(string serviceAreaId, List<string> areas);
-        int GetTimestamp();
-        Dictionary<string, string> EmulateDevice(Dictionary<string, string> requestDictionary);
-        Task AcceptSingleOfferAsync(JToken block, UserDto userDto);
-        void AcceptOffers(JToken offerList, UserDto userDto);
-        Task<HttpStatusCode> GetOffersAsyncHandle(UserDto userDto, Dictionary<string, string> requestHeaders, string serviceAreaId);
         Task<bool> LookingForBlocks(UserDto userDto);
+        bool ScheduleHasData(JToken searchSchedule);
+        Task DeactivateUser(string userId);
+        int GetTimestamp();
+
+        Task<HttpStatusCode> GetOffersAsyncHandle(UserDto userDto, string serviceAreaId, Dictionary<string, string> requestHeaders);
+        Task AcceptSingleOfferAsync(JToken block, UserDto userDto, Dictionary<string, string> requestHeaders);
+        void AcceptOffers(JToken offerList, UserDto userDto, Dictionary<string, string> requestHeaders);
+        Dictionary<string, string> EmulateDevice(Dictionary<string, string> requestDictionary);
     }
 }
