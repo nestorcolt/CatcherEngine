@@ -1,6 +1,6 @@
 ﻿using SearchEngine.Properties;
 
-namespace SearchEngine.Modules
+namespace SearchEngine.lib
 {
     static class Constants
     {

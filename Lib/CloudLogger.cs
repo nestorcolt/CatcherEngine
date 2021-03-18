@@ -1,7 +1,8 @@
-﻿using System;
+﻿using SearchEngine.lib;
+using System;
 using System.Threading.Tasks;
 
-namespace SearchEngine.Modules
+namespace SearchEngine.Lib
 {
     static class CloudLogger
     {

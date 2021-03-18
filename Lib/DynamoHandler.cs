@@ -3,7 +3,7 @@ using Amazon.DynamoDBv2.DocumentModel;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace SearchEngine.Modules
+namespace SearchEngine.Lib
 {
     static class DynamoHandler
     {

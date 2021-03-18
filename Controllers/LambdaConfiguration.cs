@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using SearchEngine.Configuration;
+﻿using Microsoft.Extensions.Configuration;
+using SearchEngine.Models;
 using System.IO;
-using Microsoft.Extensions.Configuration;
 
-namespace SearchEngine.Configuration
+namespace SearchEngine.Controllers
 {
     public class LambdaConfiguration : ILambdaConfiguration
     {

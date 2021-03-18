@@ -3,7 +3,7 @@ using Amazon.SimpleNotificationService.Model;
 using System;
 using System.Threading.Tasks;
 
-namespace SearchEngine.Modules
+namespace SearchEngine.Lib
 {
     static class SnsHandler
     {

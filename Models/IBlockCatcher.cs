@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json.Linq;
+using SearchEngine.Lib;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
-using SearchEngine.Modules;
 
 namespace SearchEngine.Models
 {

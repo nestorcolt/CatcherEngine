@@ -1,12 +1,11 @@
 ﻿using Newtonsoft.Json.Linq;
+using SearchEngine.Models;
 using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
-namespace SearchEngine.Modules
+namespace SearchEngine.Controllers
 {
     public class ApiHandler : IApiHandler
     {

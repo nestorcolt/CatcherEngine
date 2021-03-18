@@ -1,4 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
+using SearchEngine.lib;
+using SearchEngine.Lib;
+using SearchEngine.Models;
 using SearchEngine.Properties;
 using System;
 using System.Collections.Generic;
@@ -7,7 +10,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using SearchEngine.Models;
 
 namespace SearchEngine.Controllers
 {

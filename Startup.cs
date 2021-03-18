@@ -1,9 +1,10 @@
-﻿using System;
-using System.Net.Http.Headers;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using SearchEngine.Configuration;
-using SearchEngine.Modules;
+using SearchEngine.Controllers;
+using SearchEngine.lib;
+using SearchEngine.Models;
+using System;
+using System.Net.Http.Headers;
 
 namespace SearchEngine
 {
@@ -24,8 +25,10 @@ namespace SearchEngine
             });
 
             // DI happens here!
-            services.AddTransient<IApiHandler, ApiHandler>();
             services.AddTransient<ILambdaConfiguration, LambdaConfiguration>();
+            services.AddTransient<IAuthenticator, Authenticator>();
+            services.AddTransient<IBlockCatcher, BlockCatcher>();
+            services.AddTransient<IApiHandler, ApiHandler>();
 
             return services;
         }

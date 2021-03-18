@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace SearchEngine.Modules
+namespace SearchEngine.Lib
 {
     static class ScheduleValidator
     {

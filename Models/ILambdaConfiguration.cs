@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 
-namespace SearchEngine.Configuration
+namespace SearchEngine.Models
 {
     interface ILambdaConfiguration
     {

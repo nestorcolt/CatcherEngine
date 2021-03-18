@@ -1,15 +1,17 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SearchEngine.lib;
+using SearchEngine.Lib;
+using SearchEngine.Models;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using SearchEngine.Modules;
 
 namespace SearchEngine.Controllers
 {
-    public class Authenticator
+    public class Authenticator : IAuthenticator
     {
         private readonly IApiHandler _apiHandler;
 
@@ -18,7 +20,7 @@ namespace SearchEngine.Controllers
             _apiHandler = apiHandler;
         }
 
-        private static async Task<string> GetAmazonAccessToken(string refreshToken, string userId)
+        private async Task<string> GetAmazonAccessToken(string refreshToken, string userId)
         {
             var authenticationHeader = new Dictionary<string, string>
             {
@@ -46,15 +48,14 @@ namespace SearchEngine.Controllers
             throw new UnauthorizedAccessException($"There is a problem with the authentication.\nReason: {response.Content}");
         }
 
-        public async Task RequestNewAccessToken(UserDto userDto)
+        public static async Task RequestNewAccessToken(UserDto userDto)
         {
             await SnsHandler.PublishToSnsAsync(JsonConvert.SerializeObject(userDto), "msg", Constants.AuthenticationSnsTopic);
         }
 
-        private async Task<string> GetServiceArea(string accessToken)
+        public async Task<string> GetServiceArea(string accessToken)
         {
-            _apiHandler.ServiceAreaClient.DefaultRequestHeaders.Clear();
-            _apiHandler.ServiceAreaClient.DefaultRequestHeaders.Add(Constants.TokenKeyConstant, accessToken);
+            //_apiHandler.ServiceAreaClient.DefaultRequestHeaders.Add(Constants.TokenKeyConstant, accessToken);
             HttpResponseMessage content = await _apiHandler.GetDataAsync(Constants.ServiceAreaUri);
 
             if (content.IsSuccessStatusCode)

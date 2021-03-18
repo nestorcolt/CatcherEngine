@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-namespace SearchEngine.Modules
+namespace SearchEngine.Lib
 {
     [DataContract]
     public class UserDto

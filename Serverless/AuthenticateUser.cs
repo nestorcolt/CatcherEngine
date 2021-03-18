@@ -1,7 +1,9 @@
 ﻿using Amazon.Lambda.Core;
 using Amazon.Lambda.SNSEvents;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
-using SearchEngine.Modules;
+using SearchEngine.Lib;
+using SearchEngine.Models;
 using System;
 using System.Net;
 using System.Threading.Tasks;
@@ -15,6 +17,19 @@ namespace SearchEngine.Serverless
 {
     class AuthenticateUser
     {
+        private readonly IServiceProvider _serviceProvider;
+        private readonly IAuthenticator _authenticator;
+
+        public AuthenticateUser(IServiceProvider serviceProvider)
+        {
+            _serviceProvider = serviceProvider;
+        }
+
+        public AuthenticateUser() : this(StartUp.Container.BuildServiceProvider())
+        {
+            _authenticator = _serviceProvider.GetService<IAuthenticator>();
+        }
+
         [LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
         public async Task<string> FunctionHandler(SNSEvent userData, ILambdaContext context)
         {
@@ -24,7 +39,7 @@ namespace SearchEngine.Serverless
 
             try
             {
-                await Authenticator.Authenticate(refreshToken, userId);
+                await _authenticator.Authenticate(refreshToken, userId);
             }
             catch (Exception e)
             {
