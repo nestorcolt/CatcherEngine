@@ -1,4 +1,4 @@
-﻿using SearchEngine.Test;
+﻿using SearchEngine.Lib;
 
 namespace SearchEngine
 {
@@ -6,8 +6,9 @@ namespace SearchEngine
     {
         static void Main(string[] args)
         {
-            var runner = new LocalRunner();
-            runner.Run();
+            //var runner = new LocalRunner();
+            //runner.Run();
+            DynamoHandler.DeleteBlocksTable().Wait();
         }
     }
 }
