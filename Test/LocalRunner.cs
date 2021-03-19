@@ -1,51 +1,40 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
-using SearchEngine.Controllers;
-using SearchEngine.lib;
 using SearchEngine.Lib;
 using SearchEngine.Models;
 using System;
-using System.Net.Http.Headers;
 using System.Threading;
 
 namespace SearchEngine.Test
 {
     class LocalRunner
     {
-        private string _userId = "5";
+        private readonly IServiceProvider _serviceProvider;
+        private readonly IBlockCatcher _blockCatcher;
+
+        public LocalRunner(IServiceProvider serviceProvider)
+        {
+            _serviceProvider = serviceProvider;
+        }
+
+        public LocalRunner() : this(StartUp.Container.BuildServiceProvider())
+        {
+            _blockCatcher = _serviceProvider.GetService<IBlockCatcher>();
+        }
 
         public void Run()
         {
-            var host = Host.CreateDefaultBuilder()
-                .ConfigureServices((context, services) =>
-                {
-                    // Client factory: Typed Client
-                    services.AddHttpClient<IApiHandler, ApiHandler>(c =>
-                    {
-                        c.BaseAddress = new Uri(Constants.ApiBaseUrl);
-                        c.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                    });
-
-                    services.AddTransient<ILambdaConfiguration, LambdaConfiguration>();
-                    services.AddTransient<IAuthenticator, Authenticator>();
-                    services.AddTransient<IBlockCatcher, BlockCatcher>();
-
-                })
-                .Build();
-
-            // Catcher DI
-            var catcher = ActivatorUtilities.CreateInstance<BlockCatcher>(host.Services);
-
             // Data to parse
-            string userData = DynamoHandler.QueryUser(_userId).Result;
+            string userId = "5";
+            string userData = DynamoHandler.QueryUser(userId).Result;
             UserDto userDto = JsonConvert.DeserializeObject<UserDto>(userData);
+
             userDto.TimeZone = "Eastern Standard Time";
-            userDto.MinimumPrice = 0;
+            userDto.MinimumPrice = 1000;
 
             while (true)
             {
-                bool result = catcher.LookingForBlocks(userDto).Result;
+                bool result = _blockCatcher.LookingForBlocks(userDto).Result;
                 Console.WriteLine($"Iteration Result: {result}");
 
                 if (!result)
@@ -57,6 +46,5 @@ namespace SearchEngine.Test
                 Thread.Sleep(2000);
             }
         }
-
     }
 }
