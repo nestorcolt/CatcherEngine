@@ -1,16 +1,18 @@
-﻿using SearchEngine.Properties;
+﻿using SearchEngine.Lib;
+using SearchEngine.Properties;
 
 namespace SearchEngine.lib
 {
     static class Constants
     {
-        public static string AuthenticationSnsTopic = $"arn:aws:sns:us-east-1:{settings.Default.AWSAccountId}:SE-AUTHENTICATE-TOPIC";
-        public static string AcceptedSnsTopic = $"arn:aws:sns:us-east-1:{settings.Default.AWSAccountId}:SE-ACCEPTED-TOPIC";
-        public static string OffersSnsTopic = $"arn:aws:sns:us-east-1:{settings.Default.AWSAccountId}:SE-OFFERS-TOPIC";
-        public static string LogToCloudTopic = $"arn:aws:sns:us-east-1:{settings.Default.AWSAccountId}:SE-LOGS-TOPIC";
-        public static string ErrorSnsTopic = $"arn:aws:sns:us-east-1:{settings.Default.AWSAccountId}:SE-ERROR-TOPIC";
-        public static string SleepSnsTopic = $"arn:aws:sns:us-east-1:{settings.Default.AWSAccountId}:SE-SLEEP-TOPIC";
-        public static string StopSnsTopic = $"arn:aws:sns:us-east-1:{settings.Default.AWSAccountId}:SE-STOP-TOPIC";
+        public static readonly string AwsAccountId = StsHandler.GetAccountId();
+        public static readonly string AuthenticationSnsTopic = $"arn:aws:sns:us-east-1:{AwsAccountId}:SE-AUTHENTICATE-TOPIC";
+        public static readonly string AcceptedSnsTopic = $"arn:aws:sns:us-east-1:{AwsAccountId}:SE-ACCEPTED-TOPIC";
+        public static readonly string OffersSnsTopic = $"arn:aws:sns:us-east-1:{AwsAccountId}:SE-OFFERS-TOPIC";
+        public static readonly string LogToCloudTopic = $"arn:aws:sns:us-east-1:{AwsAccountId}:SE-LOGS-TOPIC";
+        public static readonly string ErrorSnsTopic = $"arn:aws:sns:us-east-1:{AwsAccountId}:SE-ERROR-TOPIC";
+        public static readonly string SleepSnsTopic = $"arn:aws:sns:us-east-1:{AwsAccountId}:SE-SLEEP-TOPIC";
+        public static readonly string StopSnsTopic = $"arn:aws:sns:us-east-1:{AwsAccountId}:SE-STOP-TOPIC";
 
         // main URLS
         public const string AcceptInputUrl = "http://internal.amazon.com/coral/com.amazon.omwbuseyservice.offers/";
@@ -28,8 +30,5 @@ namespace SearchEngine.lib
         public static string UserLogStreamName = "User-{0}";
         public const string TokenKeyConstant = "x-amz-access-token";
 
-        // SQS
-        public static string StartSearchQueueName = @"GetUserBlocksQueue";
-        public static string PowerTuningQueueName = @"PowerTunningQueue";
     }
 }

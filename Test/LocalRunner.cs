@@ -2,12 +2,12 @@
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 using SearchEngine.Controllers;
+using SearchEngine.lib;
 using SearchEngine.Lib;
 using SearchEngine.Models;
 using System;
 using System.Net.Http.Headers;
 using System.Threading;
-using SearchEngine.lib;
 
 namespace SearchEngine.Test
 {
