@@ -79,7 +79,7 @@
 				"Handler": "SearchEngine::SearchEngine.Serverless.AuthenticateUser::FunctionHandler",
 				"Runtime": "dotnetcore3.1",
 				"CodeUri": "",
-				"MemorySize": 512,
+				"MemorySize": 1024,
 				"Timeout": 20,
 				"Policies": [
 					"AWSLambdaBasicExecutionRole",
