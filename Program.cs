@@ -1,6 +1,4 @@
-﻿using SearchEngine.Lib;
-
-namespace SearchEngine
+﻿namespace SearchEngine
 {
     class Program
     {

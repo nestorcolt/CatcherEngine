@@ -22,7 +22,7 @@ namespace SearchEngine.Lib
         public static async Task UpdateUserTimestamp(string userId, int timeStamp)
         {
             Table table = Table.LoadTable(Client, _tableName);
-            Document document = new Document {[_lastIteration] = timeStamp};
+            Document document = new Document { [_lastIteration] = timeStamp };
             await table.UpdateItemAsync(document, userId);
         }
 
@@ -88,8 +88,8 @@ namespace SearchEngine.Lib
                 });
 
                 // Fill the request with the items retrieved in the parallel loop
-                var requestItems = new Dictionary<string, List<WriteRequest>>() {[_blockTable] = writeRequestList};
-                var request = new BatchWriteItemRequest {RequestItems = requestItems};
+                var requestItems = new Dictionary<string, List<WriteRequest>>() { [_blockTable] = writeRequestList };
+                var request = new BatchWriteItemRequest { RequestItems = requestItems };
 
                 try
                 {
