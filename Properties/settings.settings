@@ -14,5 +14,8 @@
     <Setting Name="BuildVersion" Type="System.String" Scope="User">
       <Value Profile="(Default)">N2G48C</Value>
     </Setting>
+    <Setting Name="AwsAccountId" Type="System.String" Scope="User">
+      <Value Profile="(Default)">320132171574</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

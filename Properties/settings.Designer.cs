@@ -70,5 +70,17 @@ namespace SearchEngine.Properties {
                 this["BuildVersion"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("320132171574")]
+        public string AwsAccountId {
+            get {
+                return ((string)(this["AwsAccountId"]));
+            }
+            set {
+                this["AwsAccountId"] = value;
+            }
+        }
     }
 }

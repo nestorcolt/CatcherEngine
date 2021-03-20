@@ -5,7 +5,7 @@ namespace SearchEngine.lib
 {
     static class Constants
     {
-        public static readonly string AwsAccountId = StsHandler.GetAccountId();
+        public static readonly string AwsAccountId = settings.Default.AwsAccountId;
         public static readonly string AuthenticationSnsTopic = $"arn:aws:sns:us-east-1:{AwsAccountId}:SE-AUTHENTICATE-TOPIC";
         public static readonly string AcceptedSnsTopic = $"arn:aws:sns:us-east-1:{AwsAccountId}:SE-ACCEPTED-TOPIC";
         public static readonly string OffersSnsTopic = $"arn:aws:sns:us-east-1:{AwsAccountId}:SE-OFFERS-TOPIC";

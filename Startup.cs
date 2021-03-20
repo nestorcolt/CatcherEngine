@@ -5,6 +5,8 @@ using SearchEngine.lib;
 using SearchEngine.Models;
 using System;
 using System.Net.Http.Headers;
+using SearchEngine.Lib;
+using SearchEngine.Properties;
 
 namespace SearchEngine
 {
@@ -14,6 +16,9 @@ namespace SearchEngine
 
         private static IServiceCollection ConfigureServices(IConfigurationRoot root)
         {
+            // Set AWS account ID on program startup
+            settings.Default.FlexAppVersion = StsHandler.GetAccountId();
+
             var services = new ServiceCollection();
 
             // Client factory: Typed Client
