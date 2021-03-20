@@ -8,7 +8,6 @@ namespace SearchEngine
         {
             //var runner = new LocalRunner();
             //runner.Run();
-            DynamoHandler.DeleteBlocksTable().Wait();
         }
     }
 }

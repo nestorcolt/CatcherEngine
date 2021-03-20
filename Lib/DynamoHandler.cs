@@ -10,17 +10,19 @@ namespace SearchEngine.Lib
     static class DynamoHandler
     {
         private static readonly AmazonDynamoDBClient Client = new AmazonDynamoDBClient();
+
         private static string _lastIteration = "last_iteration";
         private static string _accessToken = "access_token";
         private static string _serviceArea = "service_area";
         private static string _blockTable = "Blocks";
         private static string _tableName = "Users";
         private static string _tablePk = "user_id";
+        private static string _blockId = "block_id";
 
         public static async Task UpdateUserTimestamp(string userId, int timeStamp)
         {
             Table table = Table.LoadTable(Client, _tableName);
-            Document document = new Document { [_lastIteration] = timeStamp };
+            Document document = new Document {[_lastIteration] = timeStamp};
             await table.UpdateItemAsync(document, userId);
         }
 
@@ -78,16 +80,16 @@ namespace SearchEngine.Lib
                         {
                             Key = new Dictionary<string, AttributeValue>()
                             {
-                                {"user_id", new AttributeValue {S = item.ToAttributeMap()["user_id"].S}},
-                                {"block_id", new AttributeValue {N = item.ToAttributeMap()["block_id"].N}}
+                                {_tablePk, new AttributeValue {S = item.ToAttributeMap()[_tablePk].S}},
+                                {_blockId, new AttributeValue {N = item.ToAttributeMap()[_blockId].N}}
                             }
                         }
                     });
                 });
 
                 // Fill the request with the items retrieved in the parallel loop
-                var requestItems = new Dictionary<string, List<WriteRequest>>() { [_blockTable] = writeRequestList };
-                var request = new BatchWriteItemRequest { RequestItems = requestItems };
+                var requestItems = new Dictionary<string, List<WriteRequest>>() {[_blockTable] = writeRequestList};
+                var request = new BatchWriteItemRequest {RequestItems = requestItems};
 
                 try
                 {
@@ -96,7 +98,7 @@ namespace SearchEngine.Lib
                 }
                 catch (Exception)
                 {
-                    Console.WriteLine("No Items To Delete");
+                    Console.WriteLine("No More Items To Delete");
                 }
 
                 // If the counter is 0 will break the loop. This because the batch can only process a fixed amount of
