@@ -1,7 +1,7 @@
 ﻿using Amazon.Lambda.Core;
-using System.Threading.Tasks;
 using Amazon.Lambda.SNSEvents;
 using CloudLibrary.Lib;
+using System.Threading.Tasks;
 
 namespace SearchEngine.Serverless
 {

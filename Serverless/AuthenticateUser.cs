@@ -1,12 +1,12 @@
 ﻿using Amazon.Lambda.Core;
+using Amazon.Lambda.SNSEvents;
+using CloudLibrary.Lib;
+using CloudLibrary.Models;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Net;
 using System.Threading.Tasks;
-using Amazon.Lambda.SNSEvents;
-using CloudLibrary.Models;
-using Newtonsoft.Json.Linq;
-using CloudLibrary.Lib;
 
 /*
  * The authenticator is in charge of getting the new access token every time is necessary
