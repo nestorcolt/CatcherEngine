@@ -1,12 +1,12 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using SearchEngine.Controllers;
-using SearchEngine.lib;
-using SearchEngine.Models;
+using CloudLibrary.Properties;
 using System;
 using System.Net.Http.Headers;
-using SearchEngine.Lib;
-using SearchEngine.Properties;
+using CloudLibrary.Controllers;
+using CloudLibrary.lib;
+using CloudLibrary.Models;
+using CloudLibrary.Lib;
 
 namespace SearchEngine
 {

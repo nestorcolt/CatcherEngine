@@ -31,21 +31,6 @@
 			}
 		},
 
-		"CheckIpAddress": {
-			"Type": "AWS::Serverless::Function",
-			"Properties": {
-				"FunctionName": "CheckIpAddress",
-				"Handler": "SearchEngine::SearchEngine.Serverless.CheckIp::FunctionHandler",
-				"Runtime": "dotnetcore3.1",
-				"CodeUri": "",
-				"MemorySize": 1024,
-				"Timeout": 8,
-				"Policies": [
-					"AWSLambdaBasicExecutionRole"
-				]
-			}
-		},
-
 		"CleanUpBlocksTable": {
 			"Type": "AWS::Serverless::Function",
 			"Properties": {
