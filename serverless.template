@@ -1,90 +1,109 @@
 {
-	"AWSTemplateFormatVersion": "2010-09-09",
-	"Transform": "AWS::Serverless-2016-10-31",
-	"Description": "An AWS Serverless Application.",
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Transform": "AWS::Serverless-2016-10-31",
+  "Description": "An AWS Serverless Application.",
 
-	"Resources": {
-		"SearchEngineGetUserBlocks": {
-			"Type": "AWS::Serverless::Function",
-			"Properties": {
-				"FunctionName": "SearchEngineGetUserBlocks",
-				"Handler": "SearchEngine::SearchEngine.Serverless.GetUserBlocks::FunctionHandler",
-				"Runtime": "dotnetcore3.1",
-				"CodeUri": "",
-				"MemorySize": 1024,
-				"Timeout":20,
-				"Policies": [
-					"AWSLambdaBasicExecutionRole",
-					"AmazonSNSFullAccess",
-					"AmazonSQSFullAccess",
-					"AmazonDynamoDBFullAccess",
-					"CloudWatchLogsFullAccess"
-				],
-				"Events": {
-					"SnsEvent": {
-						"Type": "SNS",
-						"Properties": {
-							"Topic": { "Fn::Sub": "arn:aws:sns:us-east-1:${AWS::AccountId}:SE-START-TOPIC" }
-						}
-					}
-				}
-			}
-		},
+  "Globals": {
+    "Function": {
+        "Layers": [ "arn:aws:lambda:us-east-1:436783151981:layer:DotnetCloudLibrary:7" ]
+    }
+  },
 
-		"CleanUpBlocksTable": {
-			"Type": "AWS::Serverless::Function",
-			"Properties": {
-				"FunctionName": "CleanUpBlocksTable",
-				"Handler": "SearchEngine::SearchEngine.Serverless.CleanUpBlocksTable::FunctionHandler",
-				"Runtime": "dotnetcore3.1",
-				"CodeUri": "",
-				"Description": "Remove all items from the Blocks table. Implemented with C# for performance", 
-				"MemorySize": 2048,
-				"Timeout": 20,
-				"Policies": [
-					"AWSLambdaBasicExecutionRole",
-					"AmazonSNSFullAccess",
-					"AmazonDynamoDBFullAccess"
-				],
-				"Events": {
-					"SnsEvent": {
-						"Type": "SNS",
-						"Properties": {
-							"Topic": { "Fn::Sub": "arn:aws:sns:us-east-1:${AWS::AccountId}:DropBlocksTable" }
-						}
-					}
-				}
-			}
-		},
+  "Resources": {
+    "SearchEngineGetUserBlocks": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "FunctionName": "SearchEngineGetUserBlocks",
+        "Handler":
+          "SearchEngine::SearchEngine.Serverless.GetUserBlocks::FunctionHandler",
+        "Runtime": "dotnetcore3.1",
+        "CodeUri": "",
+        "MemorySize": 1024,
+        "Timeout": 20,
+        "Policies": [
+          "AWSLambdaBasicExecutionRole",
+          "AmazonSNSFullAccess",
+          "AmazonSQSFullAccess",
+          "AmazonDynamoDBFullAccess",
+          "CloudWatchLogsFullAccess"
+        ],
+        "Events": {
+          "SnsEvent": {
+            "Type": "SNS",
+            "Properties": {
+              "Topic": {
+                "Fn::Sub":
+                  "arn:aws:sns:us-east-1:${AWS::AccountId}:SE-START-TOPIC"
+              }
+            }
+          }
+        }
+      }
+    },
 
-		"SearchEngineAuthenticateUser": {
-			"Type": "AWS::Serverless::Function",
-			"Properties": {
-				"FunctionName": "SearchEngineAuthenticateUser",
-				"Handler": "SearchEngine::SearchEngine.Serverless.AuthenticateUser::FunctionHandler",
-				"Runtime": "dotnetcore3.1",
-				"CodeUri": "",
-				"MemorySize": 1024,
-				"Timeout": 20,
-				"Policies": [
-					"AWSLambdaBasicExecutionRole",
-					"AmazonSQSFullAccess",
-					"AmazonSNSFullAccess",
-					"AmazonDynamoDBFullAccess",
-					"CloudWatchLogsFullAccess"
-				],
-				"Events": {
-					"SnsEvent": {
-						"Type": "SNS",
-						"Properties": {
-							"Topic": { "Fn::Sub": "arn:aws:sns:us-east-1:${AWS::AccountId}:SE-AUTHENTICATE-TOPIC" }
-						}
-					}
-				}
-			}
-		}
-	},
+    "CleanUpBlocksTable": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "FunctionName": "CleanUpBlocksTable",
+        "Handler":
+          "SearchEngine::SearchEngine.Serverless.CleanUpBlocksTable::FunctionHandler",
+        "Runtime": "dotnetcore3.1",
+        "CodeUri": "",
+        "Description":
+          "Remove all items from the Blocks table. Implemented with C# for performance",
+        "MemorySize": 2048,
+        "Timeout": 20,
+        "Policies": [
+          "AWSLambdaBasicExecutionRole",
+          "AmazonSNSFullAccess",
+          "AmazonDynamoDBFullAccess"
+        ],
+        "Events": {
+          "SnsEvent": {
+            "Type": "SNS",
+            "Properties": {
+              "Topic": {
+                "Fn::Sub":
+                  "arn:aws:sns:us-east-1:${AWS::AccountId}:DropBlocksTable"
+              }
+            }
+          }
+        }
+      }
+    },
 
-	"Outputs": {
-	}
+    "SearchEngineAuthenticateUser": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "FunctionName": "SearchEngineAuthenticateUser",
+        "Handler":
+          "SearchEngine::SearchEngine.Serverless.AuthenticateUser::FunctionHandler",
+        "Runtime": "dotnetcore3.1",
+        "CodeUri": "",
+        "MemorySize": 1024,
+        "Timeout": 20,
+        "Policies": [
+          "AWSLambdaBasicExecutionRole",
+          "AmazonSQSFullAccess",
+          "AmazonSNSFullAccess",
+          "AmazonDynamoDBFullAccess",
+          "CloudWatchLogsFullAccess"
+        ],
+        "Events": {
+          "SnsEvent": {
+            "Type": "SNS",
+            "Properties": {
+              "Topic": {
+                "Fn::Sub":
+                  "arn:aws:sns:us-east-1:${AWS::AccountId}:SE-AUTHENTICATE-TOPIC"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "Outputs": {
+  }
 }

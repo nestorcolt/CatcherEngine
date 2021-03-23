@@ -1,12 +1,11 @@
 ﻿using CloudLibrary.Controllers;
 using CloudLibrary.lib;
-using CloudLibrary.Lib;
 using CloudLibrary.Models;
-using CloudLibrary.Properties;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Net.Http.Headers;
+using SearchEngine.Configuration;
 
 namespace SearchEngine
 {
@@ -16,9 +15,6 @@ namespace SearchEngine
 
         private static IServiceCollection ConfigureServices(IConfigurationRoot root)
         {
-            // Set AWS account ID on program startup
-            settings.Default.FlexAppVersion = StsHandler.GetAccountId();
-
             var services = new ServiceCollection();
 
             // Client factory: Typed Client

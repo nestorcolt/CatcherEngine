@@ -13,8 +13,21 @@
 	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
+  <ItemGroup>
+	<None Remove="appsettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<Content Include="appsettings.json">
+	  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	</Content>
+  </ItemGroup>
+
 	<ItemGroup>
 	  <ProjectReference Include="..\CloudLibrary\CloudLibrary.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
 	</ItemGroup>
 
 </Project>
