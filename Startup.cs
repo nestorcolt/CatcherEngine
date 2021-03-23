@@ -3,9 +3,9 @@ using CloudLibrary.lib;
 using CloudLibrary.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SearchEngine.Configuration;
 using System;
 using System.Net.Http.Headers;
-using SearchEngine.Configuration;
 
 namespace SearchEngine
 {
