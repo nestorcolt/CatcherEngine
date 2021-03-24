@@ -15,6 +15,7 @@ namespace SearchEngine
 
         private static IServiceCollection ConfigureServices(IConfigurationRoot root)
         {
+            // Init services for DI
             var services = new ServiceCollection();
 
             // Client factory: Typed Client
