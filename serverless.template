@@ -5,6 +5,7 @@
 
 	"Globals": {
 		"Function": {
+			"Layers": ["arn:aws:lambda:us-east-1:436783151981:layer:DotnetCloudLibrary:11"],
 			"Fn::Transform": "DotnetLayersCloudFormationMacro"
 		}
 	},
@@ -32,34 +33,6 @@
 						"Properties": {
 							"Topic": {
 								"Fn::Sub": "arn:aws:sns:us-east-1:${AWS::AccountId}:SE-START-TOPIC"
-							}
-						}
-					}
-				}
-			}
-		},
-
-		"CleanUpBlocksTable": {
-			"Type": "AWS::Serverless::Function",
-			"Properties": {
-				"FunctionName": "CleanUpBlocksTable",
-				"Handler": "SearchEngine::SearchEngine.Serverless.CleanUpBlocksTable::FunctionHandler",
-				"Runtime": "dotnetcore3.1",
-				"CodeUri": "",
-				"Description": "Remove all items from the Blocks table. Implemented with C# for performance",
-				"MemorySize": 2048,
-				"Timeout": 20,
-				"Policies": [
-					"AWSLambdaBasicExecutionRole",
-					"AmazonSNSFullAccess",
-					"AmazonDynamoDBFullAccess"
-				],
-				"Events": {
-					"SnsEvent": {
-						"Type": "SNS",
-						"Properties": {
-							"Topic": {
-								"Fn::Sub": "arn:aws:sns:us-east-1:${AWS::AccountId}:DropBlocksTable"
 							}
 						}
 					}
