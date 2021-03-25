@@ -19,7 +19,7 @@
 				"Runtime": "dotnetcore3.1",
 				"CodeUri": "",
 				"MemorySize": 1024,
-				"Timeout": 3,
+				"Timeout": 2,
 				"Policies": [
 					"AWSLambdaBasicExecutionRole",
 					"AmazonSNSFullAccess",
