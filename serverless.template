@@ -6,7 +6,7 @@
 	"Globals": {
 		"Function": {
 			"Fn::Transform": "DotnetLayersCloudFormationMacro",
-			"Layers": ["arn:aws:lambda:us-east-1:320132171574:layer:DotnetCloudLibrary:10"]
+			"Layers": ["arn:aws:lambda:us-east-1:320132171574:layer:DotnetCloudLibrary:11"]
 		}
 	},
 
