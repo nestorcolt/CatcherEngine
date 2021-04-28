@@ -49,6 +49,8 @@ namespace SearchEngine.Serverless
                 await DynamoHandler.UpdateUserTimestamp(userDto.UserId, _blockCatcher.GetTimestamp());
             }
 
+            Console.WriteLine($"lap: {userDto.UserId} result: {result}");
+
             return "OK";
         }
     }
