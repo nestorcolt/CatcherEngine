@@ -18,8 +18,8 @@
 				"Handler": "SearchEngine::SearchEngine.Serverless.GetUserBlocks::FunctionHandler",
 				"Runtime": "dotnetcore3.1",
 				"CodeUri": "",
-				"MemorySize": 1024,
-				"Timeout": 4,
+				"MemorySize": 2048,
+				"Timeout": 2,
 				"Policies": [
 					"AWSLambdaBasicExecutionRole",
 					"AmazonSNSFullAccess",
