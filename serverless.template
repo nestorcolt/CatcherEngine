@@ -6,7 +6,7 @@
 	"Globals": {
 		"Function": {
 			"Fn::Transform": "DotnetLayersCloudFormationMacro",
-			"Layers": ["arn:aws:lambda:us-east-1:320132171574:layer:DotnetCloudLibrary:11"]
+			"Layers": ["arn:aws:lambda:us-east-1:320132171574:layer:DotnetCloudLibrary:27"]
 		}
 	},
 
@@ -18,8 +18,8 @@
 				"Handler": "SearchEngine::SearchEngine.Serverless.GetUserBlocks::FunctionHandler",
 				"Runtime": "dotnetcore3.1",
 				"CodeUri": "",
-				"MemorySize": 2048,
-				"Timeout": 2,
+				"MemorySize": 1024,
+				"Timeout": 4,
 				"Policies": [
 					"AWSLambdaBasicExecutionRole",
 					"AmazonSNSFullAccess",
@@ -48,7 +48,7 @@
 				"Runtime": "dotnetcore3.1",
 				"CodeUri": "",
 				"MemorySize": 1024,
-				"Timeout": 4,
+				"Timeout": 5,
 				"Policies": [
 					"AWSLambdaBasicExecutionRole",
 					"AmazonSQSFullAccess",
