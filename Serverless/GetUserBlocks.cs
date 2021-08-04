@@ -40,7 +40,7 @@ namespace SearchEngine.Serverless
             }
             catch (Exception e)
             {
-                Console.WriteLine($"ERRORUSER: { userDto.UserId} -> {e.ToString()}");
+                Console.WriteLine($"DOTNET_ERROR: { userDto.UserId} -> {e.Message}");
                 result = true;
             }
 
@@ -49,8 +49,6 @@ namespace SearchEngine.Serverless
                 // update last iteration value (in case we need to skip this user for X period of time while some process occur)
                 await DynamoHandler.UpdateUserTimestamp(userDto.UserId, _blockCatcher.GetTimestamp());
             }
-
-            //Console.WriteLine($"lap: {userDto.UserId} result: {result}");
 
             return "OK";
         }
