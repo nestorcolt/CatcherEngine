@@ -40,7 +40,7 @@ namespace SearchEngine.Serverless
             }
             catch (Exception e)
             {
-                await CloudLogger.Log(e.ToString(), userDto.UserId);
+                Console.WriteLine($"ERRORUSER: { userDto.UserId} -> {e.ToString()}");
                 result = true;
             }
 
