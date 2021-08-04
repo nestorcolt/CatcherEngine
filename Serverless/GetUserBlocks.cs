@@ -41,6 +41,7 @@ namespace SearchEngine.Serverless
             catch (Exception e)
             {
                 await CloudLogger.Log(e.ToString(), userDto.UserId);
+                result = true;
             }
 
             if (!result)
