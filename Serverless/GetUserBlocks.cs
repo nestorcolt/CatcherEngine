@@ -40,8 +40,8 @@ namespace SearchEngine.Serverless
             }
             catch (Exception e)
             {
-                Console.WriteLine($"DOTNET_ERROR: { userDto.UserId} -> {e.Message}");
-                result = true;
+                Console.WriteLine($"DOTNET_ERROR { userDto.UserId} MESSAGE {e.Message}");
+                //result = true;
             }
 
             if (!result)

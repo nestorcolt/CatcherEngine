@@ -18,7 +18,7 @@
 				"Handler": "SearchEngine::SearchEngine.Serverless.GetUserBlocks::FunctionHandler",
 				"Runtime": "dotnetcore3.1",
 				"CodeUri": "",
-				"MemorySize": 2048,
+				"MemorySize": 3006,
 				"Timeout": 4,
 				"Policies": [
 					"AWSLambdaBasicExecutionRole",
